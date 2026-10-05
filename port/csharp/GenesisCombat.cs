@@ -10,7 +10,7 @@
 //   AttacksThisRound ROM 0x107E8  attacks per slot per round from the "attacks x2" value and the round parity
 //
 // Conventions of the combat engine (26-byte slots from 0xC470 party / 0xC540 enemies, real byte offsets):
-//   +1 flags (bit 0 = side), +3 attack value, +4 armor, +5 rear armor, +0x10 facing 0..7, +0x12 x, +0x13 y
+//   +1 flags (bit 0 SET = party, clear = monsters), +3 attack value, +4 armor, +5 rear armor, +0x10 facing 0..7, +0x12 x, +0x13 y
 //   character/monster record (214 bytes): +0x18 career (4 = rogue), +0x19 level, +0xAE first gear slot (item id byte)
 // Directions: 0..7 with 0 = the axis direction used by the ROM for "dy>=0, |dx| small" etc.; only differences matter for
 // armor ((bearing - facing) & 7).

@@ -27,7 +27,7 @@ Vectors are random-state runs, so a C# port that matches them follows the ROM ex
 * **There is no fixed order.** Every combat slot has a countdown word (+0x14 speed, +0x15 a d100 tie-break). The engine keeps picking the live
   creature with the highest word, lets it act (RAM [0xCA20] = that slot), and when nobody has time left starts a new round ([0xD50C] + 1) and re-rolls.
   The party acts in the order the player chooses from the menu, but only among creatures whose word is currently highest.
-* **Initiative** = `INIT[DEX]` (table 0x7786, DEX 14 -> +? see table) + d10, -8 for the surprised side, minimum 2; tie-break d100; ties go to the lower slot.
+* **Initiative** = `INIT[DEX]` (table 0x7786: DEX 1-5 = -6,-4,-3,-2,-1; DEX 6-15 = 0; 16 = +1; 17-18 = +2; 19-20 = +3; 21-22 = +4) + d10, -8 for the surprised side, minimum 2; tie-break d100; ties go to the lower slot.
   **Slot byte +1 bit 0 SET = party.** `[0x9DC1]` = 1 delays the party, 2 delays the monsters (the earlier poke test results now make sense).
 * **Round start also**: sets slot +0x16 = HP*2 (quartered when the character fails skill 4 and [0x97DC] bit 4 is set), copies "attacks x2" to the
   attacks-left bytes (+0x18/+0x19, halved with the round parity), and sets bit <slot> in the backstab mask [0xD4FD] for party members whose

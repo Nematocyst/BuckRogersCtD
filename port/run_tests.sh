@@ -1,0 +1,15 @@
+#!/bin/sh
+# Differential tests: C# ports vs the real ROM code.  usage: ./run_tests.sh ROM.md [--regen]
+#   --regen  re-generate the vectors by running the ROM routines in Unicorn (pip install unicorn)
+set -e
+ROM="$1"; cd "$(dirname "$0")"
+if [ "$2" = "--regen" ]; then
+  python3 tools/gen_rng_vectors.py "$ROM" tests/rng_vectors.json
+  python3 tools/gen_combat_vectors.py "$ROM" tests/combat_vectors.json
+  python3 tools/gen_damage_vectors.py "$ROM" tests/damage_vectors.json
+fi
+STUB=../genesis_maps/unity/tests/UnityStub.cs
+mcs -out:tests/rngtests.exe csharp/GenesisRng.cs $STUB tests/RngTests.cs
+mcs -out:tests/combattests.exe csharp/GenesisRng.cs csharp/GenesisCombat.cs $STUB tests/CombatTests.cs
+mono tests/rngtests.exe tests/rng_vectors.json "$ROM"
+mono tests/combattests.exe tests/combat_vectors.json "$ROM" tests/damage_vectors.json

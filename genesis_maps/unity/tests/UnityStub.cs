@@ -32,6 +32,7 @@ namespace UnityEngine
         {
             if (j == null) return null;
             if (t == typeof(int)) return Convert.ToInt32(j, CultureInfo.InvariantCulture);
+            if (t == typeof(long)) return Convert.ToInt64(j, CultureInfo.InvariantCulture);
             if (t == typeof(string)) return (string)j;
             if (t == typeof(bool)) return (bool)j;
             if (t == typeof(float)) return Convert.ToSingle(j, CultureInfo.InvariantCulture);
@@ -60,9 +61,9 @@ namespace UnityEngine
                 if (c == '[') { i++; var l = new List<object>(); Ws(); if (s[i] == ']') { i++; return l; }
                     while (true) { l.Add(Value()); Ws(); if (s[i++] == ']') return l; } }
                 if (c == '"') return Str();
-                if (s.Substring(i, 4) == "true") { i += 4; return true; }
-                if (s.Substring(i, 5) == "false") { i += 5; return false; }
-                if (s.Substring(i, 4) == "null") { i += 4; return null; }
+                if (string.CompareOrdinal(s, i, "true", 0, 4) == 0) { i += 4; return true; }
+                if (string.CompareOrdinal(s, i, "false", 0, 5) == 0) { i += 5; return false; }
+                if (string.CompareOrdinal(s, i, "null", 0, 4) == 0) { i += 4; return null; }
                 int st = i; while (i < s.Length && "+-0123456789.eE".IndexOf(s[i]) >= 0) i++;
                 return s.Substring(st, i - st);
             }

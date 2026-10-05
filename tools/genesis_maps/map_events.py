@@ -10,8 +10,10 @@ Cells outside the explorable area (plane-2 bit 7 clear) can carry codes too, so 
 This script lists, per map, every event code with its cells, its handler label and a short summary of the
 handler (first text printed, monsters loaded, module jumps, treasure).
 
-usage: python map_events.py ECL_ASM_DIR genesis_maps.json OUT.md [OUT.json]"""
+usage: python map_events.py ECL_ASM_DIR genesis_maps.json OUT.md [OUT.json] [DATA_DIR with scripts.json, monsters.json, items.json from unity_groundwork/json; default genesis_maps/data]"""
 import sys, re, json, os, collections
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from describe import Describer
 
 LABEL = re.compile(r'^(L[0-9A-F]{4}):')
 INSTR = re.compile(r'^\s+([0-9A-F]{4})\s+((?:[0-9a-f]{2} )*[0-9a-f]{2})\s+([A-Z0-9]+)\s*(.*)$')
@@ -92,6 +94,9 @@ def summarize(ins, labels, order, label, limit=14):
 
 if __name__ == '__main__':
     asmdir, mapjson, outmd = sys.argv[1:4]
+    desc = Describer(sys.argv[5] if len(sys.argv) > 5 else os.path.join(os.path.dirname(mapjson), 'data'))
+    D = lambda mod, lab: desc.describe(mod, int(lab[1:], 16))
+    short = lambda t: (t[:300] + '...') if len(t) > 300 else t
     maps = {m['id']: m for m in json.load(open(mapjson))['maps']}
     md, result = ['# Genesis map events (plane 2 -> ECL handlers)\n',
                   'Search events: plane-2 byte & 0x3F indexes (0-based) the ONGOTO table at the start of the module\'s search entry. '
@@ -122,11 +127,20 @@ if __name__ == '__main__':
             var, n, targets, kind = d
             md.append(f'Search: `{kind} {var}`, {n} targets, code 0 and codes >= {n} fall through.\n')
             md.append('| code | cells (x,y); `o` = outside area (bit 7 clear) | handler | summary |\n|---|---|---|---|')
+            stp = step_events(ins, order)
             for code in sorted(cells):
                 h = targets[code] if code < n else '(falls through)'
-                sm = summarize(ins, labels, order, h) if h in labels else ''
-                md.append(f'| {code:02X} | {pos(cells[code])} | {h} | {sm} |')
-                rec['search'][code] = dict(cells=[(x, y) for x, y, _ in cells[code]], handler=h, summary=sm)
+                dd = D(mod, h) if h in labels else dict(text='', texts=[])
+                sm = dd['text']
+                if h == '(falls through)':   # handled by a step (run-entry) test instead
+                    via = [(v, fc, lb) for var, v, fc, c, lb in stp if (v == code if var == '[9E6F]' else v & 63 == code) and lb in labels]
+                    if via:
+                        sm = 'step event: ' + ' | '.join((('facing ' + 'NESW'[fc] + ': ') if fc is not None else '') + D(mod, lb)['text'] for _, fc, lb in via[:2])
+                        dd = dict(texts=sum((D(mod, lb)['texts'] for _, _, lb in via), []))
+                    else:
+                        sm = 'no search event (code beyond the table)'
+                md.append(f'| {code:02X} | {pos(cells[code])} | {h} | {short(sm).replace("|", "/")} |')
+                rec['search'][code] = dict(cells=[(x, y) for x, y, _ in cells[code]], handler=h, summary=sm, texts=dd['texts'])
             unref = sorted({targets[i] for i in range(1, n)} - {targets[c] for c in cells if c < n})
             md.append(f'\nHandlers no cell can reach: {", ".join(unref) or "none"}')
             beyond = sorted(c for c in cells if c >= n)
@@ -140,9 +154,10 @@ if __name__ == '__main__':
             for var, val, fac, cond, lab in st:
                 cs = [(i % 16, i // 16, m['exists'][i]) for i in range(256)
                       if (m['special'][i] == val if var == '[9AF9]' else (m['special'][i] & 0x3F) == val)]
-                sm = summarize(ins, labels, order, lab) if lab in labels else ''
-                md.append(f'| {var}{"==" if cond == "EQ" else "!="}{val} | {"" if fac is None else "NESW"[fac]} | {lab} | {pos(cs) or "(none)"} | {sm} |')
-                rec['step'].append(dict(test=f'{var}{cond}{val}', facing=fac, handler=lab, cells=[(x, y) for x, y, _ in cs], summary=sm))
+                dd = D(mod, lab) if lab in labels else dict(text='', texts=[])
+                sm = dd['text']
+                md.append(f'| {var}{"==" if cond == "EQ" else "!="}{val} | {"" if fac is None else "NESW"[fac]} | {lab} | {pos(cs) or "(none)"} | {short(sm).replace("|", "/")} |')
+                rec['step'].append(dict(test=f'{var}{cond}{val}', facing=fac, handler=lab, cells=[(x, y) for x, y, _ in cs], summary=sm, texts=dd['texts']))
         result[f'{mod:02X}'] = rec
     open(outmd, 'w').write('\n'.join(md) + '\n')
     if len(sys.argv) > 4: json.dump(result, open(sys.argv[4], 'w'), indent=1)

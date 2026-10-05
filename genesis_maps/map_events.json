@@ -1,0 +1,4086 @@
+{
+ "10": {
+  "1": {
+   "cells": [
+    [
+     4,
+     3
+    ],
+    [
+     5,
+     3
+    ],
+    [
+     6,
+     3
+    ],
+    [
+     8,
+     3
+    ],
+    [
+     3,
+     4
+    ],
+    [
+     9,
+     4
+    ],
+    [
+     3,
+     5
+    ],
+    [
+     11,
+     5
+    ],
+    [
+     3,
+     6
+    ],
+    [
+     11,
+     6
+    ],
+    [
+     3,
+     7
+    ],
+    [
+     3,
+     8
+    ],
+    [
+     12,
+     8
+    ]
+   ],
+   "handler": "L6E0D",
+   "summary": "\"THE HEAT FROM THE EXPLOSIONS DRIVES YOU BACK. YOU ARE VERY EXPOSED ...\""
+  },
+  "2": {
+   "cells": [
+    [
+     7,
+     10
+    ],
+    [
+     8,
+     10
+    ],
+    [
+     7,
+     11
+    ],
+    [
+     8,
+     11
+    ]
+   ],
+   "handler": "L6E22",
+   "summary": "ENCEXIT"
+  },
+  "3": {
+   "cells": [
+    [
+     6,
+     13
+    ]
+   ],
+   "handler": "L6E23",
+   "summary": "\"MEN'S ROOM\""
+  },
+  "4": {
+   "cells": [
+    [
+     5,
+     13
+    ]
+   ],
+   "handler": "L6E28",
+   "summary": "\"WOMEN'S ROOM\""
+  },
+  "5": {
+   "cells": [
+    [
+     6,
+     14
+    ]
+   ],
+   "handler": "L6E2D",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     5,
+     14
+    ]
+   ],
+   "handler": "L6E47",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     2,
+     14
+    ]
+   ],
+   "handler": "L6E79",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     1,
+     14
+    ]
+   ],
+   "handler": "L6EA8",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     1,
+     13
+    ]
+   ],
+   "handler": "L6EDF",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     2,
+     10
+    ]
+   ],
+   "handler": "L6F0B",
+   "summary": "\"LECTURE HALL\""
+  },
+  "11": {
+   "cells": [
+    [
+     1,
+     10
+    ]
+   ],
+   "handler": "L6F10",
+   "summary": ""
+  },
+  "12": {
+   "cells": [
+    [
+     4,
+     10
+    ]
+   ],
+   "handler": "L6F3A",
+   "summary": ""
+  },
+  "13": {
+   "cells": [
+    [
+     11,
+     10
+    ]
+   ],
+   "handler": "L6F62",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     13,
+     9
+    ]
+   ],
+   "handler": "L6FA2",
+   "summary": "\"AUTHORIZED PERSONNEL ONLY\""
+  },
+  "15": {
+   "cells": [
+    [
+     14,
+     9
+    ]
+   ],
+   "handler": "L6FA7",
+   "summary": "\"YOU BURST IN AMONGST A SQUAD OF TERRINES. IN THE BACKGROUND YOU CAN...\" | Terrine Warrior | Terrine Leader | COMBAT"
+  },
+  "16": {
+   "cells": [
+    [
+     15,
+     10
+    ]
+   ],
+   "handler": "L6FD0",
+   "summary": "\"WITH ONE HAND, THE TECHNICIAN BEGINS FIRING AT YOU. HE IS STILL MOD...\" | \"IF YOU SHOOT AT HIM YOU MAY DAMAGE THE CONTROLS WHICH OPERATE THE B...\""
+  },
+  "17": {
+   "cells": [
+    [
+     13,
+     13
+    ]
+   ],
+   "handler": "L71BF",
+   "summary": "\"MEDICAL OFFICER\""
+  },
+  "18": {
+   "cells": [
+    [
+     13,
+     14
+    ]
+   ],
+   "handler": "L71C4",
+   "summary": "\"THE ROOM IS FULL OF WOUNDED TROOPS. AN ORDERLY SHOUTS, 'WE'RE FULL ...\" | \"YOU HEAR AN EXPLOSION.\" | ENCEXIT"
+  },
+  "19": {
+   "cells": [
+    [
+     10,
+     13
+    ]
+   ],
+   "handler": "L7249",
+   "summary": "\"WAITING ROOM\""
+  },
+  "20": {
+   "cells": [
+    [
+     10,
+     14
+    ]
+   ],
+   "handler": "L724E",
+   "summary": ""
+  },
+  "21": {
+   "cells": [
+    [
+     7,
+     15
+    ],
+    [
+     8,
+     15
+    ]
+   ],
+   "handler": "L6E22",
+   "summary": "ENCEXIT"
+  },
+  "22": {
+   "cells": [
+    [
+     6,
+     7
+    ]
+   ],
+   "handler": "L7284",
+   "summary": ""
+  },
+  "23": {
+   "cells": [
+    [
+     10,
+     5
+    ]
+   ],
+   "handler": "L729E",
+   "summary": ""
+  },
+  "24": {
+   "cells": [
+    [
+     10,
+     7
+    ],
+    [
+     11,
+     7
+    ]
+   ],
+   "handler": "L72B8",
+   "summary": ""
+  },
+  "25": {
+   "cells": [
+    [
+     2,
+     13
+    ]
+   ],
+   "handler": "L72D2",
+   "summary": "\"TO THE SOUTH IS THE OFFICER'S LOUNGE. \" | \"TO THE WEST IS THE CANTEEN.\""
+  },
+  "26": {
+   "cells": [
+    [
+     5,
+     5
+    ],
+    [
+     4,
+     6
+    ],
+    [
+     6,
+     6
+    ],
+    [
+     5,
+     7
+    ]
+   ],
+   "handler": "L72DC",
+   "summary": ""
+  },
+  "27": {
+   "cells": [
+    [
+     12,
+     10
+    ]
+   ],
+   "handler": "L6E22",
+   "summary": "ENCEXIT"
+  }
+ },
+ "11": {
+  "1": {
+   "cells": [
+    [
+     2,
+     2
+    ]
+   ],
+   "handler": "L6E27",
+   "summary": ""
+  },
+  "2": {
+   "cells": [
+    [
+     1,
+     2
+    ]
+   ],
+   "handler": "L6E34",
+   "summary": "\"'TAKE A TUG OUT AND EXPLORE THE DEBRIS IN THE EARTH'S NEAR ORBIT. I...\""
+  },
+  "3": {
+   "cells": [
+    [
+     3,
+     1
+    ]
+   ],
+   "handler": "L6F02",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     3,
+     0
+    ]
+   ],
+   "handler": "L6F0F",
+   "summary": "\"'COME AGAIN!'\" | ENCEXIT"
+  },
+  "5": {
+   "cells": [
+    [
+     6,
+     1
+    ]
+   ],
+   "handler": "L6F25",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     6,
+     0
+    ]
+   ],
+   "handler": "L6F32",
+   "summary": "\"SALVATION'S MEDICS RESTORE THE ENTIRE TEAM TO PERFECT HEALTH.\""
+  },
+  "7": {
+   "cells": [
+    [
+     9,
+     1
+    ]
+   ],
+   "handler": "L6F70",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     9,
+     0
+    ]
+   ],
+   "handler": "L6F7D",
+   "summary": "\"YOU ENTER THE SALVATION LOUNGE.\" | \"YOU ARE IN THE SALVATION LOUNGE.\""
+  },
+  "9": {
+   "cells": [
+    [
+     11,
+     2
+    ]
+   ],
+   "handler": "L7110",
+   "summary": "\"THIS HATCHWAY LEADS TO THE ROCKETBAY.\""
+  },
+  "10": {
+   "cells": [
+    [
+     12,
+     2
+    ]
+   ],
+   "handler": "L7120",
+   "summary": "\"YOU ARE IN THE SALVATION PORT AREA.\" | \"LAUNCH ACCESS DENIED UNTIL YOU HAVE BEEN BRIEFED. REPORT TO HQ.\""
+  },
+  "11": {
+   "cells": [
+    [
+     6,
+     3
+    ]
+   ],
+   "handler": "(falls through)",
+   "summary": ""
+  }
+ },
+ "20": {
+  "1": {
+   "cells": [
+    [
+     14,
+     5
+    ],
+    [
+     5,
+     10
+    ]
+   ],
+   "handler": "L6B82",
+   "summary": ""
+  },
+  "2": {
+   "cells": [
+    [
+     13,
+     5
+    ],
+    [
+     4,
+     10
+    ]
+   ],
+   "handler": "L7029",
+   "summary": ""
+  },
+  "3": {
+   "cells": [
+    [
+     13,
+     4
+    ],
+    [
+     3,
+     8
+    ]
+   ],
+   "handler": "L704F",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     12,
+     4
+    ],
+    [
+     2,
+     10
+    ]
+   ],
+   "handler": "L706D",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     12,
+     5
+    ],
+    [
+     0,
+     10
+    ]
+   ],
+   "handler": "L708B",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     12,
+     6
+    ],
+    [
+     14,
+     11
+    ]
+   ],
+   "handler": "L70A9",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     13,
+     6
+    ],
+    [
+     13,
+     10
+    ]
+   ],
+   "handler": "L70C7",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     12,
+     7
+    ],
+    [
+     14,
+     10
+    ]
+   ],
+   "handler": "L70EA",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     13,
+     7
+    ],
+    [
+     13,
+     8
+    ]
+   ],
+   "handler": "L7108",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     15,
+     3
+    ],
+    [
+     15,
+     7
+    ],
+    [
+     14,
+     8
+    ]
+   ],
+   "handler": "L700F",
+   "summary": ""
+  },
+  "11": {
+   "cells": [
+    [
+     7,
+     0
+    ],
+    [
+     15,
+     0
+    ],
+    [
+     5,
+     8
+    ],
+    [
+     11,
+     8
+    ],
+    [
+     15,
+     8
+    ],
+    [
+     3,
+     13
+    ]
+   ],
+   "handler": "L7131",
+   "summary": ""
+  },
+  "12": {
+   "cells": [
+    [
+     0,
+     1
+    ],
+    [
+     8,
+     1
+    ],
+    [
+     0,
+     9
+    ],
+    [
+     6,
+     9
+    ],
+    [
+     12,
+     9
+    ]
+   ],
+   "handler": "L7213",
+   "summary": ""
+  },
+  "13": {
+   "cells": [
+    [
+     11,
+     1
+    ],
+    [
+     3,
+     14
+    ]
+   ],
+   "handler": "L74EE",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     8,
+     6
+    ],
+    [
+     2,
+     13
+    ]
+   ],
+   "handler": "L764B",
+   "summary": ""
+  },
+  "15": {
+   "cells": [
+    [
+     9,
+     7
+    ],
+    [
+     1,
+     14
+    ]
+   ],
+   "handler": "L7690",
+   "summary": ""
+  },
+  "16": {
+   "cells": [
+    [
+     11,
+     7
+    ],
+    [
+     0,
+     14
+    ]
+   ],
+   "handler": "L76CA",
+   "summary": ""
+  },
+  "17": {
+   "cells": [
+    [
+     7,
+     3
+    ],
+    [
+     2,
+     8
+    ]
+   ],
+   "handler": "L7724",
+   "summary": "\"THE ENGINES HAVE BEEN SHUT DOWN. TO RESTART REQUIRES ACCESS TO THE ...\""
+  },
+  "18": {
+   "cells": [
+    [
+     7,
+     6
+    ],
+    [
+     4,
+     8
+    ]
+   ],
+   "handler": "L7489",
+   "summary": "\"THIS ROOM IS FILLED WITH INNUMERABLE PIECES OF EQUIPMENT AND SUPPLIES.\" | \"NOTHING HERE SEEMS OF IMMEDIATE USE.\" | ENCEXIT"
+  },
+  "19": {
+   "cells": [
+    [
+     6,
+     0
+    ],
+    [
+     7,
+     1
+    ]
+   ],
+   "handler": "L74C6",
+   "summary": ""
+  },
+  "20": {
+   "cells": [
+    [
+     2,
+     7
+    ]
+   ],
+   "handler": "L795D",
+   "summary": ""
+  },
+  "21": {
+   "cells": [
+    [
+     10,
+     11
+    ]
+   ],
+   "handler": "L78C7",
+   "summary": ""
+  },
+  "22": {
+   "cells": [
+    [
+     8,
+     11
+    ]
+   ],
+   "handler": "L78F2",
+   "summary": ""
+  },
+  "23": {
+   "cells": [
+    [
+     6,
+     11
+    ]
+   ],
+   "handler": "L791D",
+   "summary": ""
+  },
+  "24": {
+   "cells": [
+    [
+     9,
+     9
+    ]
+   ],
+   "handler": "L78AD",
+   "summary": ""
+  },
+  "25": {
+   "cells": [
+    [
+     7,
+     8
+    ]
+   ],
+   "handler": "L795D",
+   "summary": ""
+  },
+  "26": {
+   "cells": [
+    [
+     6,
+     12
+    ]
+   ],
+   "handler": "L7943",
+   "summary": ""
+  },
+  "27": {
+   "cells": [
+    [
+     8,
+     12
+    ]
+   ],
+   "handler": "L7903",
+   "summary": ""
+  },
+  "28": {
+   "cells": [
+    [
+     10,
+     12
+    ]
+   ],
+   "handler": "L78D8",
+   "summary": ""
+  }
+ },
+ "23": {
+  "1": {
+   "cells": [
+    [
+     0,
+     6
+    ]
+   ],
+   "handler": "L6C11",
+   "summary": ""
+  },
+  "2": {
+   "cells": [
+    [
+     2,
+     6
+    ]
+   ],
+   "handler": "L6C53",
+   "summary": ""
+  },
+  "3": {
+   "cells": [
+    [
+     4,
+     4
+    ]
+   ],
+   "handler": "L6C6D",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     5,
+     3
+    ]
+   ],
+   "handler": "L6CA8",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     2,
+     8
+    ]
+   ],
+   "handler": "L6CC2",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     3,
+     6
+    ]
+   ],
+   "handler": "L6CF2",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     6,
+     6
+    ]
+   ],
+   "handler": "L6D16",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     7,
+     8
+    ]
+   ],
+   "handler": "L6D53",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     9,
+     8
+    ]
+   ],
+   "handler": "L6DA4",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     9,
+     4
+    ]
+   ],
+   "handler": "L6DC2",
+   "summary": "\"YOU FIND A CACHE OF EXPLOSIVES AND SEVERAL EMPTY CYLINDERS MARKED, ...\" | TREASURE 0, 8, 33, 33, 33, 33, 33, 33, 33, 33 | COMBAT"
+  }
+ },
+ "30": {
+  "1": {
+   "cells": [
+    [
+     5,
+     0
+    ]
+   ],
+   "handler": "L6E8A",
+   "summary": "\"YOU ARE IN THE AIRLOCK OF A RAM DOCKING BAY.\" | ENCEXIT"
+  },
+  "2": {
+   "cells": [
+    [
+     5,
+     2
+    ]
+   ],
+   "handler": "L6E90",
+   "summary": ""
+  },
+  "3": {
+   "cells": [
+    [
+     2,
+     3
+    ]
+   ],
+   "handler": "L6F4C",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     2,
+     2
+    ]
+   ],
+   "handler": "L6F8C",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     0,
+     8
+    ]
+   ],
+   "handler": "L6FBD",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     0,
+     11
+    ]
+   ],
+   "handler": "L6FD7",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     1,
+     13
+    ]
+   ],
+   "handler": "L7021",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     2,
+     15
+    ]
+   ],
+   "handler": "L706A",
+   "summary": "\"YOU HAVE ENTERED THE ELEVATOR. \" | \"DO YOU WANT TO DESCEND?\" | ENCEXIT"
+  },
+  "9": {
+   "cells": [
+    [
+     4,
+     14
+    ],
+    [
+     6,
+     14
+    ]
+   ],
+   "handler": "L70B1",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     9,
+     15
+    ]
+   ],
+   "handler": "L7178",
+   "summary": ""
+  },
+  "11": {
+   "cells": [
+    [
+     14,
+     11
+    ],
+    [
+     14,
+     13
+    ]
+   ],
+   "handler": "L717C",
+   "summary": ""
+  },
+  "12": {
+   "cells": [
+    [
+     14,
+     9
+    ]
+   ],
+   "handler": "L71AA",
+   "summary": ""
+  },
+  "13": {
+   "cells": [
+    [
+     8,
+     11
+    ]
+   ],
+   "handler": "L71CC",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     8,
+     3
+    ]
+   ],
+   "handler": "L71E6",
+   "summary": ""
+  },
+  "15": {
+   "cells": [
+    [
+     3,
+     6
+    ]
+   ],
+   "handler": "L727D",
+   "summary": "\"THIS IS A WORKING MEDICAL OFFICE.\""
+  },
+  "16": {
+   "cells": [
+    [
+     3,
+     10
+    ]
+   ],
+   "handler": "L728D",
+   "summary": ""
+  },
+  "17": {
+   "cells": [
+    [
+     9,
+     2
+    ]
+   ],
+   "handler": "L72B8",
+   "summary": ""
+  },
+  "18": {
+   "cells": [
+    [
+     12,
+     7
+    ]
+   ],
+   "handler": "L72F4",
+   "summary": ""
+  },
+  "19": {
+   "cells": [
+    [
+     13,
+     4
+    ],
+    [
+     14,
+     4
+    ],
+    [
+     13,
+     5
+    ],
+    [
+     14,
+     5
+    ]
+   ],
+   "handler": "L7330",
+   "summary": "\"YOU HAVE ENTERED A POWER ROOM. VARIOUS DISPLAYS LINE THE WALLS.\""
+  },
+  "20": {
+   "cells": [
+    [
+     12,
+     5
+    ]
+   ],
+   "handler": "L73A5",
+   "summary": ""
+  },
+  "21": {
+   "cells": [
+    [
+     13,
+     3
+    ]
+   ],
+   "handler": "L73BF",
+   "summary": ""
+  },
+  "22": {
+   "cells": [
+    [
+     13,
+     0
+    ]
+   ],
+   "handler": "L73DF",
+   "summary": "\"YOU HEAR THROUGH THE SWIFTLY CLOSING AIRLOCK, 'HOSTILES IN THE BAY!...\" | ENCEXIT"
+  },
+  "23": {
+   "cells": [
+    [
+     15,
+     10
+    ]
+   ],
+   "handler": "L7416",
+   "summary": ""
+  },
+  "24": {
+   "cells": [
+    [
+     8,
+     8
+    ]
+   ],
+   "handler": "L7441",
+   "summary": ""
+  },
+  "25": {
+   "cells": [
+    [
+     7,
+     14
+    ]
+   ],
+   "handler": "L7460",
+   "summary": ""
+  }
+ },
+ "31": {
+  "1": {
+   "cells": [
+    [
+     2,
+     15
+    ]
+   ],
+   "handler": "L6D9C",
+   "summary": "\"THE ELEVATOR IS SHATTERED AND THE SHAFT BLOCKED.\" | ENCEXIT"
+  },
+  "2": {
+   "cells": [
+    [
+     5,
+     14
+    ]
+   ],
+   "handler": "L6DAD",
+   "summary": ""
+  },
+  "3": {
+   "cells": [
+    [
+     5,
+     9
+    ]
+   ],
+   "handler": "L6DDC",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     6,
+     14
+    ]
+   ],
+   "handler": "L6DE0",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     5,
+     15
+    ]
+   ],
+   "handler": "L6E04",
+   "summary": "\"AN UNUSUAL LASER DOMINATES THE ROOM.\""
+  },
+  "6": {
+   "cells": [
+    [
+     7,
+     9
+    ],
+    [
+     6,
+     12
+    ]
+   ],
+   "handler": "L6E29",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     4,
+     6
+    ]
+   ],
+   "handler": "L6E4D",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     14,
+     14
+    ]
+   ],
+   "handler": "L6E76",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     12,
+     15
+    ]
+   ],
+   "handler": "L6EA0",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     9,
+     15
+    ]
+   ],
+   "handler": "L6EBA",
+   "summary": "\"THE ELEVATOR IS DAMAGED. YOU NEED A ROPE.\""
+  },
+  "11": {
+   "cells": [
+    [
+     12,
+     12
+    ]
+   ],
+   "handler": "L6F38",
+   "summary": ""
+  },
+  "12": {
+   "cells": [
+    [
+     14,
+     11
+    ]
+   ],
+   "handler": "L6FCD",
+   "summary": ""
+  },
+  "13": {
+   "cells": [
+    [
+     3,
+     1
+    ],
+    [
+     5,
+     1
+    ],
+    [
+     8,
+     1
+    ]
+   ],
+   "handler": "L6FF2",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     12,
+     3
+    ]
+   ],
+   "handler": "L6FFF",
+   "summary": ""
+  },
+  "15": {
+   "cells": [
+    [
+     14,
+     4
+    ]
+   ],
+   "handler": "L701C",
+   "summary": ""
+  },
+  "16": {
+   "cells": [
+    [
+     9,
+     7
+    ]
+   ],
+   "handler": "L7036",
+   "summary": ""
+  },
+  "17": {
+   "cells": [
+    [
+     12,
+     6
+    ]
+   ],
+   "handler": "L705B",
+   "summary": ""
+  },
+  "18": {
+   "cells": [
+    [
+     9,
+     4
+    ]
+   ],
+   "handler": "L7075",
+   "summary": ""
+  },
+  "19": {
+   "cells": [
+    [
+     12,
+     10
+    ]
+   ],
+   "handler": "L709A",
+   "summary": ""
+  },
+  "20": {
+   "cells": [
+    [
+     9,
+     10
+    ]
+   ],
+   "handler": "L70DC",
+   "summary": ""
+  },
+  "21": {
+   "cells": [
+    [
+     9,
+     11
+    ]
+   ],
+   "handler": "L70F6",
+   "summary": ""
+  },
+  "22": {
+   "cells": [
+    [
+     4,
+     10
+    ]
+   ],
+   "handler": "L7110",
+   "summary": ""
+  },
+  "23": {
+   "cells": [
+    [
+     11,
+     1
+    ]
+   ],
+   "handler": "L712A",
+   "summary": ""
+  },
+  "24": {
+   "cells": [
+    [
+     1,
+     4
+    ]
+   ],
+   "handler": "L714F",
+   "summary": ""
+  },
+  "25": {
+   "cells": [
+    [
+     13,
+     1
+    ]
+   ],
+   "handler": "L7169",
+   "summary": ""
+  },
+  "26": {
+   "cells": [
+    [
+     1,
+     1
+    ]
+   ],
+   "handler": "L7191",
+   "summary": ""
+  },
+  "27": {
+   "cells": [
+    [
+     1,
+     10
+    ]
+   ],
+   "handler": "L71AB",
+   "summary": ""
+  },
+  "28": {
+   "cells": [
+    [
+     5,
+     12
+    ]
+   ],
+   "handler": "L71C5",
+   "summary": ""
+  },
+  "29": {
+   "cells": [
+    [
+     3,
+     0
+    ],
+    [
+     4,
+     0
+    ],
+    [
+     5,
+     0
+    ],
+    [
+     6,
+     0
+    ],
+    [
+     7,
+     0
+    ],
+    [
+     8,
+     0
+    ],
+    [
+     9,
+     0
+    ]
+   ],
+   "handler": "L7213",
+   "summary": "\"THE COMPUTER YIELDS NO NEW INFORMATION.\" | ENCEXIT"
+  },
+  "30": {
+   "cells": [
+    [
+     8,
+     9
+    ]
+   ],
+   "handler": "L71C5",
+   "summary": ""
+  }
+ },
+ "34": {
+  "1": {
+   "cells": [
+    [
+     1,
+     0
+    ],
+    [
+     4,
+     2
+    ],
+    [
+     0,
+     5
+    ],
+    [
+     6,
+     5
+    ],
+    [
+     1,
+     8
+    ],
+    [
+     8,
+     8
+    ],
+    [
+     1,
+     11
+    ],
+    [
+     6,
+     14
+    ],
+    [
+     3,
+     15
+    ]
+   ],
+   "handler": "L6DF6",
+   "summary": ""
+  },
+  "2": {
+   "cells": [
+    [
+     3,
+     0
+    ],
+    [
+     7,
+     1
+    ],
+    [
+     12,
+     2
+    ],
+    [
+     3,
+     4
+    ],
+    [
+     7,
+     6
+    ],
+    [
+     3,
+     8
+    ],
+    [
+     12,
+     8
+    ],
+    [
+     7,
+     11
+    ],
+    [
+     3,
+     12
+    ],
+    [
+     12,
+     13
+    ]
+   ],
+   "handler": "L6E44",
+   "summary": "\"YOU ARE AT A LADDER. WHERE DO YOU GO?\""
+  },
+  "3": {
+   "cells": [
+    [
+     15,
+     0
+    ],
+    [
+     15,
+     4
+    ],
+    [
+     4,
+     15
+    ],
+    [
+     8,
+     15
+    ]
+   ],
+   "handler": "L6DF5",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     2,
+     3
+    ],
+    [
+     1,
+     15
+    ]
+   ],
+   "handler": "L6FAB",
+   "summary": "\"THESE CONTROLS ARE DAMAGED.\""
+  },
+  "5": {
+   "cells": [
+    [
+     11,
+     0
+    ],
+    [
+     12,
+     0
+    ],
+    [
+     5,
+     10
+    ],
+    [
+     12,
+     11
+    ],
+    [
+     13,
+     11
+    ]
+   ],
+   "handler": "L7011",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     11,
+     14
+    ]
+   ],
+   "handler": "L70FD",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     10,
+     13
+    ]
+   ],
+   "handler": "L7145",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     6,
+     6
+    ]
+   ],
+   "handler": "L718D",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     5,
+     6
+    ]
+   ],
+   "handler": "L71A0",
+   "summary": ""
+  }
+ },
+ "41": {
+  "1": {
+   "cells": [
+    [
+     1,
+     7
+    ],
+    [
+     0,
+     8
+    ]
+   ],
+   "handler": "L6D5B",
+   "summary": ""
+  },
+  "2": {
+   "cells": [
+    [
+     8,
+     7
+    ],
+    [
+     8,
+     8
+    ]
+   ],
+   "handler": "L6E47",
+   "summary": ""
+  },
+  "3": {
+   "cells": [
+    [
+     5,
+     7
+    ],
+    [
+     3,
+     8
+    ]
+   ],
+   "handler": "L6ECA",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     0,
+     7
+    ]
+   ],
+   "handler": "L6B95",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     9,
+     7
+    ],
+    [
+     9,
+     8
+    ]
+   ],
+   "handler": "L6ED7",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     9,
+     5
+    ],
+    [
+     10,
+     5
+    ],
+    [
+     12,
+     7
+    ],
+    [
+     12,
+     8
+    ],
+    [
+     9,
+     10
+    ],
+    [
+     10,
+     10
+    ]
+   ],
+   "handler": "L7094",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     10,
+     1
+    ],
+    [
+     12,
+     3
+    ],
+    [
+     7,
+     4
+    ]
+   ],
+   "handler": "L70F1",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     1,
+     3
+    ],
+    [
+     2,
+     5
+    ],
+    [
+     4,
+     5
+    ]
+   ],
+   "handler": "L7167",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     15,
+     3
+    ],
+    [
+     14,
+     7
+    ],
+    [
+     14,
+     10
+    ],
+    [
+     14,
+     11
+    ]
+   ],
+   "handler": "L7217",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     6,
+     13
+    ],
+    [
+     11,
+     13
+    ],
+    [
+     9,
+     14
+    ],
+    [
+     14,
+     15
+    ]
+   ],
+   "handler": "L7246",
+   "summary": ""
+  },
+  "11": {
+   "cells": [
+    [
+     1,
+     10
+    ],
+    [
+     5,
+     10
+    ],
+    [
+     1,
+     14
+    ]
+   ],
+   "handler": "L726E",
+   "summary": ""
+  }
+ },
+ "42": {
+  "1": {
+   "cells": [
+    [
+     2,
+     12
+    ]
+   ],
+   "handler": "L6E77",
+   "summary": ""
+  },
+  "2": {
+   "cells": [
+    [
+     3,
+     11
+    ]
+   ],
+   "handler": "L6E9F",
+   "summary": ""
+  },
+  "3": {
+   "cells": [
+    [
+     1,
+     9
+    ]
+   ],
+   "handler": "L6FFD",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     3,
+     9
+    ]
+   ],
+   "handler": "L709D",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     7,
+     12
+    ]
+   ],
+   "handler": "L70DD",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     7,
+     1
+    ],
+    [
+     8,
+     13
+    ],
+    [
+     2,
+     14
+    ]
+   ],
+   "handler": "L7115",
+   "summary": "\"YOU FIND AN INTERCOM STATION. USE THE INTERCOM?\""
+  },
+  "7": {
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     7,
+     14
+    ]
+   ],
+   "handler": "L71DC",
+   "summary": "\"A METAL LADDER LEADS DOWNWARD. CLIMB DOWN?\""
+  },
+  "8": {
+   "cells": [
+    [
+     5,
+     3
+    ],
+    [
+     7,
+     3
+    ],
+    [
+     5,
+     5
+    ],
+    [
+     7,
+     5
+    ],
+    [
+     10,
+     13
+    ],
+    [
+     11,
+     13
+    ],
+    [
+     12,
+     13
+    ],
+    [
+     10,
+     15
+    ],
+    [
+     11,
+     15
+    ],
+    [
+     12,
+     15
+    ]
+   ],
+   "handler": "L725C",
+   "summary": "\"A SMALL OFFICE. \""
+  },
+  "9": {
+   "cells": [
+    [
+     4,
+     6
+    ]
+   ],
+   "handler": "L72AB",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     6,
+     7
+    ],
+    [
+     15,
+     15
+    ]
+   ],
+   "handler": "L72EC",
+   "summary": "\"A COMPLEX SECURITY SYSTEM PREVENTS YOU FROM USING THIS ELEVATOR.\" | ENCEXIT"
+  },
+  "11": {
+   "cells": [
+    [
+     10,
+     4
+    ]
+   ],
+   "handler": "L737A",
+   "summary": ""
+  },
+  "12": {
+   "cells": [
+    [
+     10,
+     3
+    ]
+   ],
+   "handler": "L73AC",
+   "summary": ""
+  },
+  "13": {
+   "cells": [
+    [
+     12,
+     11
+    ]
+   ],
+   "handler": "L7415",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     12,
+     10
+    ]
+   ],
+   "handler": "L7434",
+   "summary": "\"THESE ARE THE CONTROLS FOR THE MINIATURE LASER. \" | \"THEY ARE NONFUNCTIONAL.\" | ENCEXIT"
+  },
+  "15": {
+   "cells": [
+    [
+     8,
+     6
+    ]
+   ],
+   "handler": "L7462",
+   "summary": ""
+  },
+  "16": {
+   "cells": [
+    [
+     4,
+     11
+    ]
+   ],
+   "handler": "L6E75",
+   "summary": ""
+  },
+  "17": {
+   "cells": [
+    [
+     3,
+     12
+    ]
+   ],
+   "handler": "L6E75",
+   "summary": ""
+  },
+  "18": {
+   "cells": [
+    [
+     1,
+     12
+    ]
+   ],
+   "handler": "L6E75",
+   "summary": ""
+  },
+  "19": {
+   "cells": [
+    [
+     1,
+     11
+    ]
+   ],
+   "handler": "L6E75",
+   "summary": ""
+  },
+  "20": {
+   "cells": [
+    [
+     11,
+     3
+    ],
+    [
+     11,
+     4
+    ],
+    [
+     11,
+     5
+    ]
+   ],
+   "handler": "L6E75",
+   "summary": ""
+  },
+  "21": {
+   "cells": [
+    [
+     0,
+     15
+    ]
+   ],
+   "handler": "L6E75",
+   "summary": ""
+  },
+  "22": {
+   "cells": [
+    [
+     15,
+     10
+    ]
+   ],
+   "handler": "L750D",
+   "summary": ""
+  },
+  "23": {
+   "cells": [
+    [
+     13,
+     14
+    ]
+   ],
+   "handler": "(falls through)",
+   "summary": ""
+  }
+ },
+ "43": {
+  "1": {
+   "cells": [
+    [
+     4,
+     15
+    ]
+   ],
+   "handler": "L6D9C",
+   "summary": ""
+  },
+  "2": {
+   "cells": [
+    [
+     6,
+     13
+    ]
+   ],
+   "handler": "L6DD4",
+   "summary": ""
+  },
+  "3": {
+   "cells": [
+    [
+     5,
+     13
+    ]
+   ],
+   "handler": "L6E07",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     1,
+     12
+    ]
+   ],
+   "handler": "L6E56",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     1,
+     9
+    ]
+   ],
+   "handler": "L6E8B",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     7,
+     9
+    ]
+   ],
+   "handler": "L6EC0",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     6,
+     8
+    ]
+   ],
+   "handler": "L6EE8",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     12,
+     15
+    ]
+   ],
+   "handler": "L6F00",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     12,
+     13
+    ]
+   ],
+   "handler": "L6F3D",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     10,
+     13
+    ]
+   ],
+   "handler": "L6F67",
+   "summary": ""
+  },
+  "11": {
+   "cells": [
+    [
+     10,
+     14
+    ]
+   ],
+   "handler": "L6F93",
+   "summary": ""
+  },
+  "12": {
+   "cells": [
+    [
+     8,
+     15
+    ]
+   ],
+   "handler": "L6FAD",
+   "summary": ""
+  },
+  "13": {
+   "cells": [
+    [
+     8,
+     12
+    ]
+   ],
+   "handler": "L6FC7",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     9,
+     9
+    ]
+   ],
+   "handler": "L6FE1",
+   "summary": ""
+  },
+  "15": {
+   "cells": [
+    [
+     9,
+     8
+    ]
+   ],
+   "handler": "L701B",
+   "summary": ""
+  },
+  "16": {
+   "cells": [
+    [
+     9,
+     10
+    ]
+   ],
+   "handler": "L706E",
+   "summary": ""
+  },
+  "17": {
+   "cells": [
+    [
+     11,
+     8
+    ]
+   ],
+   "handler": "L70C1",
+   "summary": ""
+  },
+  "18": {
+   "cells": [
+    [
+     11,
+     10
+    ]
+   ],
+   "handler": "L70E0",
+   "summary": ""
+  },
+  "19": {
+   "cells": [
+    [
+     14,
+     10
+    ]
+   ],
+   "handler": "L7105",
+   "summary": ""
+  },
+  "20": {
+   "cells": [
+    [
+     14,
+     13
+    ]
+   ],
+   "handler": "L712A",
+   "summary": ""
+  },
+  "21": {
+   "cells": [
+    [
+     13,
+     14
+    ]
+   ],
+   "handler": "L7175",
+   "summary": ""
+  },
+  "22": {
+   "cells": [
+    [
+     12,
+     0
+    ]
+   ],
+   "handler": "L71AE",
+   "summary": ""
+  },
+  "23": {
+   "cells": [
+    [
+     12,
+     1
+    ]
+   ],
+   "handler": "L71CB",
+   "summary": ""
+  },
+  "24": {
+   "cells": [
+    [
+     12,
+     4
+    ]
+   ],
+   "handler": "L71F0",
+   "summary": ""
+  },
+  "25": {
+   "cells": [
+    [
+     10,
+     4
+    ]
+   ],
+   "handler": "L7227",
+   "summary": ""
+  },
+  "26": {
+   "cells": [
+    [
+     9,
+     2
+    ]
+   ],
+   "handler": "L7241",
+   "summary": ""
+  },
+  "27": {
+   "cells": [
+    [
+     9,
+     7
+    ]
+   ],
+   "handler": "L725B",
+   "summary": ""
+  },
+  "28": {
+   "cells": [
+    [
+     11,
+     6
+    ]
+   ],
+   "handler": "L7288",
+   "summary": ""
+  },
+  "29": {
+   "cells": [
+    [
+     12,
+     7
+    ]
+   ],
+   "handler": "L72AD",
+   "summary": ""
+  },
+  "30": {
+   "cells": [
+    [
+     12,
+     6
+    ]
+   ],
+   "handler": "L72C5",
+   "summary": ""
+  },
+  "31": {
+   "cells": [
+    [
+     13,
+     6
+    ]
+   ],
+   "handler": "L72DF",
+   "summary": ""
+  },
+  "32": {
+   "cells": [
+    [
+     15,
+     4
+    ]
+   ],
+   "handler": "L733F",
+   "summary": "\"AN AUTOMATIC DEFENSE SYSTEM LOCKS ONTO YOU AND FIRES.\" | \"THE WEAPONS DRIVE YOU BACK.\" | ENCEXIT"
+  },
+  "33": {
+   "cells": [
+    [
+     14,
+     0
+    ],
+    [
+     14,
+     1
+    ],
+    [
+     14,
+     2
+    ],
+    [
+     14,
+     3
+    ],
+    [
+     14,
+     4
+    ]
+   ],
+   "handler": "L736A",
+   "summary": "\"YOU FIND JASON DUPARE. HE IS EXTREMELY EMACIATED. 'RAM IS BUILDING ...\" | \"HE FAINTS AND YOU CARRY HIM.\" | ENCEXIT"
+  },
+  "34": {
+   "cells": [
+    [
+     0,
+     7
+    ]
+   ],
+   "handler": "L73A6",
+   "summary": ""
+  },
+  "35": {
+   "cells": [
+    [
+     3,
+     8
+    ],
+    [
+     4,
+     8
+    ]
+   ],
+   "handler": "L73F2",
+   "summary": ""
+  },
+  "36": {
+   "cells": [
+    [
+     4,
+     11
+    ]
+   ],
+   "handler": "L7421",
+   "summary": "\"SHRIEKING DESERT APES THROW HANDFULS OF DIRT AND PEBBLES AT THE TEA...\""
+  },
+  "37": {
+   "cells": [
+    [
+     2,
+     11
+    ]
+   ],
+   "handler": "L7467",
+   "summary": ""
+  },
+  "38": {
+   "cells": [
+    [
+     7,
+     6
+    ]
+   ],
+   "handler": "L74AB",
+   "summary": ""
+  },
+  "39": {
+   "cells": [
+    [
+     7,
+     3
+    ]
+   ],
+   "handler": "L74CE",
+   "summary": ""
+  },
+  "40": {
+   "cells": [
+    [
+     6,
+     2
+    ]
+   ],
+   "handler": "L7501",
+   "summary": ""
+  },
+  "41": {
+   "cells": [
+    [
+     5,
+     2
+    ]
+   ],
+   "handler": "L7520",
+   "summary": ""
+  },
+  "42": {
+   "cells": [
+    [
+     4,
+     1
+    ]
+   ],
+   "handler": "L7543",
+   "summary": ""
+  },
+  "43": {
+   "cells": [
+    [
+     6,
+     0
+    ]
+   ],
+   "handler": "L755D",
+   "summary": ""
+  },
+  "44": {
+   "cells": [
+    [
+     2,
+     2
+    ]
+   ],
+   "handler": "L75A2",
+   "summary": ""
+  },
+  "45": {
+   "cells": [
+    [
+     0,
+     6
+    ]
+   ],
+   "handler": "L75D5",
+   "summary": ""
+  },
+  "46": {
+   "cells": [
+    [
+     3,
+     14
+    ]
+   ],
+   "handler": "L761F",
+   "summary": ""
+  },
+  "47": {
+   "cells": [
+    [
+     5,
+     12
+    ]
+   ],
+   "handler": "L7647",
+   "summary": ""
+  },
+  "48": {
+   "cells": [
+    [
+     0,
+     14
+    ]
+   ],
+   "handler": "L767F",
+   "summary": ""
+  },
+  "49": {
+   "cells": [
+    [
+     6,
+     10
+    ]
+   ],
+   "handler": "L76B2",
+   "summary": ""
+  },
+  "50": {
+   "cells": [
+    [
+     2,
+     8
+    ]
+   ],
+   "handler": "L76F6",
+   "summary": ""
+  }
+ },
+ "60": {
+  "1": {
+   "cells": [
+    [
+     0,
+     14
+    ]
+   ],
+   "handler": "L72E6",
+   "summary": "ENCEXIT"
+  },
+  "2": {
+   "cells": [
+    [
+     0,
+     11
+    ]
+   ],
+   "handler": "L72E6",
+   "summary": "ENCEXIT"
+  },
+  "3": {
+   "cells": [
+    [
+     1,
+     12
+    ]
+   ],
+   "handler": "L6CD8",
+   "summary": "\"A SENSOR BEAM SCANS YOUR STOLEN BADGES. A MECHANICAL VOICE SAYS, 'P...\" | ENCEXIT"
+  },
+  "4": {
+   "cells": [
+    [
+     2,
+     12
+    ]
+   ],
+   "handler": "L6CF2",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     1,
+     9
+    ],
+    [
+     7,
+     9
+    ],
+    [
+     4,
+     15
+    ]
+   ],
+   "handler": "L6D23",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     0,
+     4
+    ],
+    [
+     5,
+     7
+    ]
+   ],
+   "handler": "L6D92",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     3,
+     3
+    ]
+   ],
+   "handler": "L6DAF",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     4,
+     2
+    ]
+   ],
+   "handler": "L6E80",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     4,
+     7
+    ]
+   ],
+   "handler": "L6EA9",
+   "summary": "\"THROUGH THE DUST ON THE DOOR YOU MAKE OUT, 'TO RUE DE S.'\" | ENCEXIT"
+  },
+  "10": {
+   "cells": [
+    [
+     8,
+     4
+    ]
+   ],
+   "handler": "L6EAF",
+   "summary": ""
+  },
+  "11": {
+   "cells": [
+    [
+     8,
+     3
+    ]
+   ],
+   "handler": "L72E6",
+   "summary": "ENCEXIT"
+  },
+  "12": {
+   "cells": [
+    [
+     6,
+     8
+    ],
+    [
+     8,
+     11
+    ]
+   ],
+   "handler": "L6F7E",
+   "summary": ""
+  },
+  "13": {
+   "cells": [
+    [
+     7,
+     8
+    ]
+   ],
+   "handler": "L6F89",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     9,
+     11
+    ]
+   ],
+   "handler": "L6FA1",
+   "summary": ""
+  },
+  "15": {
+   "cells": [
+    [
+     10,
+     13
+    ]
+   ],
+   "handler": "L6FD4",
+   "summary": "\"THE SIGN ABOVE THE DOOR READS \" | \"      'MERCURIAN STOCK EXCHANGE'\" | ENCEXIT"
+  },
+  "16": {
+   "cells": [
+    [
+     10,
+     14
+    ]
+   ],
+   "handler": "L7030",
+   "summary": "\"THE COMPUTERS IN THE ROOM HAVE BEEN PROTECTED BY STEEL PLATES.\""
+  },
+  "17": {
+   "cells": [
+    [
+     6,
+     6
+    ]
+   ],
+   "handler": "L7039",
+   "summary": ""
+  },
+  "18": {
+   "cells": [
+    [
+     4,
+     9
+    ],
+    [
+     3,
+     11
+    ]
+   ],
+   "handler": "L7053",
+   "summary": "\"MAINTENANCE ROBOTS ARE LINED UP HERE.\" | ENCEXIT"
+  },
+  "19": {
+   "cells": [
+    [
+     5,
+     14
+    ]
+   ],
+   "handler": "L7059",
+   "summary": ""
+  },
+  "20": {
+   "cells": [
+    [
+     3,
+     15
+    ]
+   ],
+   "handler": "L705D",
+   "summary": ""
+  },
+  "21": {
+   "cells": [
+    [
+     3,
+     14
+    ]
+   ],
+   "handler": "L7068",
+   "summary": ""
+  },
+  "22": {
+   "cells": [
+    [
+     5,
+     10
+    ]
+   ],
+   "handler": "L7082",
+   "summary": ""
+  },
+  "23": {
+   "cells": [
+    [
+     5,
+     11
+    ]
+   ],
+   "handler": "L708D",
+   "summary": ""
+  },
+  "24": {
+   "cells": [
+    [
+     8,
+     10
+    ]
+   ],
+   "handler": "L70A7",
+   "summary": ""
+  },
+  "25": {
+   "cells": [
+    [
+     7,
+     10
+    ]
+   ],
+   "handler": "L70B2",
+   "summary": ""
+  },
+  "26": {
+   "cells": [
+    [
+     0,
+     7
+    ]
+   ],
+   "handler": "L70CC",
+   "summary": ""
+  },
+  "27": {
+   "cells": [
+    [
+     1,
+     7
+    ]
+   ],
+   "handler": "L70D7",
+   "summary": ""
+  },
+  "28": {
+   "cells": [
+    [
+     5,
+     4
+    ]
+   ],
+   "handler": "L70F1",
+   "summary": ""
+  },
+  "29": {
+   "cells": [
+    [
+     11,
+     1
+    ]
+   ],
+   "handler": "L710B",
+   "summary": ""
+  },
+  "30": {
+   "cells": [
+    [
+     11,
+     6
+    ]
+   ],
+   "handler": "L7125",
+   "summary": ""
+  },
+  "31": {
+   "cells": [
+    [
+     10,
+     10
+    ]
+   ],
+   "handler": "L713F",
+   "summary": ""
+  },
+  "32": {
+   "cells": [
+    [
+     7,
+     7
+    ]
+   ],
+   "handler": "L7163",
+   "summary": ""
+  },
+  "33": {
+   "cells": [
+    [
+     8,
+     5
+    ],
+    [
+     8,
+     8
+    ],
+    [
+     11,
+     12
+    ]
+   ],
+   "handler": "L72E6",
+   "summary": "ENCEXIT"
+  },
+  "34": {
+   "cells": [
+    [
+     7,
+     6
+    ]
+   ],
+   "handler": "L7178",
+   "summary": ""
+  },
+  "35": {
+   "cells": [
+    [
+     13,
+     7
+    ]
+   ],
+   "handler": "L718D",
+   "summary": ""
+  },
+  "36": {
+   "cells": [
+    [
+     10,
+     1
+    ]
+   ],
+   "handler": "L72E6",
+   "summary": "ENCEXIT"
+  },
+  "37": {
+   "cells": [
+    [
+     10,
+     6
+    ]
+   ],
+   "handler": "L72E6",
+   "summary": "ENCEXIT"
+  },
+  "38": {
+   "cells": [
+    [
+     15,
+     13
+    ],
+    [
+     15,
+     14
+    ],
+    [
+     15,
+     15
+    ]
+   ],
+   "handler": "L72E6",
+   "summary": "ENCEXIT"
+  },
+  "39": {
+   "cells": [
+    [
+     14,
+     13
+    ],
+    [
+     14,
+     14
+    ],
+    [
+     14,
+     15
+    ]
+   ],
+   "handler": "L71A7",
+   "summary": ""
+  },
+  "40": {
+   "cells": [
+    [
+     14,
+     0
+    ]
+   ],
+   "handler": "L72E6",
+   "summary": "ENCEXIT"
+  },
+  "41": {
+   "cells": [
+    [
+     0,
+     0
+    ],
+    [
+     1,
+     0
+    ],
+    [
+     2,
+     0
+    ],
+    [
+     0,
+     1
+    ],
+    [
+     1,
+     1
+    ],
+    [
+     2,
+     1
+    ],
+    [
+     3,
+     1
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     2,
+     2
+    ],
+    [
+     0,
+     3
+    ],
+    [
+     1,
+     3
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     4,
+     3
+    ],
+    [
+     5,
+     3
+    ],
+    [
+     1,
+     4
+    ],
+    [
+     2,
+     4
+    ],
+    [
+     4,
+     4
+    ],
+    [
+     4,
+     5
+    ],
+    [
+     4,
+     6
+    ]
+   ],
+   "handler": "L71E8",
+   "summary": ""
+  }
+ },
+ "61": {
+  "1": {
+   "cells": [
+    [
+     3,
+     3
+    ],
+    [
+     10,
+     3
+    ],
+    [
+     3,
+     10
+    ],
+    [
+     10,
+     10
+    ],
+    [
+     14,
+     14
+    ],
+    [
+     15,
+     14
+    ],
+    [
+     14,
+     15
+    ],
+    [
+     15,
+     15
+    ]
+   ],
+   "handler": "L6C1F",
+   "summary": "\"THIS CORE RUNS THE LENGTH OF THE MARIPOSA. YOU CAN GO UPWARD OR DOW...\" | \"YOU MAY ALSO LEAVE THE CORE FROM HERE.\""
+  },
+  "2": {
+   "cells": [
+    [
+     14,
+     2
+    ]
+   ],
+   "handler": "L6F02",
+   "summary": "\"YOU ENTER THE AUDIENCE CHAMBER. THE SUN KING SITS BEFORE YOU ON A G...\" | \"'PARLEZ-VOUS FRANCAIS?' THE SUN KING DEMANDS.\""
+  },
+  "3": {
+   "cells": [
+    [
+     10,
+     2
+    ],
+    [
+     9,
+     3
+    ],
+    [
+     11,
+     3
+    ],
+    [
+     10,
+     4
+    ]
+   ],
+   "handler": "L70DA",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     3,
+     9
+    ],
+    [
+     2,
+     10
+    ],
+    [
+     4,
+     10
+    ],
+    [
+     3,
+     11
+    ]
+   ],
+   "handler": "L70C6",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     3,
+     2
+    ],
+    [
+     2,
+     3
+    ],
+    [
+     4,
+     3
+    ],
+    [
+     3,
+     4
+    ]
+   ],
+   "handler": "L70EE",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     8,
+     12
+    ]
+   ],
+   "handler": "L7116",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     11,
+     5
+    ],
+    [
+     12,
+     5
+    ]
+   ],
+   "handler": "L7272",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     5,
+     13
+    ]
+   ],
+   "handler": "L723C",
+   "summary": "\"DOODADS AND KNICKKNACKS FILL THIS STORAGE AREA. PAPER FLAGS AND OLD...\""
+  },
+  "9": {
+   "cells": [
+    [
+     0,
+     5
+    ]
+   ],
+   "handler": "L7174",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     2,
+     14
+    ]
+   ],
+   "handler": "L72F5",
+   "summary": ""
+  },
+  "11": {
+   "cells": [
+    [
+     14,
+     12
+    ]
+   ],
+   "handler": "L7350",
+   "summary": ""
+  },
+  "12": {
+   "cells": [
+    [
+     4,
+     15
+    ]
+   ],
+   "handler": "L7303",
+   "summary": ""
+  },
+  "13": {
+   "cells": [
+    [
+     12,
+     14
+    ]
+   ],
+   "handler": "L7311",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     10,
+     9
+    ],
+    [
+     9,
+     10
+    ],
+    [
+     11,
+     10
+    ],
+    [
+     10,
+     11
+    ]
+   ],
+   "handler": "L7102",
+   "summary": ""
+  },
+  "15": {
+   "cells": [
+    [
+     3,
+     5
+    ],
+    [
+     4,
+     5
+    ]
+   ],
+   "handler": "L735E",
+   "summary": ""
+  },
+  "16": {
+   "cells": [
+    [
+     5,
+     0
+    ]
+   ],
+   "handler": "L735F",
+   "summary": "\"WEAPONS CONTROL\" | \"AUTHORIZED PERSONNEL ONLY\""
+  },
+  "17": {
+   "cells": [
+    [
+     8,
+     1
+    ]
+   ],
+   "handler": "L73AC",
+   "summary": "\"THIS ROOM IS FILLED WITH MACHINERY AND GIGANTIC GEARS. AN INFORMATI...\" | ENCEXIT"
+  },
+  "18": {
+   "cells": [
+    [
+     14,
+     5
+    ]
+   ],
+   "handler": "L73B2",
+   "summary": ""
+  },
+  "19": {
+   "cells": [
+    [
+     14,
+     3
+    ]
+   ],
+   "handler": "(falls through)",
+   "summary": ""
+  }
+ },
+ "62": {
+  "1": {
+   "cells": [
+    [
+     9,
+     0
+    ],
+    [
+     0,
+     2
+    ],
+    [
+     0,
+     9
+    ]
+   ],
+   "handler": "L6E17",
+   "summary": "\"YOU'RE AT THE BOTTOM OF AN EMERGENCY STAIRWELL. CLIMB THE STAIRS?\""
+  },
+  "2": {
+   "cells": [
+    [
+     15,
+     6
+    ],
+    [
+     6,
+     15
+    ]
+   ],
+   "handler": "L6F6C",
+   "summary": "\"THIS ELEVATOR HAS FOUR BUTTONS ON A HIGH-TECH PANEL.\" | \"PRESS WHICH BUTTON?\" | ENCEXIT"
+  },
+  "3": {
+   "cells": [
+    [
+     11,
+     11
+    ]
+   ],
+   "handler": "L7080",
+   "summary": "\"YOU SEE THE DOOMSDAY DEVICE THROUGH A SHIELDED DOME.\" | \"'TARGETING -- EARTH'\" | ENCEXIT"
+  },
+  "4": {
+   "cells": [
+    [
+     0,
+     6
+    ],
+    [
+     1,
+     6
+    ],
+    [
+     0,
+     7
+    ],
+    [
+     1,
+     7
+    ],
+    [
+     0,
+     8
+    ],
+    [
+     1,
+     8
+    ]
+   ],
+   "handler": "L70C0",
+   "summary": "\"CABLES FILL THE ROOM. IT'S POSSIBLE, BUT DANGEROUS, TO CUT THE POWE...\" | \"THE POWER COUPLER IS HIGH ABOVE YOU. TRY TO TURN OFF THE POWER?\""
+  },
+  "5": {
+   "cells": [
+    [
+     2,
+     6
+    ]
+   ],
+   "handler": "L70BB",
+   "summary": "\"POWER ROOM -- DANGER\""
+  },
+  "6": {
+   "cells": [
+    [
+     5,
+     14
+    ]
+   ],
+   "handler": "L7158",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     3,
+     12
+    ]
+   ],
+   "handler": "L721C",
+   "summary": "\"THIS IS THE TOP OF THE CORE. WILL YOU DESCEND?\""
+  },
+  "8": {
+   "cells": [
+    [
+     3,
+     11
+    ],
+    [
+     2,
+     12
+    ],
+    [
+     4,
+     12
+    ],
+    [
+     3,
+     13
+    ]
+   ],
+   "handler": "L7237",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     11,
+     3
+    ]
+   ],
+   "handler": "L7268",
+   "summary": "\"POD 1\""
+  },
+  "10": {
+   "cells": [
+    [
+     13,
+     3
+    ]
+   ],
+   "handler": "L726D",
+   "summary": "\"POD 2\""
+  },
+  "11": {
+   "cells": [
+    [
+     10,
+     3
+    ]
+   ],
+   "handler": "L7272",
+   "summary": "\"POD 3\""
+  },
+  "12": {
+   "cells": [
+    [
+     12,
+     3
+    ]
+   ],
+   "handler": "L7277",
+   "summary": "\"POD 4\""
+  },
+  "13": {
+   "cells": [
+    [
+     13,
+     5
+    ]
+   ],
+   "handler": "L7398",
+   "summary": ""
+  },
+  "14": {
+   "cells": [
+    [
+     9,
+     14
+    ],
+    [
+     11,
+     14
+    ],
+    [
+     13,
+     14
+    ]
+   ],
+   "handler": "L73D3",
+   "summary": ""
+  },
+  "15": {
+   "cells": [
+    [
+     9,
+     5
+    ],
+    [
+     11,
+     5
+    ]
+   ],
+   "handler": "L74CE",
+   "summary": "\"YOU TAKE THE CONTROLS AND MANEUVER AS FAR AWAY FROM THE MARIPOSA AS...\" | -> module 17"
+  },
+  "16": {
+   "cells": [
+    [
+     1,
+     13
+    ]
+   ],
+   "handler": "L74F0",
+   "summary": ""
+  },
+  "17": {
+   "cells": [
+    [
+     1,
+     12
+    ],
+    [
+     0,
+     13
+    ],
+    [
+     2,
+     13
+    ]
+   ],
+   "handler": "L754C",
+   "summary": "\"SECURITY OFFICE\""
+  },
+  "18": {
+   "cells": [
+    [
+     6,
+     8
+    ]
+   ],
+   "handler": "L7582",
+   "summary": ""
+  },
+  "19": {
+   "cells": [
+    [
+     13,
+     4
+    ]
+   ],
+   "handler": "L7596",
+   "summary": "\"POD CONTROL CENTER\""
+  },
+  "20": {
+   "cells": [
+    [
+     10,
+     0
+    ],
+    [
+     1,
+     2
+    ],
+    [
+     1,
+     9
+    ]
+   ],
+   "handler": "(falls through)",
+   "summary": ""
+  },
+  "21": {
+   "cells": [
+    [
+     12,
+     2
+    ],
+    [
+     14,
+     2
+    ]
+   ],
+   "handler": "(falls through)",
+   "summary": ""
+  },
+  "22": {
+   "cells": [
+    [
+     9,
+     4
+    ],
+    [
+     11,
+     4
+    ]
+   ],
+   "handler": "(falls through)",
+   "summary": ""
+  },
+  "23": {
+   "cells": [
+    [
+     9,
+     13
+    ],
+    [
+     11,
+     13
+    ],
+    [
+     13,
+     13
+    ]
+   ],
+   "handler": "(falls through)",
+   "summary": ""
+  }
+ },
+ "63": {
+  "1": {
+   "cells": [
+    [
+     13,
+     7
+    ],
+    [
+     8,
+     10
+    ],
+    [
+     13,
+     12
+    ],
+    [
+     2,
+     14
+    ]
+   ],
+   "handler": "L6CC9",
+   "summary": "\"RAM GARRISON TROOPS ARE WAITING FOR YOUR RETURN. THEY ATTACK!\" | Ram Warrior | COMBAT"
+  },
+  "2": {
+   "cells": [
+    [
+     13,
+     6
+    ],
+    [
+     8,
+     9
+    ],
+    [
+     13,
+     13
+    ],
+    [
+     3,
+     14
+    ]
+   ],
+   "handler": "L6CFD",
+   "summary": ""
+  },
+  "3": {
+   "cells": [
+    [
+     13,
+     3
+    ],
+    [
+     10,
+     7
+    ],
+    [
+     4,
+     9
+    ],
+    [
+     11,
+     13
+    ]
+   ],
+   "handler": "L6D43",
+   "summary": ""
+  },
+  "4": {
+   "cells": [
+    [
+     14,
+     3
+    ],
+    [
+     11,
+     7
+    ],
+    [
+     5,
+     9
+    ],
+    [
+     11,
+     14
+    ]
+   ],
+   "handler": "L6D82",
+   "summary": ""
+  },
+  "5": {
+   "cells": [
+    [
+     13,
+     2
+    ],
+    [
+     8,
+     5
+    ],
+    [
+     2,
+     10
+    ]
+   ],
+   "handler": "L6D86",
+   "summary": ""
+  },
+  "6": {
+   "cells": [
+    [
+     13,
+     1
+    ],
+    [
+     8,
+     4
+    ],
+    [
+     1,
+     10
+    ]
+   ],
+   "handler": "L6DAF",
+   "summary": ""
+  },
+  "7": {
+   "cells": [
+    [
+     4,
+     7
+    ],
+    [
+     7,
+     7
+    ],
+    [
+     8,
+     13
+    ]
+   ],
+   "handler": "L6DB3",
+   "summary": ""
+  },
+  "8": {
+   "cells": [
+    [
+     2,
+     8
+    ],
+    [
+     9,
+     13
+    ]
+   ],
+   "handler": "L6DB4",
+   "summary": ""
+  },
+  "9": {
+   "cells": [
+    [
+     1,
+     8
+    ],
+    [
+     9,
+     14
+    ]
+   ],
+   "handler": "L6DDA",
+   "summary": ""
+  },
+  "10": {
+   "cells": [
+    [
+     3,
+     7
+    ]
+   ],
+   "handler": "L6DDE",
+   "summary": ""
+  },
+  "11": {
+   "cells": [
+    [
+     3,
+     6
+    ]
+   ],
+   "handler": "L6DEF",
+   "summary": ""
+  }
+ }
+}

@@ -8,7 +8,8 @@ several 0x100 (CLEAR) segments, which is why a decode that stops at the first 0x
 Block layout (DOS Gold Box GEO layout, 16 x 16 cells, index = y*16 + x, y grows south):
   plane 0  high nibble = wall type on the NORTH side, low nibble = EAST side
   plane 1  high nibble = SOUTH side,                  low nibble = WEST side
-  plane 2  cell info: bit 7 = cell exists (0 = outside the map), low 7 bits = special/event code   [meaning open]
+  plane 2  cell info: bit 7 = cell inside the explorable area (void cells can still carry codes), low 6 bits =
+           event code: the script's AND [9AF9],63 -> ONGOTO table, 0-based (see map_events.py, MAP_EVENTS.md)
   plane 3  cell flags (only bits 0,2,4,6 and 7 are ever set)                                      [meaning open]
 Wall types 0..14; 0 = open. Neighbouring planes agree (north of (y,x) == south of (y-1,x), east of (y,x) == west
 of (y,x+1)) on 100% of edges in 16 of 18 maps, 99%/96% in maps 0x20/0x34.

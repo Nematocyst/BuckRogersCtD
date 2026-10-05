@@ -14,7 +14,8 @@
 //     both sides of the door. Values 2 and 3 are rare (see the notes in the repo).
 //   * special = plane-2 byte without bit 7, exists = bit 7 (cell inside the explorable area; void cells can still
 //     carry event codes). The event code is special & 0x3F.
-//   * Wall types: which ones are doors / walls / secret doors is NOT decoded yet; Wall() just returns the type.
+//   * Wall types: Wall() returns the raw type 0..14; Kind()/KindOf() classify it (Open, Wall, Door, SecretDoor, SealedDoor,
+//     Barrier). The classification is inferred, see genesis_maps/WALL_TYPES.md for the evidence and confidence per type.
 
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,18 @@ using UnityEngine;
 namespace BuckRogersGenesis
 {
     public enum Facing { North = 0, East = 1, South = 2, West = 3 }
+
+    /// Behaviour class of a wall type (see genesis_maps/WALL_TYPES.md for the evidence; all but Open are inferred
+    /// from map data and script texts, not read from the engine).
+    public enum WallKind
+    {
+        Open,        // 0: nothing there
+        Wall,        // 1: solid wall
+        Door,        // 2,3,4,6,7,8,9,11: passable once unlocked (6 and 7 are usually locked at the start)
+        SecretDoor,  // 10: looks like a wall until the script reveals it ("concealed latch")
+        SealedDoor,  // 14: drawn as a door but the scripts keep it shut ("security doors are sealed", "fused shut")
+        Barrier      // 5, 12, 13: bars / windows / decoration, never needed for connectivity
+    }
 
     // ------------------------------------------------------------------ maps.json
     [Serializable] public class MapFile { public string source; public GenesisMap[] maps; }
@@ -63,6 +76,22 @@ namespace BuckRogersGenesis
 
         public bool HasWall(int x, int y, Facing f) => Wall(x, y, f) != 0;
 
+        /// Behaviour class of a wall type number.
+        public static WallKind KindOf(int wallType)
+        {
+            switch (wallType)
+            {
+                case 0: return WallKind.Open;
+                case 1: return WallKind.Wall;
+                case 10: return WallKind.SecretDoor;
+                case 14: return WallKind.SealedDoor;
+                case 5: case 12: case 13: return WallKind.Barrier;
+                default: return (wallType >= 2 && wallType <= 11) ? WallKind.Door : WallKind.Wall;
+            }
+        }
+
+        public WallKind Kind(int x, int y, Facing f) => KindOf(Wall(x, y, f));
+
         public bool InsideArea(int x, int y) => InBounds(x, y) && exists[Index(x, y)] != 0;
 
         /// The cell's plane-2 byte as the scripts see it in [9AF9] (bit 7 = inside the area).
@@ -78,14 +107,15 @@ namespace BuckRogersGenesis
             return InBounds(nx, ny);
         }
 
-        /// A step is allowed when the target is on the map, the side has no wall (or `passableWall` accepts its type)
-        /// and is not locked. Default: only wall type 0 is passable, so doors need a caller-supplied predicate
-        /// until the wall types are decoded.
+        /// A step is allowed when the target is on the map, the side is Open or a Door (or `passableWall` accepts its
+        /// type) and the side is not locked. Walls, barriers, secret doors and sealed doors block by default; the
+        /// scripts decide when those open (e.g. UNLOCKDOOR, or an event that reveals a secret door).
         public bool TryStep(int x, int y, Facing f, out int nx, out int ny, Func<int, bool> passableWall = null)
         {
             if (!Neighbor(x, y, f, out nx, out ny)) return false;
             int w = Wall(x, y, f);
-            bool ok = w == 0 || (passableWall != null && passableWall(w));
+            WallKind k = KindOf(w);
+            bool ok = k == WallKind.Open || k == WallKind.Door || (passableWall != null && passableWall(w));
             return ok && !IsLocked(x, y, f);
         }
     }

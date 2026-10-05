@@ -11,13 +11,15 @@ int wall   = map.Wall(5, 13, Facing.North);                   // wall type 0..14
 bool lockd = map.IsLocked(5, 13, Facing.North);               // door lock (plane 3)
 var ev     = BuckRogersMaps.SearchEventAt(0x10, 6, 13);       // event on that cell, ev.summary / ev.texts
 var steps  = BuckRogersMaps.StepEventsAt(0x10, 7, 11, Facing.North);   // "doors sealed" style step events
-if (map.TryStep(x, y, Facing.East, out int nx, out int ny, w => w == 2 /* your door types */)) { ... }
+WallKind kind = map.Kind(5, 13, Facing.North);                // Open, Wall, Door, SecretDoor, SealedDoor, Barrier
+if (map.TryStep(x, y, Facing.East, out int nx, out int ny)) { ... }   // open/door sides, not locked
 ```
 
 Conventions: 16x16, index `y*16+x`, y grows south, facing 0 N / 1 E / 2 S / 3 W (the scripts' `[9AFA]`).
 `special & 0x3F` is the event code; `exists` is plane-2 bit 7 (inside the explorable area; void cells can carry events).
-Not decoded yet: what each wall type 1..14 means (wall, door, secret door ...), so `TryStep` only lets wall type 0
-through unless you pass a predicate.
+Wall kinds are inferred, not read from the engine (details and confidence per type in `genesis_maps/WALL_TYPES.md`):
+1 wall; 2,3,4,6,7,8,9,11 door; 10 secret door; 14 sealed door (scripts keep it shut); 5,12,13 barrier. `TryStep` lets Open and
+unlocked Door sides through and blocks everything else; pass a predicate to override.
 
 ## Tests (no Unity needed)
 `mono-mcs` compiles the loader against a tiny UnityEngine stub:
@@ -25,8 +27,8 @@ through unless you pass a predicate.
 cd genesis_maps/unity
 mcs -out:tests/maptests.exe BuckRogersMaps.cs tests/UnityStub.cs tests/MapTests.cs && mono tests/maptests.exe Resources
 ```
-76 checks: map list, array sizes, shared-edge agreement, lock symmetry, Chicagorg event lookups (men's room sign, heat zone on void
-cells, sealed security doors by facing, ambush descriptions), shared map 0x51, lock-blocked and edge-blocked steps.
+81 checks: map list, array sizes, shared-edge agreement, lock symmetry, Chicagorg event lookups (men's room sign, heat zone on void
+cells, sealed security doors by facing, ambush descriptions), shared map 0x51, wall kinds, locked/unlocked/sealed doors, and edge-blocked steps.
 
 Regenerate the JSON: `python tools/genesis_maps/export_unity_maps.py genesis_maps/genesis_maps.json genesis_maps/map_events.json OUT`.
 Note: `mcs` is C# 7.0, so the loader uses `default(T)` instead of the `default` literal (also fine in Unity).

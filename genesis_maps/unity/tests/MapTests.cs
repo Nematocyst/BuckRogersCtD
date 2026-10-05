@@ -83,6 +83,22 @@ static class MapTests
             { foundOpen = true; Check(spy.TryStep(x, y, f, out nx, out ny) && nx == x + GenesisMap.DX[(int)f] && ny == y + GenesisMap.DY[(int)f], "open side steps"); }
         }
         Check(foundLocked && foundOpen, "found locked and open sides on map 20");
+        // wall kinds and door-aware movement
+        Check(GenesisMap.KindOf(0) == WallKind.Open && GenesisMap.KindOf(1) == WallKind.Wall && GenesisMap.KindOf(6) == WallKind.Door
+              && GenesisMap.KindOf(10) == WallKind.SecretDoor && GenesisMap.KindOf(14) == WallKind.SealedDoor && GenesisMap.KindOf(12) == WallKind.Barrier, "wall kinds");
+        // Chicagorg security doors (7,11) north: type 14 sealed -> TryStep blocks; the wall type there is 14 (from the script text)
+        int sx, sy;
+        Check(chi.Wall(7, 11, Facing.North) == 14 && !chi.TryStep(7, 11, Facing.North, out sx, out sy), "sealed security door blocks");
+        // an unlocked door side lets you through, the same door locked does not
+        bool doorOpen = false, doorLocked = false;
+        foreach (var m in maps) for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) foreach (Facing f in Enum.GetValues(typeof(Facing)))
+        {
+            int nx, ny;
+            if (m.Kind(x, y, f) != WallKind.Door || !m.Neighbor(x, y, f, out nx, out ny)) continue;
+            if (!doorOpen && m.Lock(x, y, f) == 0) { doorOpen = true; Check(m.TryStep(x, y, f, out nx, out ny), $"unlocked door {m.id:X2} {x},{y},{f} passes"); }
+            if (!doorLocked && m.IsLocked(x, y, f)) { doorLocked = true; Check(!m.TryStep(x, y, f, out nx, out ny), $"locked door {m.id:X2} {x},{y},{f} blocks"); }
+        }
+        Check(doorOpen && doorLocked, "found unlocked and locked doors");
         int ox, oy;
         Check(!chi.TryStep(0, 0, Facing.North, out ox, out oy) && !chi.TryStep(15, 15, Facing.East, out ox, out oy), "map edge blocks");
 

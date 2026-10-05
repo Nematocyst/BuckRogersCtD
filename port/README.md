@@ -27,8 +27,8 @@ Vectors are random-state runs, so a C# port that matches them follows the ROM ex
 * **Armor by direction**: bearing minus target facing (mod 8): 0,1,7 front = armor (+4); 2,6 flank = armor-2; 3,4,5 rear = rear armor (+5).
   An idle enemy target (flags & 6 == 0) turns to face its attacker first, so only already-engaged targets can be flanked.
 * **Backstab**: on a rear attack by a party member listed in the mask [0xD4FD] who is unarmed or holds a melee weapon (weapon type 0) the
-  damage is multiplied by 2; for a **rogue (career 4) the multiplier is (7 + level) >> 2** (levels 1-8: 2..3, 9: 4) and the rogue also
-  halves nothing but lowers the rear armor by 2.
+  damage is multiplied by 2; for a **rogue (career 4) the multiplier is (7 + level) >> 2** (levels 1-4: 2, 5-8: 3, 9: 4) and the rear armor
+  value used against the target is also 2 lower.
 * **Damage**: sum of `count` rolls of 1..sides + signed-byte bonus (negative -> 0), x multiplier, stored in a byte (wraps above 255).
   **Rocket-class weapons (type 2) in the first gear slot**: if the TARGET's record flag +0x2F has bit 2 there is a 75% chance (else bit 1: 50%) of
   forced full damage 0xFF.

@@ -10,7 +10,13 @@ Block layout (DOS Gold Box GEO layout, 16 x 16 cells, index = y*16 + x, y grows 
   plane 1  high nibble = SOUTH side,                  low nibble = WEST side
   plane 2  cell info: bit 7 = cell inside the explorable area (void cells can still carry codes), low 6 bits =
            event code: the script's AND [9AF9],63 -> ONGOTO table, 0-based (see map_events.py, MAP_EVENTS.md)
-  plane 3  cell flags (only bits 0,2,4,6 and 7 are ever set)                                      [meaning open]
+  plane 3  door lock state, 2 bits per side: bits 0-1 north, 2-3 east, 4-5 south, 6-7 west (shift = 2 * facing)
+           [verified in the ROM]: read by 0x14C9A / 0x4D8C for the side the party faces; the movement code at 0x53F8
+           blocks you when bit 0 is set (value 1 = locked) and the UNLOCKDOOR opcode (0x52, handler 0x3EC4 -> 0x5BEC)
+           clears the field on BOTH sides of the door. Data: 1,040 of 1,060 locked sides have a 1 on the opposite side
+           too; locks sit on wall types 6 (93% of them) and 7 (70%), type 12 is always locked. Value 3 (map 0x30, two
+           doors) takes a separate walk-through branch at 0x544C [likely: special passage]; value 2 occurs once
+           (map 0x60 (4,0) west) and behaves like 0 in the movement code [likely: no effect].
 Wall types 0..14; 0 = open. Neighbouring planes agree (north of (y,x) == south of (y-1,x), east of (y,x) == west
 of (y,x+1)) on 100% of edges in 16 of 18 maps, 99%/96% in maps 0x20/0x34.
 
@@ -44,6 +50,8 @@ def load_maps(rom):
             north=[v >> 4 for v in pl[0]], east=[v & 15 for v in pl[0]],
             south=[v >> 4 for v in pl[1]], west=[v & 15 for v in pl[1]],
             exists=[v >> 7 for v in pl[2]], special=[v & 0x7F for v in pl[2]], flags=pl[3],
+            lock_north=[v & 3 for v in pl[3]], lock_east=[(v >> 2) & 3 for v in pl[3]],
+            lock_south=[(v >> 4) & 3 for v in pl[3]], lock_west=[(v >> 6) & 3 for v in pl[3]],
             raw=b.hex()))
     return maps
 
@@ -66,6 +74,10 @@ def render(m, path, cell=28):
                 t = m[side][i]
                 if t:
                     g.line([a, b], fill=col.get(t, (230, 120, 0)), width=3 if t == 1 else 2)
+                if m['lock_' + side][i]:   # locked door side: red bar drawn just inside the cell
+                    dx = 3 if side == 'west' else -3 if side == 'east' else 0
+                    dy = 3 if side == 'north' else -3 if side == 'south' else 0
+                    g.line([(a[0] + dx, a[1] + dy), (b[0] + dx, b[1] + dy)], fill=(220, 0, 0), width=2)
     img.save(path)
 
 

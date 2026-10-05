@@ -51,13 +51,12 @@ Step events (run entry and elsewhere):
 
 | tests | facing | handler | cells on the map | summary |
 |---|---|---|---|---|
-| [9AF9]==130 | N | L6BDE | (none) | "THE SECURITY DOORS ARE SEALED."; sets [9DBF]=255 |
-| [9AF9]==2 | S | L6BDE | (7,10)o (8,10)o (7,11) (8,11) | "THE SECURITY DOORS ARE SEALED."; sets [9DBF]=255 |
-| [9AF9]!=149 | S | L6BEA | (none) | "THE DOOR HAS BEEN FUSED SHUT BY THE BATTLE."; sets [9DBF]=255 |
+| [9AF9]==130 | N | L6BDE | (7,11) (8,11) | "THE SECURITY DOORS ARE SEALED."; sets [9DBF]=255 |
+| [9AF9]==2 | S | L6BDE | (7,10)o (8,10)o | "THE SECURITY DOORS ARE SEALED."; sets [9DBF]=255 |
+| [9AF9]!=149 | S | L6BEA | (7,15) (8,15) | "THE DOOR HAS BEEN FUSED SHUT BY THE BATTLE."; sets [9DBF]=255 |
 | [9AF9]==13 | E | L6C07 | (11,10)o | "THE DOOR HAS BEEN FUSED SHUT BY THE BATTLE."; sets [9DBF]=255 |
 | [9E6F]==2 |  | L6D26 | (7,10)o (8,10)o (7,11) (8,11) | "TERRINES MOVE IN FOR THE KILL." (+1 more texts); fight: Terrine Warrior + Terrine Leader + Neo Warrior; random roll; random roll |
 | [9E6F]==1 |  | L6D26 | (4,3)o (5,3)o (6,3)o (8,3)o (3,4)o (9,4)o (3,5)o (11,5)o ... | "TERRINES MOVE IN FOR THE KILL." (+1 more texts); fight: Terrine Warrior + Terrine Leader + Neo Warrior; random roll; random roll |
-| [9E6F]==0 |  | L7162 | (0,0)o (1,0)o (2,0)o (3,0)o (4,0)o (5,0)o (6,0)o (7,0)o ... | "YOU ARE GIVEN A SMALL REWARD." (+1 more texts); fight; +2000 XP; -> module 11; treasure: 1000 cr |
 | [9E6F]==2 |  | L7162 | (7,10)o (8,10)o (7,11) (8,11) | "YOU ARE GIVEN A SMALL REWARD." (+1 more texts); fight; +2000 XP; -> module 11; treasure: 1000 cr |
 
 ## Module 11 / map 11 
@@ -86,7 +85,6 @@ Step events (run entry and elsewhere):
 
 | tests | facing | handler | cells on the map | summary |
 |---|---|---|---|---|
-| [9E6F]==0 |  | L6F68 | (0,0)o (1,0)o (2,0)o (4,0) (5,0)o (7,0) (8,0)o (10,0) ... | "SALVATION'S MEDICS RESTORE THE ENTIRE TEAM TO PERFECT HEALTH."; pushes party back |
 | [9E6F]==2 |  | L6F68 | (1,2) | "SALVATION'S MEDICS RESTORE THE ENTIRE TEAM TO PERFECT HEALTH."; pushes party back |
 
 ## Module 20 / map 20 Spy Ship
@@ -131,7 +129,6 @@ Step events (run entry and elsewhere):
 | tests | facing | handler | cells on the map | summary |
 |---|---|---|---|---|
 | [9E6F]!=1 | E | L6C2D | (14,5) (5,10) | sets [9DBF]=255 |
-| [9E6F]==0 |  | L6EF4 | (0,0) (1,0) (2,0) (3,0) (4,0) (5,0) (8,0) (9,0) ... | NPC joins/appears; sets [9E71]=1, [9BF6]=135, [9BF6]=1, [9BF7]=128 |
 
 ## Module 23 / map 23 Asteroid Base
 
@@ -190,7 +187,7 @@ Step events (run entry and elsewhere):
 
 | tests | facing | handler | cells on the map | summary |
 |---|---|---|---|---|
-| [9AF9]!=129 | N | L6BE4 | (none) | "AN ESCAPE SHIP IS HERE. A PILOT STATES, 'THIS IS A RELIEF SHIP FOR THE CHILDREN.'" (+7 more texts); +1500 XP; sets [9DBF]=255, flag 9861/=1 |
+| [9AF9]!=129 | N | L6BE4 | (5,0) | "AN ESCAPE SHIP IS HERE. A PILOT STATES, 'THIS IS A RELIEF SHIP FOR THE CHILDREN.'" (+7 more texts); +1500 XP; sets [9DBF]=255, flag 9861/=1 |
 
 ## Module 31 / map 31 Asteroid Base, Level 2
 
@@ -326,7 +323,6 @@ Step events (run entry and elsewhere):
 
 | tests | facing | handler | cells on the map | summary |
 |---|---|---|---|---|
-| [9E6F]==0 |  | L72A5 | (0,0) (1,0) (2,0)o (3,0)o (4,0) (5,0)o (6,0)o (7,0)o ... | logic only (ENDFOR, RETURN) |
 | [9E6F]==2 |  | L72A5 | (8,7)o (8,8)o | logic only (ENDFOR, RETURN) |
 
 ## Module 42 / map 42 Mars Base Gradiuvs Mons
@@ -374,7 +370,6 @@ Step events (run entry and elsewhere):
 | [9E6F]==20 | E | L6D3A | (11,3) (11,4) (11,5) | "THE MASSIVE FRONT DOORS ARE SEALED." (+3 more texts); -> module 40; sets [9DBF]=255, [9855]=1 |
 | [9E6F]==21 | S | L6C17 | (0,15) | "THIS DOOR WAS FUSED BY A LASER BOLT. YOU CAN'T LEAVE THIS WAY."; sets [9DBF]=255 |
 | [9E6F]==23 | W | L6D8B | (13,14) | "THE DOOR IS LOCKED." (+4 more texts); menu: Pick Lock / Demo Charge / Leave; skill check; item search; destroys item; explosion effect; sets [9DBF]=255, [9E71]=2, [9803]=1 |
-| [9E6F]==0 |  | L74FF | (1,0) (2,0)o (3,0)o (4,0)o (5,0)o (6,0)o (7,0)o (8,0)o ... | logic only (ENDFOR, CONTINUE, ENCEXIT) |
 | [9E6F]==2 |  | L74FF | (3,11) | logic only (ENDFOR, CONTINUE, ENCEXIT) |
 
 ## Module 43 / map 43 More Asteroid Bases

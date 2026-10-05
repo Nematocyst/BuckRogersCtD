@@ -152,8 +152,9 @@ if __name__ == '__main__':
         if st:
             md.append('\nStep events (run entry and elsewhere):\n\n| tests | facing | handler | cells on the map | summary |\n|---|---|---|---|---|')
             for var, val, fac, cond, lab in st:
+                if var == '[9E6F]' and val == 0: continue   # random-encounter logic, matches every empty cell
                 cs = [(i % 16, i // 16, m['exists'][i]) for i in range(256)
-                      if (m['special'][i] == val if var == '[9AF9]' else (m['special'][i] & 0x3F) == val)]
+                      if (((m['exists'][i] << 7) | m['special'][i]) == val if var == '[9AF9]' else (m['special'][i] & 0x3F) == val)]
                 dd = D(mod, lab) if lab in labels else dict(text='', texts=[])
                 sm = dd['text']
                 md.append(f'| {var}{"==" if cond == "EQ" else "!="}{val} | {"" if fac is None else "NESW"[fac]} | {lab} | {pos(cs) or "(none)"} | {short(sm).replace("|", "/")} |')

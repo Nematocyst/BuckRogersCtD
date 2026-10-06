@@ -50,7 +50,7 @@ namespace BuckRogersGenesis
             if (recordIndex < 8 && GenesisSkills.SkillCheck(rom, rng, record, slotFlags0ByIndex[recordIndex], 7, 2) >= 2)
                 backstabMask |= 1 << recordIndex;
             slot[1] = (byte)(slot[1] & ~2);                                                  // bclr #1
-            slot[0x16] = (byte)(slot[0xF] << 1);                                             // HP * 2
+            slot[0x16] = (byte)(slot[0xF] << 1);                                             // movement points = slot[0xF] * 2
             slot[1] = (byte)(slot[1] & ~0x20);                                               // 0xE7DC: bclr #5
             if (flag97DCBit4 && GenesisSkills.SkillCheck(rom, rng, record, slotFlags0ByIndex[recordIndex], 4, 2) < 2)
             {

@@ -22,8 +22,8 @@ namespace BuckRogersGenesis
             new[] { 0x0B70, 0x0C00 },     // hit dice, CON bonus, attack-value tables (+ the bytes beyond them that out-of-range indices read)
             new[] { 0x0C10, 0x0CB0 },     // XP thresholds per career
             new[] { 0x4FFC, 0x500A },                // ability used by each skill (skill check)
-            new[] { 0x7700, 0x7800 },                // initiative / DEX tables at 0x776F (signed DEX index reaches 0x770E..0x77FE)
-            new[] { 0x779E, 0x779E + 8 * 40 },       // weapon table
+            new[] { 0x76C0, 0x7800 },                // STR / DEX / initiative tables at 0x7741 and 0x776F (a signed index reaches 0x76C1..0x77FE)
+            new[] { 0x779E - 8 * 128, 0x779E + 8 * 128 },   // weapon table; item ids are sign-extended, so ids 0x80..0xFF index backwards
             new[] { 0xA829, 0xA829 + 0x100 },        // item drop category table (+ the bytes after it that ids >= 0x28 would read)
             new[] { 0xF17CC, 0xF17CC + 10 * 128 },   // base item records
         };

@@ -29,7 +29,7 @@ Vectors are random-state runs, so a C# port that matches them follows the ROM ex
   The party acts in the order the player chooses from the menu, but only among creatures whose word is currently highest.
 * **Initiative** = `INIT[DEX]` (table 0x7786: DEX 1-5 = -6,-4,-3,-2,-1; DEX 6-15 = 0; 16 = +1; 17-18 = +2; 19-20 = +3; 21-22 = +4) + d10, -8 for the surprised side, minimum 2; tie-break d100; ties go to the lower slot.
   **Slot byte +1 bit 0 SET = party.** `[0x9DC1]` = 1 delays the party, 2 delays the monsters (the earlier poke test results now make sense).
-* **Round start also**: sets slot +0x16 = HP*2 (quartered when the character fails skill 4 and [0x97DC] bit 4 is set), copies "attacks x2" to the
+* **Round start also**: sets slot +0x16 (movement points) = slot[+0x0F] (movement)*2 (quartered when the character fails skill 4 and [0x97DC] bit 4 is set), copies "attacks x2" to the
   attacks-left bytes (+0x18/+0x19, halved with the round parity), and sets bit <slot> in the backstab mask [0xD4FD] for party members whose
   **skill 7 check reaches 2** (that is what makes backstabs possible; the rogue multiplier is in `ArmorAgainst`).
 * **Skill check**: value = points*8 (or (points - 2*level)*2 + 16*level when points exceed 2*level) + the ability tied to the skill (table 0x4FFC);
@@ -84,3 +84,19 @@ Vectors are random-state runs, so a C# port that matches them follows the ROM ex
 The action cost that counts +0x14 down (movement and attack handlers around 0xE4F0, 0xF2AE, 0xEF64), what a creature does once it has a target (attack vs
 move choice, spells and abilities), the `ad5a`-style animations, the remaining uses of [0xD501..0xD503] and [0x97AE], the text behind message ids
 0x128/0x129/0x12A/0xBD/0xBE, and the scripted-XP table at 0x16402 (the tally takes the scripted bonus as a parameter).
+
+## Attack preparation, line of fire, wounds (ROM 0x10400, 0x15B5A, 0x6D1E, 0x760A)
+
+`GenesisActions.cs` ports the pure-logic half of "attacking": everything up to (but not including) the RNG rolls.
+
+| C# | ROM | Notes |
+|---|---|---|
+| `GenesisAttackPlanner.Prepare` | 0x10400 | grenade mode (item modifier 5..12), armor vs. octant, recompute both slots, side check (msg 0xBC), weapon range (0x11638), line of fire with a second try at the other cell of a tall/wide target (msgs 0xBA/0xBB), then the to-hit tail. No RNG. |
+| `GenesisLineOfFire.Run` | 0x15B5A | Bresenham; each step costs 2/3 of a "half step" of range; terrain flags 501/502/503 block or stop; reads outside the map return 0. |
+| `GenesisStats.RecomputeSlot` | 0x6D1E | derives a combat slot from the character record: item ids are sign-extended, record+0x2F flags, encumbrance, STR/DEX tables. |
+| `CombatState.ApplyDamage` | 0x760A | wound model: damage >= HP sets HP 0 and status 0x82 (down). |
+
+Slot field corrections: slot +0x0E = HP, +0x0F = movement, **+0x16 = movement points for the round** (= movement*2 at round start), not HP*2.
+Damage-list entries >= 128 (including the 0xFF "full damage" marker) are skipped by the HP-application loop at 0x10E3E; where they are resolved is still open.
+
+Not yet ported: the monster turn controller 0xEF64 and callees (weapon choice 0xE89C, movement step/cost 0xF898/0xF842, opportunity attacks 0x11A44, animation). Known: attacking ends the turn (clears +0x14), "wait" is time=1, step cost = terrain flags & 0x1F compared with +0x16.

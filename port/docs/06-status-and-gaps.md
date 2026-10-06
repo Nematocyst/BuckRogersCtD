@@ -9,6 +9,9 @@ enum 200, select 200, weapon 200, attack 300, move 300, nav 150, whole turns 1,2
 ## Combatant creation (ROM 0x3544, 0x488C, 0x48E8): ported
 `AddMonsters(id, count)`, `AddAlly(id, op2)` and `LoadCombatant` (`GenesisCombatants.cs`): record copy from the monster file, hit-point-style fix (+0x24 x2/3), item remap / unworn-gear swap, the 0x38 slot cap, free party slot search, slot status / flags / stats. Checked on 600 random cases against the ROM (decompressor replaced by a plain stream, random monster files; whole records and all 56 slots compared); 10 mutations caught (one unreachable-value mutation is equivalent).
 
+## Whole fights (ROM 0xE394)
+`tests/combat_whole_vectors.json.gz` (84 KB, 34 fights: 37 generated, 3 dropped because the ROM run did not finish) holds complete fights run in the emulator with scripted menu / pad input: setup, every round, every turn, with event traces and RNG state compared. The port reproduces all 601 checks of them (combat=34).
+
 ## Not ported
 * **Post-fight cleanup**: ported (see 04), medical aftermath, loot sharing screen and the starship repair at the end of scripted fights are all included; the host hooks `Aftermath`, `LootScreen`, `ScriptedFightEnd`, `GameOver` remain for drawing / story only.
 * **Script engine**: the opcodes that call combat creation are not ported as a whole (operand reader 0x404A for variables / indirect values, the LZW decompressor 0x9ED8 for the monster file, the "monster not found" error box). The host passes parsed operands and the decompressed monster file.

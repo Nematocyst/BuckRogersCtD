@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using BuckRogersGenesis;
 
-[Serializable] public class MonPre { public int n, idx; public string[] recs, slots; public string tiles, ft, g, ca; }
+[Serializable] public class MonPre { public int n, idx, m97, d97dc; public string[] recs, slots; public string tiles, ft, g, ca; }
 [Serializable] public class MonPost { public string[] slots; public string tiles, g, ca; public int ridx; public long rsum, recsum; }
 [Serializable] public class MonCase { public string fn; public int a, range; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
@@ -21,7 +21,7 @@ static class MonsterTests
         for (int i = 0; i < p.n; i++) s.Slots[i] = Hex(p.slots[i]);
         for (int r = 0; r < 11; r++) { var rec = new byte[214]; var h = Hex(p.recs[r]); Array.Copy(h, rec, h.Length); s.Records[r] = rec; s.RecordSizeType[r] = rec[0x23]; }
         var ctx = new TurnContext { S = s, Rng = GenesisRng.FromState(boot, (byte)p.idx), TerrainFlags = i => ft[i + 1], Rom = rom };
-        Array.Copy(Hex(p.g), ctx.G, ctx.G.Length); Array.Copy(Hex(p.ca), ctx.Ca, ctx.Ca.Length);
+        ctx.Mode97AE = (byte)p.m97; ctx.D97DC = (byte)p.d97dc; Array.Copy(Hex(p.g), ctx.G, ctx.G.Length); Array.Copy(Hex(p.ca), ctx.Ca, ctx.Ca.Length);
         return ctx;
     }
 
@@ -34,7 +34,7 @@ static class MonsterTests
         Check(Same(x.Ca, Hex(q.ca)), $"actor/target list {BitConverter.ToString(x.Ca)} vs ROM {BitConverter.ToString(Hex(q.ca))} ({ctx})");
         long sum = 0; foreach (var w in x.Rng.TableCopy()) sum += w;
         Check(x.Rng.Index == q.ridx && sum == q.rsum, $"RNG state: index {x.Rng.Index} vs {q.ridx}, sum {sum} vs {q.rsum} ({ctx})");
-        long rs = 0; foreach (var r in x.S.Records) foreach (var b in r) rs += b;
+        long rs = 0, pos = 0; foreach (var r in x.S.Records) foreach (var b in r) { pos++; rs += pos * b; }
         Check(rs == q.recsum, $"record bytes changed: sum {rs} vs ROM {q.recsum} ({ctx})");
     }
 
@@ -52,6 +52,7 @@ static class MonsterTests
             {
                 case "enum": x.EnumerateTargets(c.a, c.range); break;
                 case "select": x.SelectTarget(); break;
+                case "weapon": x.ChooseWeapon(c.range); break;
                 default: Check(false, "unknown case " + c.fn); continue;
             }
             Compare(x, c, ctx);

@@ -2,8 +2,9 @@
 // (port/tests/MonsterTests.cs; vectors from the real routines run in a 68000 emulator, see port/tools/gen_monster_vectors.py).
 //
 // The small RAM areas the routines share are kept as byte images at their real addresses so the port can be compared byte for byte with the ROM:
-//   G  = 0xD4E0..0xD51F  combat scratch globals ([0xD4FF] skip-blockers, [0xD500] side filter, [0xD501..3] line-of-fire flags, [0xD504] tile-0 blocks,
-//                        [0xD505] mode, [0xD506] target-list count, [0xD511..] attack to-hit/status scratch, [0xD513] current victim)
+//   G  = 0xD490..0xD51F  combat scratch globals: [0xD499/A] side attack modifiers, [0xD49C..] temporary effect list (3 bytes: slot, effect, ?),
+//                        [0xD4FF] skip-blockers, [0xD500] side filter, [0xD501..3] line-of-fire flags, [0xD504] tile-0 blocks,
+//                        [0xD505] mode, [0xD506] target-list count, [0xD511..] attack to-hit/status scratch, [0xD513] current victim
 //   Ca = 0xCA20..0xCA7F  [0xCA20] current actor slot, [0xCA22..] target list: 3 bytes per entry (slot, distance, octant)
 
 using System;
@@ -16,10 +17,10 @@ namespace BuckRogersGenesis
         public GenesisRng Rng;
         public Func<int, int> TerrainFlags;                   // terrain flag byte by terrain index (see GenesisLineOfFire.Run)
         public RomView Rom;                                   // ROM tables (weapon table, direction table, ...)
-        public byte[] G = new byte[0x40];
+        public byte[] G = new byte[0x90];
         public byte[] Ca = new byte[0x60];
 
-        public const int GBase = 0xD4E0, CaBase = 0xCA20;
+        public const int GBase = 0xD490, CaBase = 0xCA20;
         public int Actor { get { return Ca[0]; } set { Ca[0] = (byte)value; } }
         public byte D4FF { get { return G[0xD4FF - GBase]; } set { G[0xD4FF - GBase] = value; } }
         public byte D500 { get { return G[0xD500 - GBase]; } set { G[0xD500 - GBase] = value; } }
@@ -28,6 +29,8 @@ namespace BuckRogersGenesis
         public byte D503 { get { return G[0xD503 - GBase]; } set { G[0xD503 - GBase] = value; } }
         public byte D504 { get { return G[0xD504 - GBase]; } set { G[0xD504 - GBase] = value; } }
         public byte D506 { get { return G[0xD506 - GBase]; } set { G[0xD506 - GBase] = value; } }
+        public byte Mode97AE;                                 // [0x97AE]: party members are driven by the player (no automatic weapon choice)
+        public byte D97DC;                                    // [0x97DC] option bits (bit 4: no explosive weapon use)
         public byte[] Slot(int i) { return S.Slots[i]; }
 
         // ------------------------------------------------------------------------------------ 0x15B34 / 0x15B5A

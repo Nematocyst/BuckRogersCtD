@@ -10,13 +10,25 @@ rnd = random.Random(0xEF64)
 m0 = Machine(rom); m0.run_range(0x12C8, 0x12E4)
 boot_table = m0.read_ram(0xD604, 512)
 out = dict(boot_table=list(struct.unpack('>256H', boot_table)))
-SLOT = 0xC470; REC = 0xBA68; G0, GN = 0xD4E0, 0x40; CA0, CAN = 0xCA20, 0x60
+SLOT = 0xC470; REC = 0xBA68; G0, GN = 0xD490, 0x90; CA0, CAN = 0xCA20, 0x60
 
 
 def make_record(rnd, idx, party, full=True):
     b = bytearray(rnd.randrange(256) for _ in range(214)) if full else bytearray(214)
     b[0x23] = rnd.choice([0, 0, 0, 1, 2, 3])
+    if full: make_items(rnd, b)
     return b
+
+
+def make_items(rnd, b, area=False):
+    ids = list(range(1, 39))
+    for k in range(13):
+        o = 0x54 + 10 * k
+        if rnd.random() < 0.35: b[o:o + 10] = bytes(10); continue
+        b[o] = rnd.choice(ids); b[o + 4] = rnd.choice([0, 0, 1, 2, 5]); b[o + 5] = rnd.choice([0, 0, 0, 0, 0x10, 0x20, 0x30])
+        b[o + 9] = rnd.choice([0, 0, 0, 1, 2, 3, 4, 13] if not area else [0, 1, 5, 6, 7, 8, 9, 10, 11, 12])
+    for i in range(5): b[0x4D + i] = rnd.choice([0, rnd.choice(ids), rnd.choice(ids)])
+    b[0x10] = rnd.randrange(0, 26); b[0x11] = rnd.randrange(0, 26); b[0x2F] = rnd.choice([0, 0, 2, 4, 6, rnd.randrange(256)])
 
 
 def build(m, rnd, nmin=3, nmax=12, near=True, full=False):
@@ -46,7 +58,7 @@ def build(m, rnd, nmin=3, nmax=12, near=True, full=False):
     g[0xD506 - G0] = rnd.choice([0, 3])
     for k in range(n):
         if rnd.random() < 0.7: slots[k][0x1] = (slots[k][1] & ~1) | (k < 4)   # a rough party / monster split
-    return dict(n=n, recs=recs, slots=slots, tiles=tiles, ft=ft, g=g, ca=ca, actor=actor, idx=rnd.randrange(256))
+    return dict(full=full, n=n, recs=recs, slots=slots, tiles=tiles, ft=ft, g=g, ca=ca, actor=actor, idx=rnd.randrange(256))
 
 
 def load(m, w):
@@ -59,13 +71,13 @@ def load(m, w):
 
 
 def snap(m, w):
-    return dict(slots=[m.read_ram(SLOT + k * 26, 26).hex() for k in range(w['n'])], recsum=sum(m.read_ram(REC, 11 * 0xD6)) & 0xFFFFFFFF,
+    return dict(slots=[m.read_ram(SLOT + k * 26, 26).hex() for k in range(w['n'])], recsum=sum((i + 1) * b for i, b in enumerate(m.read_ram(REC, 11 * 0xD6))) & 0xFFFFFFFF, m97=m.ram_byte(0x97AE),
                 tiles=m.read_ram(0xCACA, 441).hex(), g=m.read_ram(G0, GN).hex(), ca=m.read_ram(CA0, CAN).hex(),
                 ridx=m.ram_byte(0xD804), rsum=sum(struct.unpack('>256H', m.read_ram(0xD604, 512))) & 0xFFFFFFFF)
 
 
 def pre(w):
-    return dict(n=w['n'], recs=[bytes(r[:w.get('rlen', 0x24)]).hex() for r in w['recs']], slots=[bytes(s).hex() for s in w['slots']], tiles=bytes(w['tiles']).hex(),
+    return dict(n=w['n'], recs=[bytes(r[:(214 if w.get('full') else 0x24)]).hex() for r in w['recs']], slots=[bytes(s).hex() for s in w['slots']], tiles=bytes(w['tiles']).hex(),
                 ft=bytes(w['ft']).hex(), g=bytes(w['g']).hex(), ca=bytes(w['ca']).hex(), idx=w['idx'])
 
 
@@ -84,6 +96,21 @@ for _ in range(700):
     m.write_ram(0xCA20, bytes([a])); m.write_ram(0xBA64, struct.pack('>H', w['n']))
     m.call(0xE812, a3=RAM_BASE + SLOT + a * 26, max_insns=6000000)
     cases.append(dict(fn='select', pre=pre(w), a=a, post=snap(m, w)))
+
+# ---- C. 0xE89C weapon choice: a3 = actor slot, a2 = actor record, d0 = mode
+for _ in range(500):
+    m = Machine(rom); w = build(m, rnd, full=True)
+    w['g'][0xD499 - G0] = rnd.randrange(0, 4); w['g'][0xD49A - G0] = rnd.randrange(0, 4)
+    for k in range(32):                                  # temporary effect list [0xD49C]: slot, effect, duration
+        if rnd.random() < 0.15: w['g'][0xD49C - G0 + 3 * k: 0xD49C - G0 + 3 * k + 3] = bytes([rnd.randrange(w['n']), rnd.choice([0x14, 0x18, 0x03]), 5])
+    load(m, w); a = w['actor']; d97 = rnd.choice([0, 0x10]); m97 = rnd.choice([0, 0, 1])
+    m.write_ram(0x97AE, bytes([m97])); m.write_ram(0x97DC, bytes([d97])); m.write_ram(0xCA20, bytes([a]))
+    if rnd.random() < 0.3:                                # make the actor stand on tile 0 sometimes
+        x, y = w['slots'][a][0x12], w['slots'][a][0x13]; tl = bytearray(w['tiles']); tl[x * 21 + y] = 0; m.write_ram(0xCACA, bytes(tl)); w['tiles'] = tl
+    mode = rnd.choice([0, 1, 1])
+    m.call(0xE89C, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + w['slots'][a][2] * 0xD6, a0=RAM_BASE + SLOT, d0=mode, max_insns=3000000)
+    pr = pre(w); pr['m97'] = m97; pr['d97dc'] = d97
+    cases.append(dict(fn='weapon', pre=pr, a=a, range=mode, post=snap(m, w)))
 
 out['cases'] = cases
 json.dump(out, open(sys.argv[2], 'w'), separators=(',', ':'))

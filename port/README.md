@@ -137,7 +137,7 @@ the screen, sound and animation routines (assumed to have no effect on the game 
 ### Special-effect hooks - `GenesisEffects.cs`
 
 `TurnContext.Stage(stage, creature)` is ROM 0x664E: at fixed points of the engine the handler of every effect on the stage's list that the creature carries is run (effects live in record +0x43..+0x4C or, timed, in the list at [0xD49C]).
-Verified with 800 stage runs of every stage/effect/creature combination and inside the whole attack / turn / explosive tests (123,000 checks in all, 1,000 of them whole turns through `BeginTurn` = ROM 0xE4F0).
+Verified with 800 stage runs over every stage, effect and creature combination, 500 whole turns through `BeginTurn` (= ROM 0xE4F0) and inside the attack, turn and explosive tests (75,000 checks for the monster turn in all).
 
 | stage | where | effects (id = hex; meaning from what the handler does) |
 |---|---|---|

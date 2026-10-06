@@ -412,7 +412,14 @@ namespace BuckRogersGenesis
         {
             var me = S.Slots[Actor]; var rec = S.Records[me[2]];
             if ((me[1] & 1) == 0 || (rec[0x32] == 0 && rec[0x3B] == 0)) return false;
-            int d4 = rec[0x32], n = 0;
+            FillRescueList(rec[0x32]);
+            return D506 != 0;
+        }
+
+        /// The list loop of 0xF28A / 0xF22C: `d4` = the healer's skill points (+0x32).
+        void FillRescueList(int d4)
+        {
+            int n = 0;
             for (int i = 0; i < 8 && i < S.SlotCount; i++)
             {
                 var sl = S.Slots[i]; int st = sl[0];
@@ -425,7 +432,6 @@ namespace BuckRogersGenesis
                 Ca[2 + 3 * n++] = (byte)i;
             }
             D506 = (byte)n;
-            return n != 0;
         }
 
         /// 0x10200: the first fallen friend becomes the target; the creature walks to it along the shortest path (mode 2 of the search) and treats it.

@@ -78,6 +78,18 @@ class Machine:
                 uc.reg_write(UC_M68K_REG_PC, ret)
         self.uc.hook_add(UC_HOOK_CODE, hook, begin=addr, end=addr)
 
+    def stub_fn(self, addr, fn):
+        """like stub_ret, but the value returned in d0 is fn() of this call (scripted input: a menu answer, a control pad reading)"""
+        from unicorn import UC_HOOK_CODE
+        def hook(uc, address, size, user):
+            if address == addr:
+                sp = uc.reg_read(UC_M68K_REG_A7)
+                ret = struct.unpack('>I', bytes(uc.mem_read(sp, 4)))[0]
+                uc.reg_write(UC_M68K_REG_A7, sp + 4)
+                uc.reg_write(UC_M68K_REG_D0, fn() & 0xFFFFFFFF)
+                uc.reg_write(UC_M68K_REG_PC, ret)
+        self.uc.hook_add(UC_HOOK_CODE, hook, begin=addr, end=addr)
+
     def run_between(self, start, stops, max_insns=500000, **regs):
         """run from start until the PC reaches any address in stops; returns the stop address"""
         from unicorn import UC_HOOK_CODE

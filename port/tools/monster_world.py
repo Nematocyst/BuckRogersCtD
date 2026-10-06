@@ -80,7 +80,7 @@ def load(m, w):
 def snap(m, w):
     return dict(slots=[m.read_ram(SLOT + k * 26, 26).hex() for k in range(w['n'])], recsum=sum((i + 1) * b for i, b in enumerate(m.read_ram(REC, 11 * 0xD6))) & 0xFFFFFFFF, m97=m.ram_byte(0x97AE),
                 tiles=m.read_ram(0xCACA, 441).hex(), nav=m.read_ram(0x6CAE, 0x100).hex(), waves=getattr(m, 'waves', []), d2s=getattr(m, 'd2s', []), trace=getattr(m, 'trace', []), g=m.read_ram(G0, GN).hex(), ca=m.read_ram(CA0, CAN).hex(),
-                haz=m.read_ram(0x78CE, 256).hex(), ridx=m.ram_byte(0xD804), rsum=sum(struct.unpack('>256H', m.read_ram(0xD604, 512))) & 0xFFFFFFFF)
+                haz=m.read_ram(0x78CE, 256).hex(), cur=list(struct.unpack('>hh', m.read_ram(0xB3F0, 4))), mvo=list(struct.unpack('>hh', m.read_ram(0xB3F4, 4))), ridx=m.ram_byte(0xD804), rsum=sum(struct.unpack('>256H', m.read_ram(0xD604, 512))) & 0xFFFFFFFF)
 
 
 def pre(w):
@@ -92,10 +92,11 @@ def pre(w):
 UI_STUBS = (0x1B900, 0xE606, 0xCAEA, 0x75F8, 0x75FA, 0xCA7E, 0xAD5A, 0x9784, 0xDEE6, 0xDEC4, 0xDF08, 0xFA52, 0x98E4, 0xC3F0, 0xAD3E, 0x11C8E, 0x11C5A, 0x1343E, 0x1344A, 0x9240, 0xE5E6, 0xFEA8, 0x114D6, 0x11CA4, 0xAC9C)
 
 
-def machine(rom):
+def machine(rom, unstub=(), extra=()):
     """emulator with the VDP/IO ranges mapped, the VDP registers in a4/a5 and every graphics / sound / animation routine replaced by an empty one"""
     m = Machine(rom); m.map_io()
-    for a in UI_STUBS: m.stub_rts(a)
+    for a in UI_STUBS + tuple(extra):
+        if a not in unstub: m.stub_rts(a)
     m.stub_ret(0x136DA, 1)                                  # the "leave the battlefield?" prompt: answer no
     m.set_reg('a4', 0xC00004); m.set_reg('a5', 0xC00000)
     m.call(0xF28E, max_insns=100, a3=RAM_BASE + SLOT, a2=RAM_BASE + REC)       # priming run: Unicorn aborts when its first translated block is the btst at 0xF28A
@@ -111,7 +112,7 @@ def machine(rom):
     def d2hook(uc, address, size, user): m.d2s.append((uc.reg_read(UC_M68K_REG_D2) >> 8) & 0xFF)
     m.uc.hook_add(UC_HOOK_CODE, d2hook, begin=0x11630, end=0x11630)
     m.uc.hook_add(UC_HOOK_CODE, d2hook, begin=0x11638, end=0x11638)
-    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround', 0xE4F0: 'turn', 0x1021E: 'rescue'}
+    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround', 0xE4F0: 'turn', 0x1021E: 'rescue', 0xF2AE: 'manual'}
     from unicorn.m68k_const import UC_M68K_REG_D0, UC_M68K_REG_D1, UC_M68K_REG_D2, UC_M68K_REG_D3, UC_M68K_REG_D4
     trace_lof = bool(os.environ.get('TRACE_LOF'))
     def thook(uc, address, size, user):

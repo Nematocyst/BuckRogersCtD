@@ -3,8 +3,8 @@ using System.IO;
 using BuckRogersGenesis;
 
 [Serializable] public class MonPre { public string haz, script, nav; public int n, idx, m97, d97dc, d513, mode; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
-[Serializable] public class MonPost { public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
-[Serializable] public class MonCase { public string fn; public int a, range; public int[] mv; public MonPre pre; public MonPost post; }
+[Serializable] public class MonPost { public int[] polls, cur, mvo; public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
+[Serializable] public class MonCase { public string fn; public int a, range; public int[] mv, menu, pad; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
 
 static class MonsterTests
@@ -46,6 +46,8 @@ static class MonsterTests
             var mine = (byte[])x.G.Clone(); var theirs = Hex(q.g);
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
             mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
+            foreach (int a in new[] { 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
+                mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             Check(Same(mine, theirs), $"globals differ [address: port/ROM]: {Diff(mine, theirs, TurnContext.GBase)} ({ctx})");
         }
         { var nv = Hex(q.nav); var mine = new byte[0x34]; var theirs = new byte[0x34]; Array.Copy(x.Nav, mine, 0x34); Array.Copy(nv, theirs, 0x34); Check(Same(mine, theirs), $"path buffer differs [address: port/ROM]: {Diff(mine, theirs, 0x6CAE)} ({ctx})"); }
@@ -96,6 +98,22 @@ static class MonsterTests
                 case "tick": x.S.CombatMode = c.pre.mode; x.TickHazards(); break;
                 case "turn": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; StartTrace(x); x.RunTurn();
                     { var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace)); Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})"); if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace.txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0)); }
+                    break;
+                case "manual":
+                    {
+                        x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; StartTrace(x);
+                        int mi = 0, pi = 0, menuCalls = 0, padCalls = 0;
+                        x.MenuChoice = () => { menuCalls++; return mi < c.menu.Length ? (short)c.menu[mi++] : 4; };
+                        x.Pad = () => { padCalls++; return pi < c.pad.Length ? c.pad[pi++] : 0x80; };
+                        x.MapPixelsX = 504; x.MapPixelsY = 504;
+                        x.PlayerTurn();
+                        Check(menuCalls == c.post.polls[0] && padCalls == c.post.polls[1], $"input readings: menu {menuCalls} pad {padCalls} vs ROM {c.post.polls[0]} {c.post.polls[1]} ({ctx})");
+                        Check(x.CursorX == c.post.cur[0] && x.CursorY == c.post.cur[1], $"cursor {x.CursorX},{x.CursorY} vs ROM {c.post.cur[0]},{c.post.cur[1]} ({ctx})");
+                        Check(x.MoveDx == c.post.mvo[0] && x.MoveDy == c.post.mvo[1], $"step vector {x.MoveDx},{x.MoveDy} vs ROM {c.post.mvo[0]},{c.post.mvo[1]} ({ctx})");
+                        var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace));
+                        Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})");
+                        if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace.txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0));
+                    }
                     break;
                 case "attack": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ExecuteAttack(); break;
                 default: Check(false, "unknown case " + c.fn); continue;

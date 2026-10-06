@@ -114,7 +114,7 @@ namespace BuckRogersGenesis
 
         // ------------------------------------------------------------------------------------ turn start / end (0xE4F0)
         /// 0xE4F0: the whole of one creature's turn: the reaction flag is consumed, the start-of-turn effects run (a creature left without time loses its turn), then the
-        /// computer controlled creature (flag bit 7 set: every monster) takes its turn, and finally the end-of-turn item upkeep. Manually played turns (flag 7 clear: party members under the player's control) are not ported.
+        /// computer controlled creature (flag bit 7 set: every monster) takes its turn, and finally the end-of-turn item upkeep. A creature with flag bit 7 clear (a party member under the player's control) plays PlayerTurn (GenesisPlayerTurn.cs).
         public void BeginTurn()
         {
             T("turn");
@@ -126,8 +126,8 @@ namespace BuckRogersGenesis
                 Stage(0xF, Actor);
                 if (me[0x14] != 0)
                 {
-                    if ((me[1] & 0x80) == 0) throw new NotSupportedException("manually played turn (ROM 0xF2AE)");
-                    RunTurn();
+                    if ((me[1] & 0x80) == 0) PlayerTurn();
+                    else RunTurn();
                 }
             }
             EndOfTurn();

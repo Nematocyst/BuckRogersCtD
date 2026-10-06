@@ -131,8 +131,28 @@ Quirks of the original that the port reproduces (found by the differential tests
 * the weapon choice tests the actor's tile at index x*21+y (everything else uses y*21+x) and reads the *actor's* record flags where it looks at the target;
 * the damage list overlaps the multiplier [0xD496], the damage scratch [0xD497] and the monsters' attack modifier [0xD499] when an attack round hits 9 or more times.
 
-Not ported (the ROM test replaces them by empty routines, so these are the known gaps): **manually played turns** (0xF2AE; `BeginTurn` throws for a creature without the computer-control flag 0x80);
-the screen, sound and animation routines (assumed to have no effect on the game state, except the projectile animation's sprite scratch [0xD51A/B], which the test ignores); the "leave the battlefield?" prompt (0x136DA, `RetreatPrompt`).
+Not ported (the ROM test replaces them by empty routines, so these are the known gaps): the screen, sound and animation routines (assumed to have no effect on the game state, except the projectile animation's sprite scratch [0xD51A/B], which the test ignores); the "leave the battlefield?" prompt (0x136DA, `RetreatPrompt`).
+
+### The player's turn - `TurnContext.PlayerTurn` (ROM 0xF2AE) - `GenesisPlayerTurn.cs`
+
+A creature without the computer-control flag (slot +1 bit 7 clear: the party members unless the player chose "auto") plays through `PlayerTurn`; `BeginTurn` (0xE4F0) picks it. The ROM's two input
+routines are the host's callbacks: `MenuChoice` (0x1391A, the command menu: 0 attack, 1 move, 2 auto, 3 wait - or rescue when the creature is a healer with somebody to help - 4 end the turn,
+negative = cancel = `CharacterSheet`, 0xFDC8) and `Pad` (0xF1B66, one reading of the control pad: bit 0 up, 1 down, 2 left, 3 right, 4 next target, 5 confirm, 6 character sheet, 7 cancel). The
+turn is a small state machine over the modes *menu*, *walk* (0), *attack* (1) and *rescue* (2) that ends when the creature's time (+0x14) is 0 or the menu command leaves the turn.
+
+* **Walk.** The menu starts the walk (`StartMotion`, 0xF9A6: markers removed, flag 4) after saving position and movement points. One step needs **21 pad readings** (20 more after the first): the directions seen in them are or-ed,
+  a diagonal ends the reading at once; then `MoveStep` runs (terrain cost, reactions, fleeing off the map). *Cancel* undoes the whole walk (position, movement points, markers back) - note the reactions
+  that were drawn stay drawn; *confirm* ends the walk. The debug key (next target) knocks out every living monster when [0xCA21] is 0.
+* **Attack.** The target list is every living monster (0xF1EA, [0xCA22..]); the cursor (pixel position, one cell = 24 steps, kept inside the map) starts on the actor, or - when the creature's previous victim ([0xD51D + slot]) is
+  still in the list - on that one. Each cursor stop looks up who stands there (`OccupantsFull` = 0x1432E with its second pass for fallen creatures) and, when it is a different creature, runs `PrepareAttack` on it - which has
+  game state effects (stats recomputed, target turned) just by aiming. The actor always faces the cursor. With an explosive in hand the preparation is re-run at every stop and the display refreshed when the to-hit or message changed.
+  *Confirm* attacks (`ExecuteAttack`, or `AreaAttack` at the cursor for explosives; nothing when the preparation found no way to attack) and remembers the victim in [0xD51D + slot] (not after a blast).
+* **Rescue** (healer menu entry): the cursor lists the fallen friends (0xF22C); confirming on one runs the healer routine (`Rescue`, with path mode 1 instead of the computer's 2).
+* **Wait** toggles the time between 0 and 1 (a second "wait" ends the turn); **end turn** is 0xF1A2; **auto** sets flag 0x80 so the next turns are played by `RunTurn`.
+
+Quirks of the original reproduced: the "explosive in hand" flag lives in an uninitialised stack slot until the attack mode sets it and survives a visit to the character sheet (the port starts it at false); the target-list index likewise (starts 0).
+
+Verified with 700 scripted turns (random menu answers and pad readings, run in the ROM with the input routines replaced and compared with the port: the number of readings consumed, final cursor, slots, records, markers, scratch globals, RNG and the event sequence match; the menu window layout bytes [0xD582..9, 0xD592, 0xD595] are ignored).
 
 ### Healer rescue - `TurnContext.AllyRescue` (ROM 0x10200, 0x1021E, 0xF28A, 0xF22C)
 

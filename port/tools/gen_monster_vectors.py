@@ -231,6 +231,75 @@ for _ in range(N('rescue', 600)):
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
     cases.append(dict(fn='rescue', pre=pr, a=a, range=0, post=sn))
 
+# ---- O. 0xF2AE: the turn of a player-controlled creature, driven by scripted menu answers (0x1391A) and control pad readings (0xF1B66)
+def remark(w):
+    """map markers follow the creature statuses"""
+    for i in range(441): w['tiles'][i] &= 0x7F
+    for sb in w['slots']:
+        st = sb[0]
+        if st == 0 or (st & 0xC0) or (sb[1] & 4): continue
+        t = w['recs'][sb[2]][0x23]; x, y = sb[0x12], sb[0x13]
+        for (cx, cy) in [(x, y)] + ([(x + 1, y)] if t == 3 else []) + ([(x, y + 1)] if t == 2 else []):
+            if cx < 21 and cy < 21: w['tiles'][cy * 21 + cx] |= 0x80
+
+
+def manual_world(rnd):
+    w = sane_world(rnd, nmin=5, nmax=11, fx=rnd.random() < 0.45, effects=rnd.random() < 0.3); n = w['n']; npar = w['npar']
+    a = rnd.randrange(npar); w['actor'] = a; sa = w['slots'][a]; rec = w['recs'][sa[2]]
+    sa[0] = 1; sa[1] = (sa[1] | 1) & ~0x84; sa[0x14] = rnd.choice([2, 2, 2, 1]); sa[0x16] = rnd.randrange(2, 14)
+    if rnd.random() < 0.5:                                                   # a healer with fallen friends
+        rec[0x32] = rnd.choice([0, 0, 1, 3, 6, 12]); rec[0x3B] = rnd.choice([0, 3, 8, 14, 20]); rec[0x19] = rnd.randrange(1, 12)
+        for k in range(npar):
+            if k != a and rnd.random() < 0.6: w['slots'][k][0] = rnd.choice([0x83, 0x84, 0x83]); w['slots'][k][0xE] = 0
+    for r in range(8): w['recs'][r][0x2E] = rnd.randrange(8, 60)
+    w['g'][0xD50A - G0] = rnd.choice([0, 0, rnd.randrange(256)])
+    w['g'][0xD51D - G0 + a] = rnd.choice([0xFF, 0xFF, rnd.randrange(n), rnd.randrange(npar, n)])
+    w['ca'][0] = a; w['ca'][1] = rnd.choice([1, 1, 1, 0]); w['g'][0xD505 - G0] = 0; w['g'][0xD496 - G0] = 1
+    remark(w)
+    return w
+
+
+DIRS = [1, 2, 4, 8, 5, 6, 9, 10]
+
+
+def manual_script(rnd):
+    menu = [rnd.choice([0, 0, 0, 1, 1, 1, 3, 3, 4, -1, 2, 0xFFFF]) for _ in range(rnd.randrange(1, 9))]
+    pad = []
+    for _ in range(rnd.randrange(8, 40)):
+        r = rnd.random()
+        if r < 0.22: pad += [rnd.choice(DIRS[:4])] * 21               # a straight walk (the ROM reads 21 pad values per step)
+        elif r < 0.30: pad += [rnd.choice(DIRS[4:])]                  # a diagonal step / one cursor cell
+        elif r < 0.30 + 0.30: pad.append(rnd.choice(DIRS))
+        elif r < 0.62: pad.append(0x10)
+        elif r < 0.78: pad.append(0x20)
+        elif r < 0.82: pad.append(0)
+        elif r < 0.87: pad.append(0x80)
+        elif r < 0.90: pad.append(0x40)
+        else: pad.append(rnd.randrange(256))
+    return menu, pad
+
+
+for _ in range(N('manual', 700)):
+    w = manual_world(rnd); a = w['actor']; sa = w['slots'][a]
+    menu, pad = manual_script(rnd)
+    m = machine(rom, unstub=(0xE5E6,), extra=(0xF81C, 0xF780, 0xF7BA, 0xF838, 0x116F8, 0x11746, 0x1172A, 0x6C54, 0xAD46, 0x96D8, 0x1344E, 0xFF7C, 0x11898, 0xFDC8))
+    mq, pq, used = list(menu), list(pad), [0, 0]
+    def next_menu():
+        used[0] += 1
+        return (mq.pop(0) & 0xFFFF) if mq else 4
+    def next_pad():
+        used[1] += 1
+        return pq.pop(0) if pq else 0x80
+    m.stub_fn(0x1391A, next_menu); m.stub_fn(0xF1B66, next_pad)
+    load(m, w)
+    m.write_ram(0xB400, struct.pack('>HH', 504, 504)); m.write_ram(0xEE00, bytes(0x200))
+    m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5]))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0xF2AE, max_insns=60_000_000, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + sa[2] * 0xD6)
+    if m.reg('pc') != 0x00FFF000: continue                                        # did not finish within the instruction budget
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['polls'] = used
+    cases.append(dict(fn='manual', pre=pr, a=a, range=0, menu=[x & 0xFFFF for x in menu], pad=pad, post=sn))
+
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

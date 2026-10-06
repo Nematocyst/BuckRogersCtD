@@ -1,6 +1,6 @@
 // CombatBoardView.cs -- Unity front end for AutoBattle: add it to an empty GameObject; it runs one computer-played fight on Start and replays it turn by turn on the screen
 // (IMGUI): the 21x21 ground as coloured cells and the creatures as their ROM sprites (Resources/BuckRogers/tokens/token_<monster id>.png, made by tools/export_tokens.py; the frame
-// follows the facing / down rules of ROM 0xAD5A, see TokenFrames) with hit points and a side marker (blue = party, red = monsters). Without the PNGs it falls back to coloured boxes.
+// follows the facing / down rules of ROM 0xAD5A, see TokenFrames; attacks play as in the ROM: the attacker aims, victims show the hit pose or the death sequence, see BattleSequence) with hit points and a side marker (blue = party, red = monsters). Without the PNGs it falls back to coloured boxes.
 // Needs Assets/Resources/BuckRogers/rom_tables.json and monster_file.bytes (see port/README.md). Not covered by the ROM tests (the logic it shows is; this view is checked by looking).
 using System.Collections.Generic;
 using UnityEngine;
@@ -19,7 +19,9 @@ namespace BuckRogersGenesis
 
         List<BattleFrame> frames = new List<BattleFrame>();
         int shown;
-        float timer;
+        float elapsed;                   // seconds into the transition shown -> shown + 1
+        BattleSequence seq;
+        public float TickSeconds = 1f / 60f;   // the ROM's delay tick; raise to slow the animations down
         bool playing = true;
         string result = "";
         Texture2D white;
@@ -48,16 +50,25 @@ namespace BuckRogersGenesis
         void Run(RomView rom, MonsterFile file)
         {
             frames = AutoBattle.Run(rom, file, Party, MonsterGroups, GroupSize, Seed, AreaType, out int winner);
-            shown = 0; timer = 0; playing = true;
+            Show(0); playing = true;
             result = frames.Count == 0 ? "no fight (a side had no room on the battlefield)" : (winner == 1 ? "the party wins" : "the monsters win");
+        }
+
+        void Show(int index)
+        {
+            shown = Mathf.Clamp(index, 0, frames.Count - 1); elapsed = 0;
+            seq = shown < frames.Count - 1 ? new BattleSequence(frames[shown], frames[shown + 1]) : null;
         }
 
         void Update()
         {
             if (!playing || frames.Count == 0) return;
-            timer += Time.deltaTime;
-            if (timer >= SecondsPerTurn) { timer = 0; if (shown < frames.Count - 1) shown++; else playing = false; }
+            if (seq == null) { playing = false; return; }
+            elapsed += Time.deltaTime;
+            if (elapsed >= seq.Duration * TickSeconds * SpeedFactor) { Show(shown + 1); if (seq == null) playing = false; }
         }
+
+        public float SpeedFactor = 1f;
 
         static Color TileColour(int tile)
         {
@@ -78,17 +89,20 @@ namespace BuckRogersGenesis
                 for (int x = 0; x < 21; x++)
                     Fill(new Rect(ox + x * px, oy + y * px, px - 1, px - 1), TileColour(f.Tiles[y * 21 + x]));
             float scale = px / 24f;
+            float t = seq == null ? 0 : elapsed / (TickSeconds * SpeedFactor);
             for (int i = 0; i < f.X.Length; i++)
             {
-                if (f.Status[i] == 0 || (f.Status[i] & 0x40) != 0 || f.X[i] >= 21) continue;
-                bool down = (f.Status[i] & 0x80) != 0 || f.Hp[i] == 0;
+                if (f.Status[i] == 0 || (f.Status[i] & 0x40) != 0) continue;
+                float gx = f.X[i], gy = f.Y[i]; int frame, hp; bool mirrored, visible;
+                if (seq != null) seq.Sample(t, i, out gx, out gy, out frame, out mirrored, out visible, out hp);
+                else { frame = TokenFrames.Idle(f.Facing[i], (f.Status[i] & 0x80) != 0, out mirrored); visible = true; hp = f.Hp[i]; }
+                if (!visible || gx >= 21) continue;
+                bool down = (f.Status[i] & 0x80) != 0 || hp == 0;
                 var side = f.Side[i] == 1 ? new Color(0.2f, 0.4f, 1f) : new Color(0.9f, 0.2f, 0.2f);
-                float cx = ox + f.X[i] * px, cy = oy + f.Y[i] * px;
+                float cx = ox + gx * px, cy = oy + gy * px;
                 var tex = Sheet(f.Id[i]);
-                if (tex != null)
+                if (tex != null && frame >= 0)
                 {
-                    bool mirrored;
-                    int frame = TokenFrames.Idle(f.Facing[i], down, out mirrored);
                     int fw, fh; TokenFrames.FramePixels(f.Size[i], out fw, out fh);
                     float u = (float)(frame * fw) / tex.width, uw = (float)fw / tex.width;
                     var uv = mirrored ? new Rect(u + uw, 0, -uw, 1) : new Rect(u, 0, uw, 1);
@@ -104,14 +118,17 @@ namespace BuckRogersGenesis
                     Fill(r, i == f.Actor ? Color.yellow : c);
                     if (i == f.Actor) Fill(new Rect(r.x + 3, r.y + 3, r.width - 6, r.height - 6), c);
                 }
-                GUI.Label(new Rect(cx - 2, cy - 5, px + 8, 16), f.Hp[i].ToString());
+                GUI.Label(new Rect(cx - 2, cy - 5, px + 8, 16), hp.ToString());
             }
             int bx = ox + 21 * px + 20;
-            if (GUI.Button(new Rect(bx, oy, 90, 26), playing ? "Pause" : "Play")) { playing = !playing; if (playing && shown >= frames.Count - 1) shown = 0; }
-            if (GUI.Button(new Rect(bx, oy + 32, 90, 26), "Step")) { playing = false; if (shown < frames.Count - 1) shown++; }
-            if (GUI.Button(new Rect(bx, oy + 64, 90, 26), "Back")) { playing = false; if (shown > 0) shown--; }
+            if (GUI.Button(new Rect(bx, oy, 90, 26), playing ? "Pause" : "Play")) { playing = !playing; if (playing && shown >= frames.Count - 1) Show(0); }
+            if (GUI.Button(new Rect(bx, oy + 32, 90, 26), "Step")) { playing = false; Show(shown + 1); }
+            if (GUI.Button(new Rect(bx, oy + 64, 90, 26), "Back")) { playing = false; Show(shown - 1); }
             if (GUI.Button(new Rect(bx, oy + 96, 90, 26), "New fight")) { Seed++; Start(); }
-            shown = Mathf.RoundToInt(GUI.HorizontalSlider(new Rect(bx, oy + 136, 160, 16), shown, 0, frames.Count - 1));
+            int slid = Mathf.RoundToInt(GUI.HorizontalSlider(new Rect(bx, oy + 136, 160, 16), shown, 0, frames.Count - 1));
+            if (slid != shown) { playing = false; Show(slid); }
+            GUI.Label(new Rect(bx, oy + 160, 160, 20), "speed");
+            SpeedFactor = GUI.HorizontalSlider(new Rect(bx, oy + 180, 160, 16), SpeedFactor, 0.25f, 4f);
         }
     }
 }

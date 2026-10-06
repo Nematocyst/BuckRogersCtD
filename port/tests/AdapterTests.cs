@@ -8,7 +8,7 @@ static class AdapterTests
     {
         var rom = RomView.FromRom(romBytes);
         var file = MonsterFile.Parse(File.ReadAllBytes(monsterFile));
-        int fails = 0, fights = 0, frames = 0, party = 0;
+        int fails = 0, fights = 0, frames = 0, party = 0, totalAttacks = 0;
         var setups = new[] { new[] { 0, 1, 2 }, new[] { 4, 5 }, new[] { 1 } };
         for (int seed = 1; seed <= 12; seed++)
         {
@@ -16,6 +16,22 @@ static class AdapterTests
             var a = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed % 11, out int w1);
             var b = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed % 11, out int w2);
             fights++; frames += a.Count; if (w1 == 1) party++;
+            int attacks = 0;
+            for (int k = 0; k + 1 < a.Count; k++)
+            {
+                var seq = new BattleSequence(a[k], a[k + 1]);
+                if (seq.Duration <= 0) { fails++; Console.WriteLine("FAIL: sequence duration"); }
+                if (seq.Attack) attacks++;
+                for (int i = 0; i < a[k].X.Length && i < a[k + 1].X.Length; i++)
+                {
+                    seq.Sample(seq.Duration, i, out float ex, out float ey, out int ef, out bool em, out bool ev, out int eh);
+                    var nb = a[k + 1];
+                    if (ex != nb.X[i] || ey != nb.Y[i] || eh != nb.Hp[i] || ef != TokenFrames.Idle(nb.Facing[i], (nb.Status[i] & 0x80) != 0, out bool m2) && ev) { fails++; Console.WriteLine($"FAIL: sequence end state creature {i} (fight seed {seed}, turn {k})"); break; }
+                    seq.Sample(0, i, out ex, out ey, out ef, out em, out ev, out eh);
+                    if (ex != a[k].X[i] || ey != a[k].Y[i]) { fails++; Console.WriteLine("FAIL: sequence start position"); break; }
+                }
+            }
+            totalAttacks += attacks;
             var last = a[a.Count - 1];
             for (int i = 0; i < last.Id.Length; i++) if (last.Size[i] < 1 || last.Size[i] > 3 || last.Facing[i] > 7) { fails++; Console.WriteLine("FAIL: adapter size/facing"); }
             bool ok = a.Count > 1 && a.Count == b.Count && w1 == w2 && last.Tiles.Length == 441;
@@ -41,7 +57,8 @@ static class AdapterTests
                 if (fr != want[f] || m != (f >= 5) || TokenFrames.Idle(f, true, out m) != 16) { fails++; Console.WriteLine("FAIL: token frame facing " + f); }
             }
         }
-        Console.WriteLine($"adapter: {fights} fights, {frames} frames, party won {party}, {fails} failing");
+        if (totalAttacks == 0) { fails++; Console.WriteLine("FAIL: no attack found in any fight"); }
+        Console.WriteLine($"adapter: {fights} fights, {frames} frames ({totalAttacks} attack sequences), party won {party}, {fails} failing");
         return fails;
     }
 }

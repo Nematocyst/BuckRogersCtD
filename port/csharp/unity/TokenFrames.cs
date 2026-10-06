@@ -20,6 +20,18 @@ namespace BuckRogersGenesis
             return k == 0 ? Front : k == 1 ? Side : Back;
         }
 
+        /// The animation set (0 / 1 / 2) of a creature: byte +6 of its entry in the token table at ROM 0x9A14 (key = record byte +0x42); party keys (bit 7) have set 0, unknown ids too.
+        public static int AnimationSet(RomView rom, int id)
+        {
+            if ((id & 0x80) != 0) return 0;
+            for (int p = 0x9A14; p < 0x9BC0; p += 8)
+            {
+                if (rom.Byte(p) == 0xFF) break;
+                if (rom.Byte(p + 4) == id) return rom.Byte(p + 6) & 3;
+            }
+            return 0;
+        }
+
         public const int Vanish = -1;                       // "remove the creature": the block is blanked and the slot is marked hidden (slot+1 bit 2)
 
         /// The pose of the attacker while it aims / fires (draw state 5, ROM 0xCAEA with the b586 frames): facing 0 = frame 3, 1-3 = frame 4, 4 = frame 5, 5-7 = frame 4 mirrored.

@@ -34,7 +34,8 @@ namespace BuckRogersGenesis
             new[] { 0xA802, 0xA902 },                // item icons by id (loot screen)
             new[] { 0x16AE2, 0x16B28 },              // the loot screen's menu cell table
             new[] { 0xB332, 0xB396 },
-            new[] { 0x48DA, 0x48E8 },                // the party NPC table (npc id -> record id)                // the dungeon arena: view offsets and the cell pattern table
+            new[] { 0x48DA, 0x48E8 },
+            new[] { 0x9A14, 0x9BC0 },                // the creature token table (id -> sheet, animation set)                // the party NPC table (npc id -> record id)                // the dungeon arena: view offsets and the cell pattern table
             new[] { 0x0000, 0x0010 },                // the vector table: the inventory's weapon-readying test reads ROM[6] when the picked item is not there
             new[] { 0x7D78, 0x7D7C },                // item class each equipment slot of the inventory accepts (hand, armour, shield, ammunition)
             new[] { 0x10F69, 0x10F69 + 13 * 5 },     // explosive item types 0..12: effect, radius, hazard tile?, damage mode, animation

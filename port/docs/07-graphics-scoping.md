@@ -32,6 +32,9 @@ Method: the ROM's own loaders (0x982A, 0x98E4, 0xCA7E) and the draw routine 0xCA
   4. *Area attacks* (0x112A0 loop): for each victim in turn, the same hit / death routines with a delay between.
   `TokenFrames.Aim / HitPose / Death / DeathTicks` encode this; the 0x75FA tick is the ROM's frame delay (about a sixtieth of a second per tick on NTSC, not measured).
 
+## Viewer
+`BattleSequence` (csharp/unity, tested under mono: 127 attack sequences over 12 fights, start / end poses consistent with the boards) turns two consecutive board snapshots into the animation above; `CombatBoardView` plays it. Not drawn: projectile flight, sounds, the ROM's exact on-screen timing (ticks assumed 1/60 s).
+
 ## What was NOT found
 * The projectile flight (0x108AA, icon frames and path), and the mapping from race / sex / career to the party sheet index. Frames 1-2, 4-5 (partly), 7-10, 13-14 of the sheets are used only by the aim / fire poses or not at all (not found in any routine).
 * The link from a monster record to its encounter picture (probably a byte of the record or an index in the monster file; not checked).

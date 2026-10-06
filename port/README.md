@@ -81,8 +81,7 @@ Vectors are random-state runs, so a C# port that matches them follows the ROM ex
 * **Attacks per round**: ((round parity & 1) ^ slotIndex) + attacksX2) >> 1, so an "attacks x2" of 5 gives 2 and 3 on alternate rounds.
 
 ## Not ported yet (found, not verified)
-The action cost that counts +0x14 down (movement and attack handlers around 0xE4F0, 0xF2AE, 0xEF64), what a creature does once it has a target (attack vs
-move choice, spells and abilities), the `ad5a`-style animations, the remaining uses of [0xD501..0xD503] and [0x97AE], the text behind message ids
+Spells and abilities, the `ad5a`-style animations, the remaining uses of [0xD501..0xD503] and [0x97AE], the text behind message ids
 0x128/0x129/0x12A/0xBD/0xBE, and the scripted-XP table at 0x16402 (the tally takes the scripted bonus as a parameter).
 
 ## Attack preparation, line of fire, wounds (ROM 0x10400, 0x15B5A, 0x6D1E, 0x760A)
@@ -103,4 +102,36 @@ Slot field corrections: slot +0x0E = HP, +0x0F = movement, **+0x16 = movement po
 * The victim must be alive (status byte non-zero, bits 6/7 clear); the hit sound (0x1B900) is requested for ranged attacks only.
 This is almost certainly a bug in the original game, not a design. The port reproduces it so recorded fights stay identical; if you want the intended behaviour in Unity, treat 0xFF as "damage = current HP" and entries as unsigned.
 
-Not yet ported: the monster turn controller 0xEF64 and callees (weapon choice 0xE89C, movement step/cost 0xF898/0xF842, opportunity attacks 0x11A44, animation). Known: attacking ends the turn (clears +0x14), "wait" is time=1, step cost = terrain flags & 0x1F compared with +0x16.
+## The monster turn (ROM 0xEF64 and everything it calls) - `GenesisMonster*.cs`
+
+`TurnContext.RunTurn()` is the port of the turn controller, built from verified pieces (every piece and the whole turn are compared with the real ROM routines
+in `tests/MonsterTests.cs`; vectors by `tools/gen_monster_vectors.py`, 56,000 checks: 300 target lists, 300 target choices, 300 weapon choices, 300 attacks, 500 steps,
+200 searches and **2,000 whole turns**, byte-exact on slots, records, map markers, the scratch globals 0xD48E..0xD5FF, the target list and the RNG).
+
+| C# | ROM | What it does |
+|---|---|---|
+| `EnumerateTargets` | 0x15C2C (+0x15C88/0x15CD8/0x159C4) | creatures of a side that one of the actor's cells can see within a range, with distance and octant, sorted by distance (selection sort that also swaps equal distances) |
+| `SelectTarget` | 0xE812 | keep the current target if it is alive, hostile and still in line of fire (range 100); else pick a random one of the nearer half of the visible enemies (blockers ignored when nobody is visible); else none |
+| `ChooseWeapon` | 0xE89C (+0xEAA6, 0xEA90) | scores every weapon in the 13 item slots (dice + modifiers + STR/DEX bonus, ranged weapons shifted down for cover), equips the best one if it beats the creature's unarmed value, keeps ammo/shield/armour items in their slots, recomputes the stats; some items end the turn when equipped |
+| `Navigate` | 0x15D8A | the breadth-first search (`GenesisAi.FindPath`); the path lands at [0x6CB0..] |
+| `PrepareAttack` / `ExecuteAttack` | 0x10400 / 0x1074A | to-hit and armor (see above), then every natural/weapon attack is rolled, the damaging hits collected and applied **last hit first**; the attack spends the action time |
+| `MoveStep` | 0xF898 (+0xF842, 0x1443C, 0x143FE, 0x1432E) | one step: facing, occupant and terrain check (cost = terrain flags & 0x1F against movement points left, flag 0x20 = impassable), stepping off the map = fleeing (status 0x85) unless a faster enemy sees the creature |
+| `Reactions` | 0x11A44 | after a step every living enemy with its reaction ready (slot flag 0x10) and a valid attack attacks the mover once; the mover can die |
+| `RunTurn` | 0xEF64 | see below |
+
+**What a creature does with its turn.** Time +0x14 = 0 means done, 1 means "has waited once", otherwise a normal turn. It (1) clears its target if it had waited, (2) picks a target,
+(3) equips its best weapon, (4) works out its weapon range and the path to the nearest enemy, and then loops: (5) with a ranged weapon (range > 1) it attacks as soon as the target is in line
+of fire within **half** the weapon range, with a melee weapon as soon as any enemy stands within one cell (a random one of them becomes the target); a successful attack ends the turn;
+(6) otherwise it takes the next step of the path (cost in movement points, every step can draw reactions); (7) when the path ends, a step fails or it has no target: a creature that has not
+waited sets its time to 1 ("wait") and stops; one that has waited attacks anything in range (random pick) and then ends its turn (time 0, reaction ready unless it carries an explosive).
+
+Quirks of the original that the port reproduces (found by the differential tests):
+* the turn controller keeps "time was 1" in register d6, but the target enumeration leaves a counter in d6: every turn that searched for a target takes the "has waited" branch at the end;
+* the path can start with a bogus step: the search marks the start cell when a neighbour looks back at it, and the path reconstruction then emits that extra direction - a creature at the map edge can try to step off the map;
+* the weapon choice tests the actor's tile at index x*21+y (everything else uses y*21+x) and reads the *actor's* record flags where it looks at the target;
+* the damage list overlaps the multiplier [0xD496], the damage scratch [0xD497] and the monsters' attack modifier [0xD499] when an attack round hits 9 or more times.
+
+Not ported (the ROM test replaces them by empty routines, so these are the known gaps): the **special-effect hooks** (0x664E: status effects such as paralysis, slowing, the damage clamp,
+the rocket special as a creature effect) - `TurnContext.StageHook` is a no-op; **explosive weapons** (0xEB50 scoring/targeting, 0x10FAA area attack and its lingering objects) -
+`RunTurn` throws `NotSupportedException` for a creature holding one; **party creatures that go to help a fallen friend** (0x10200/0x1021E) - throws when a friend is found;
+the screen, sound and animation routines (assumed to have no effect on the game state); the "leave the battlefield?" prompt (0x136DA, `RetreatPrompt`).

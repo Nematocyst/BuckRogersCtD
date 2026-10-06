@@ -265,3 +265,8 @@ blast radius with a line of fire gets a saving throw, takes the damage and the t
 
 Quirks reproduced: the blast-shape loop is a do-while, so a creature at the edge of the scoring area still gives its weight to one cell when clipping leaves nothing; `SetTile` indexes a patch's saved tiles in the opposite order from `OriginalTile`;
 the follow-up in the terrain search tests a byte as a word and is dead code; the throw does not run the to-hit preparation first, so [0xD511] is whatever the last attack left there (usually a lot of scatter).
+
+## Unity front end (thin adapter)
+* `csharp/unity/AutoBattle.cs`: sets up a fight from monster-file ids (`LoadCombatant` / `AddMonsters`), lets the computer play every creature and returns a `BattleFrame` per creature turn (tile map, positions, hit points, sides). Plain C#; tested under mono (`tests/AdapterTests.cs`: 12 fights, deterministic for a seed, always ends with one side standing). Party members are monster-file records (the data has no stored player characters); outdoor ground types 0..10.
+* `csharp/unity/CombatBoardView.cs`: a `MonoBehaviour` that runs one fight on Start and replays it with IMGUI (coloured ground cells, creature boxes with hit points, Play / Pause / Step / Back / New fight). Put it on an empty GameObject with `rom_tables.json` and `monster_file.bytes` (both in `csharp/unity/Resources/BuckRogers/`) under `Assets/Resources/BuckRogers/` plus the `csharp/*.cs` logic files. It was not compiled in Unity here; the logic it calls is the tested part.
+* Not in the adapter: player input (`Pad`, `MenuChoice`, the inventory / sheet / loot hooks), sprites, text, sound, the script engine and everything around a fight.

@@ -12,6 +12,9 @@ enum 200, select 200, weapon 200, attack 300, move 300, nav 150, whole turns 1,2
 ## Whole fights (ROM 0xE394)
 `tests/combat_whole_vectors.json.gz` (84 KB, 34 fights: 37 generated, 3 dropped because the ROM run did not finish) holds complete fights run in the emulator with scripted menu / pad input: setup, every round, every turn, with event traces and RNG state compared. The port reproduces all 601 checks of them (combat=34).
 
+## Unity adapter
+`AutoBattle` (tested under mono) and `CombatBoardView` (Unity IMGUI viewer, untested in the editor). See the port README.
+
 ## Not ported
 * **Post-fight cleanup**: ported (see 04), medical aftermath, loot sharing screen and the starship repair at the end of scripted fights are all included; the host hooks `Aftermath`, `LootScreen`, `ScriptedFightEnd`, `GameOver` remain for drawing / story only.
 * **Script engine**: the opcodes that call combat creation are not ported as a whole (operand reader 0x404A for variables / indirect values, the LZW decompressor 0x9ED8 for the monster file, the "monster not found" error box). The host passes parsed operands and the decompressed monster file.

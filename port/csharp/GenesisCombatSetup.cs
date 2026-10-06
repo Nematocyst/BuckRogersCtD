@@ -356,13 +356,19 @@ namespace BuckRogersGenesis
             return true;
         }
 
+        /// The memory of each creature's last victim ([0xD51D..]) is forgotten (start of a fight).
+        public void ForgetVictims() { for (int i = 0; i < 0x40; i++) Gs(0xD51D + i, 0xFF); }
+
+        /// The round counter [0xD50C].
+        public int Round { get { return Gb(0xD50C); } }
+
         /// 0xE394: a whole fight from the start: setup, the memory of each creature's last victim ([0xD51D..]) forgotten, then the rounds (CombatRounds). The clean-up after the
         /// fight (0x15FDA: experience, treasure, leftover statuses) is the host's.
         public void RunCombat()
         {
             T("combat");
             CombatSetup();
-            for (int i = 0; i < 0x40; i++) Gs(0xD51D + i, 0xFF);
+            ForgetVictims();
             CombatRounds();
         }
     }

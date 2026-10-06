@@ -117,13 +117,14 @@ namespace BuckRogersGenesis
         }
 
         // ------------------------------------------------------------------------------------ 0x6990 / 0x6A34 / 0x115CE
-        /// 0x6990: saving throw of the creature in a2/a3: d20 (1 always fails, 20 always succeeds), plus `mod`, against record byte +0x15 (signed compare).
-        public bool SavingThrow(int mod, byte[] vrec)
+        /// 0x6990: saving throw of creature `victim`: d20 (1 always fails, 20 always succeeds), plus `mod`, against record byte +0x15 (signed compare).
+        public bool SavingThrow(int victim, int mod)
         {
+            var vrec = S.Records[S.Slots[victim][2]];
             int d = Rng.Roll(20) & 0xFF; Gs(A55D, d);
             if (d == 1) return false;
             if (d == 20) return true;
-            Gs(A55D, Gb(A55D) + mod); StageHook?.Invoke(0xC);
+            Gs(A55D, Gb(A55D) + mod); Stage(0xC, victim);
             return (sbyte)Gb(A55D) >= (sbyte)vrec[0x15];
         }
 
@@ -131,7 +132,7 @@ namespace BuckRogersGenesis
         /// mode-2 effect cancels it. A running temporary effect keeps the longer duration; otherwise a new entry goes into the list at [0xD49C] (32 x 3 bytes).
         public void ApplyEffect(int victim, int effect, int param, bool saved, int mode)
         {
-            Gs(A55E, effect); StageHook?.Invoke(9);
+            Gs(A55E, effect); Stage(9, victim);
             if (Gb(A55E) == 0) return;
             if (mode == 2 && saved) return;
             int e = Gb(A55E);

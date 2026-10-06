@@ -38,7 +38,7 @@ for _ in range(N('weapon', 500)):
 
 # ---- D. 0x1074A: carry out an attack by the actor on [0xD513] (sane worlds, graphics routines stubbed)
 for _ in range(N('attack', 500)):
-    m = machine(rom); w = sane_world(rnd); a = w['actor']; n = w['n']
+    m = machine(rom); w = sane_world(rnd, effects=rnd.random() < 0.6); a = w['actor']; n = w['n']
     foes = [k for k in range(n) if (w['slots'][k][1] & 1) != (w['slots'][a][1] & 1) and w['slots'][k][0] in (1, 0x81)]
     t = rnd.choice(foes) if foes and rnd.random() < 0.9 else rnd.randrange(n)
     w['ca'][0] = a; w['g'][0xD513 - G0] = t; w['g'][0xD511 - G0] = rnd.randrange(1, 20); w['g'][0xD496 - G0] = rnd.choice([1, 1, 1, 2, 3])
@@ -85,10 +85,11 @@ for _ in range(N('nav', 500)):
 # ---- G. 0xEF64: a whole turn of a computer-controlled creature (monsters; party creatures without healing skill)
 import os
 for _ in range(N('turn', 1500)):
-    m = machine(rom); w = sane_world(rnd, fx=rnd.random() < 0.5); a = w['actor']; n = w['n']; sa = w['slots'][a]
+    m = machine(rom); w = sane_world(rnd, fx=rnd.random() < 0.5, effects=rnd.random() < 0.6); a = w['actor']; n = w['n']; sa = w['slots'][a]
     if rnd.random() < 0.15:                                    # a party creature under computer control
         pa = rnd.randrange(w['npar']); a = pa; w['actor'] = a; sa = w['slots'][a]
     sa[0] = 1; sa[0x14] = rnd.choice([2, 2, 2, 1, 3]); sa[1] &= ~0x04; sa[0x16] = rnd.randrange(0, 14)
+    if rnd.random() < 0.7: sa[1] |= 0x80                       # computer controlled (every monster has it)
     if rnd.random() < 0.5: sa[1] &= ~0x10
     w['recs'][sa[2]][0x32] = 0; w['recs'][sa[2]][0x3B] = 0
     if rnd.random() < 0.3: sa[0x17] = 0xFF
@@ -160,6 +161,38 @@ for _ in range(N('tick', 100)):
     pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
     m.call(0x1158A, max_insns=2_000_000)
     cases.append(dict(fn='tick', pre=pr, a=w['actor'], range=0, post=snap(m, w)))
+
+# ---- L. 0x664E: the effect hooks of one stage for one creature
+for _ in range(N('stage', 1500)):
+    m = machine(rom); w = sane_world(rnd, effects=True); a = w['actor']; n = w['n']
+    ctx = rnd.randrange(n); stage = rnd.choice(list(range(0, 23)) + [2, 3, 5, 5, 5, 5, 5, 5, 7, 9, 12, 14, 14, 15, 18])
+    w['slots'][ctx][0] = 1
+    victim = rnd.randrange(n)
+    w['ca'][0] = a; w['g'][0xD513 - G0] = victim; w['g'][0xD497 - G0] = rnd.choice([0, 1, 5, 20, 60, rnd.randrange(256)]); w['g'][0xD55E - G0] = rnd.choice([0, 0xD, 0xE, 0x1D, 0x1C])
+    w['g'][0xD496 - G0] = rnd.choice([1, 2]); w['g'][0xD4FC - G0] = 0
+    w['slots'][ctx][0x17] = rnd.choice([0xFF, rnd.randrange(n)])
+    load(m, w); m.write_ram(0x97AE, bytes([rnd.choice([0, 0, 1])])); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5]))
+    pr = pre(w); pr['m97'] = m.ram_byte(0x97AE); pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0x664E, max_insns=3_000_000, d0=stage, a3=RAM_BASE + SLOT + ctx * 26, a2=RAM_BASE + REC + w['slots'][ctx][2] * 0xD6)
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
+    cases.append(dict(fn='stage', pre=pr, a=a, range=stage, mv=[ctx, 0], post=sn))
+
+# ---- M. 0xE4F0: a whole turn of one creature (turn-start effects, the controller, item upkeep)
+for _ in range(N('beginturn', 800)):
+    m = machine(rom); w = sane_world(rnd, fx=rnd.random() < 0.4, effects=True); a = w['actor']; n = w['n']; sa = w['slots'][a]
+    sa[0] = 1; sa[0x14] = rnd.choice([2, 2, 2, 1, 3]); sa[1] = (sa[1] & ~0x04) | 0x80; sa[0x16] = rnd.randrange(0, 14)
+    if rnd.random() < 0.5: sa[1] &= ~0x10
+    w['recs'][sa[2]][0x32] = 0; w['recs'][sa[2]][0x3B] = 0
+    for k in range(13):
+        if rnd.random() < 0.3: w['recs'][sa[2]][0x54 + 10 * k + 5] |= rnd.choice([0x10, 0x20, 0x30])
+    if rnd.random() < 0.3: sa[0x17] = 0xFF
+    w['ca'][0] = a; w['g'][0xD505 - G0] = 0; w['g'][0xD496 - G0] = 1
+    load(m, w)
+    m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xD8FC, b'\x00')
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0xE4F0, max_insns=40_000_000, d5=0, d7=0, d3=0, d6=0)
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
+    cases.append(dict(fn='beginturn', pre=pr, a=a, range=0, post=sn))
 
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))

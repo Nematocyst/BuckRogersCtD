@@ -36,7 +36,7 @@ namespace BuckRogersGenesis
         public int WeaponRangeOf(int itemOff)
         {
             var me = S.Slots[Actor];
-            var env = new AttackEnv { State = S, Rom = Rom, Mode97AE = Mode97AE };
+            var env = new AttackEnv { State = S, Rom = Rom, Mode97AE = Mode97AE, RangeGarbage = NextRangeGarbage };
             return GenesisAttackPlanner.WeaponRange(env, Actor, S.Records[me[2]], itemOff);
         }
 
@@ -115,6 +115,7 @@ namespace BuckRogersGenesis
             D504 = 0xFF;
             var lof = Trace(ax, ay, tx, ty, 100);
             if (!lof.Clear) { tx = lof.LastX & 0xFFFF; ty = lof.LastY & 0xFFFF; }
+            AnimationProbe();                                                                     // the projectile animation (0x108AA)
             int special = -1, specialSlot = 0, sx = 0xFFFF, sy = 0xFFFF, relocX = 0xFF, relocY = 0xFF;
             if (type == 6 || type == 10 || type == 11)
             {
@@ -140,6 +141,7 @@ namespace BuckRogersGenesis
                     if ((sbyte)relocX < 0) break;
                     var sp = S.Slots[special];
                     sp[1] |= 4; S.ClearMarkers(special); Gs(A510, 0xFF);                        // 0xF9A6
+                    AnimationProbe();                                                           // the relocation animation
                     sp[0x12] = (byte)relocX; sp[0x13] = (byte)relocY;
                     sp[1] &= 0xFB; S.SetMarkers(special);                                       // 0xFA22
                     break;
@@ -175,7 +177,7 @@ namespace BuckRogersGenesis
                 if ((sbyte)v < 0) continue;
                 Gs(A513, v);
                 var vs = S.Slots[v]; var vrec = S.Records[vs[2]];
-                bool saved = (type == 5 && (vrec[0x2F] & 1) != 0) ? true : SavingThrow(0, vrec);
+                bool saved = (type == 5 && (vrec[0x2F] & 1) != 0) ? true : SavingThrow(v, 0);
                 if (dmg != 0) AreaDamage(v, dmg, saved, tMode);
                 if (vs[0] != 0 && (vs[0] & 0xC0) == 0 && tFx != 0) ApplyEffect(v, tFx, effParam, saved, tMode);
             }

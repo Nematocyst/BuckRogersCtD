@@ -18,8 +18,6 @@ namespace BuckRogersGenesis
         public int CursorX, CursorY;        // [0xB3F0], [0xB3F2]: pixel position used by area attacks
         /// ROM 0x136DA(7): the "leave the battlefield?" prompt of a step off the map for a creature without the auto flag; nonzero = cancel. Default: cancel.
         public Func<int> RetreatPrompt;
-        /// ROM 0x664E: special-effect hooks (stage number); the ROM runs the handlers of the status effects a creature carries. Not ported: no-op by default.
-        public Action<int> StageHook;
 
         static readonly int[] FacingByStep = { 7, 0, 1, 8, 6, 8, 2, 8, 5, 4, 3, 8 };    // 0xF97A.. indexed by 4*dy + dx + 5; 8 = no step
 
@@ -100,7 +98,7 @@ namespace BuckRogersGenesis
             var env = new AttackEnv
             {
                 State = S, Rom = Rom, TerrainFlags = TerrainFlags, Mode97AE = Mode97AE, SkipBlockers = D4FF, SideModMonster = Gb(A499), SideModParty = Gb(A49A),
-                BackstabMask = Gb(A4FD), CursorX = CursorX, CursorY = CursorY, DamageMultiplier = Gb(A496)
+                BackstabMask = Gb(A4FD), CursorX = CursorX, CursorY = CursorY, DamageMultiplier = Gb(A496), RangeGarbage = NextRangeGarbage, Hook = (st, sl) => Stage(st, sl)
             };
             var plan = GenesisAttackPlanner.Prepare(env, Actor, target);
             Gs(A496, env.DamageMultiplier);
@@ -142,20 +140,32 @@ namespace BuckRogersGenesis
                 for (int i = 0; i < n; i++)
                 {
                     Gs(A4FC, 0);
-                    bool eligible = GenesisCombat.SpecialEligible(Mode97AE, Actor, rec[0xAE], id => Rom.Byte(WeaponTable + 8 * (sbyte)id + 1));
-                    var r = GenesisCombat.ResolveAttack(Rng, Gb(A511), me[8 + d4], me[0xA + d4], me[0xC + d4], Gb(A496), eligible, vrec[0x2F]);
-                    if (!r.Hit) continue;
-                    if (r.FullDamage) Gs(A4FC, 0xFF);
-                    Gs(A497, r.Damage);
-                    Gs(0xD48E + list.Count, r.Damage);                                  // the list overlaps [0xD496..0xD499]
-                    list.Add((byte)r.Damage);
+                    if (Rng.Roll(20) > Gb(A511)) continue;                                  // the d20 is above the to-hit value: a miss
+                    Stage(2 + d4, Actor);
+                    int sum = 0; for (int q = 0; q < me[8 + d4]; q++) sum = (sum + (Rng.Roll(me[0xA + d4]) & 0xFFFF)) & 0xFFFF;
+                    int b = (sbyte)(byte)(sum + me[0xC + d4]);
+                    Gs(A497, ((b < 0 ? 0 : b) * Gb(A496)) & 0xFF);
+                    Stage(4, Actor);
+                    Stage(5, t);                                                             // the victim's defences may change [0xD497]
+                    if (GenesisCombat.SpecialEligible(Mode97AE, Actor, rec[0xAE], id => Rom.Byte(WeaponTable + 8 * (sbyte)id + 1)))
+                    {
+                        int f = vrec[0x2F]; bool full = false;
+                        if ((f & 4) != 0) full = (Rng.Roll(100) & 0xFF) <= 0x4B;
+                        else if ((f & 2) != 0) full = (Rng.Roll(100) & 0xFF) <= 0x32;
+                        if (full) Gs(A4FC, 0xFF);
+                    }
+                    if (Gb(A4FC) != 0) Gs(A497, 0xFF);
+                    if (TraceLof) T("st " + Gb(A497));
+                    Gs(0xD48E + list.Count, Gb(A497));                                       // the list overlaps [0xD496..0xD499]
+                    list.Add(Gb(A497));
                 }
             }
             if (list.Count > 12) throw new InvalidOperationException("Attack Missile error!");          // 0x108CE: the ROM prints this and halts
             // 0x116AC: the actor turns towards the victim
             me[0x10] = (byte)GenesisCombat.Octant(v[0x12], v[0x13], me[0x12], me[0x13]);
             var arr = new byte[list.Count]; for (int i = 0; i < arr.Length; i++) arr[i] = Gb(0xD48E + i);     // read back: entries 8..11 share bytes with scratch
-            bool melee = WeaponRangeOfActor() <= 1;
+            bool melee = (WeaponRangeOfActor() & 0xFF) <= 1;
+            if (!melee) AnimationProbe();
             for (int k = list.Count - 1; k >= 0; k--)
             {
                 bool cue, applied;
@@ -169,7 +179,7 @@ namespace BuckRogersGenesis
         /// 0x11638 for the current actor.
         int WeaponRangeOfActor()
         {
-            var env = new AttackEnv { State = S, Rom = Rom, Mode97AE = Mode97AE };
+            var env = new AttackEnv { State = S, Rom = Rom, Mode97AE = Mode97AE, RangeGarbage = NextRangeGarbage };
             return GenesisAttackPlanner.WeaponRange(env, Actor, S.Records[S.Slots[Actor][2]]);
         }
 
@@ -252,6 +262,15 @@ namespace BuckRogersGenesis
 
         // ------------------------------------------------------------------------------------ the turn controller
         public byte D8FC;                   // [0xD8FC]: bit 7 = the player asked to take over (party members only)
+        public System.Collections.Generic.Queue<int> RangeD2;      // the bits 8..15 of register d2 at each call of 0x11630 / 0x11638 (see AttackEnv.RangeGarbage); empty = 0
+        int NextRangeGarbage() { return RangeD2 != null && RangeD2.Count > 0 ? RangeD2.Dequeue() : 0; }
+        /// 0x10EB4, run by every projectile animation (0x108AA) that is not melee: with an item above id 0x12 in the actor's hand it asks 0x11638 for the range - one more
+        /// draw from the garbage queue (see RangeD2).
+        void AnimationProbe()
+        {
+            var rec = S.Records[S.Slots[Actor][2]]; int id = rec[0xAE];
+            if (id != 0 && id > 0x12) NextRangeGarbage();
+        }
         public int Ticks;                   // safety net for the controller loop (the ROM has none; a path is finite)
 
         /// 0xF156: bit 7 of [0xD8FC] hands the party over to the player: every party creature with flag bit 7 loses it; true when that was the current actor.
@@ -327,7 +346,7 @@ namespace BuckRogersGenesis
             int range = 0, pi = 0;
             if (!giveUp)
             {
-                StageHook?.Invoke(0xE);
+                Stage(0xE, Actor);
                 ChooseWeapon(1);
                 if (me[0x14] == 0 && me[0x15] == 0) { Finish(); return; }
                 range = WeaponRangeOfActor();
@@ -344,7 +363,7 @@ namespace BuckRogersGenesis
                     if (me[0x14] == 0) { Finish(); return; }
                     bool attack;
                     if (range > 1)
-                        attack = LineOfFireTo(me[0x17], range >> 1).Clear;
+                        attack = LineOfFireTo(me[0x17], ((short)range >> 1) & 0xFFFF).Clear;
                     else
                     {
                         D500 = (byte)((me[1] ^ 1) & 1);

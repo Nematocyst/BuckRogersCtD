@@ -131,9 +131,28 @@ Quirks of the original that the port reproduces (found by the differential tests
 * the weapon choice tests the actor's tile at index x*21+y (everything else uses y*21+x) and reads the *actor's* record flags where it looks at the target;
 * the damage list overlaps the multiplier [0xD496], the damage scratch [0xD497] and the monsters' attack modifier [0xD499] when an attack round hits 9 or more times.
 
-Not ported (the ROM test replaces them by empty routines, so these are the known gaps): the **special-effect hooks** (0x664E: status effects such as paralysis, slowing, the damage clamp,
-the rocket special as a creature effect) - `TurnContext.StageHook` is a no-op; **party creatures that go to help a fallen friend** (0x10200/0x1021E) - throws when a friend is found;
+Not ported (the ROM test replaces them by empty routines, so these are the known gaps): **party creatures that go to help a fallen friend** (0x10200/0x1021E) - throws when a friend is found; **manually played turns** (0xF2AE; `BeginTurn` throws for a creature without the computer-control flag 0x80);
 the screen, sound and animation routines (assumed to have no effect on the game state, except the projectile animation's sprite scratch [0xD51A/B], which the test ignores); the "leave the battlefield?" prompt (0x136DA, `RetreatPrompt`).
+
+### Special-effect hooks - `GenesisEffects.cs`
+
+`TurnContext.Stage(stage, creature)` is ROM 0x664E: at fixed points of the engine the handler of every effect on the stage's list that the creature carries is run (effects live in record +0x43..+0x4C or, timed, in the list at [0xD49C]).
+Verified with 800 stage runs of every stage/effect/creature combination and inside the whole attack / turn / explosive tests (123,000 checks in all, 1,000 of them whole turns through `BeginTurn` = ROM 0xE4F0).
+
+| stage | where | effects (id = hex; meaning from what the handler does) |
+|---|---|---|
+| 2 / 3 | each hit of the primary / **secondary** attack, before the damage dice (attacker) | 0x1C slows the victim after a failed save (halves movement and attacks, effect 0x1D for 5 turns); 0x1E kills it (status 0x86, HP 0) unless it saves |
+| 5 | after the damage was rolled (victim) | 0x14 rockets do full damage; 0x17 immune to heat gun / plasma thrower; 0x18 immune to lasers; 0x19 / 0x1A / 0x1B: half the hits do nothing against weapon types 1,2,5 / 1..5 / 0 (melee); **3: damage never above the victim's HP** |
+| 7, 15 | start of the creature's turn (`BeginTurn`) | 1 stunned (no time, reaction or movement); 0x0E armor -2 and the turn is lost |
+| 9 | a status effect is being applied | 0x15 / 0x16 immune to effect 0x0D / 0x0E; **3: immune to every effect** |
+| 10, 11, 12 | attack preparation (attacker / victim) and saving throws | 0x0D armor -2, attack -4; 0x0E armor -2 + turn lost (stage 11) |
+| 14 | before a monster's weapon choice (`RunTurn`) | 0x20 spits at its target: in line of fire within 12, d100 < 35 hits for 2d8 |
+| 18 | start of the round (`GenesisTurns.BeginRound` takes an optional callback) | 0x1D slowed: movement and attacks halved |
+
+Effect 3 is Buck Rogers' (nobody else has it): he cannot be killed outright (his damage is clamped to his HP, so he is knocked out at worst), cannot be given a status effect, and the blast code moves him out of explosions - the dodge.
+Only the secondary attack runs stage 3, so touch effects (slow, death) belong to a creature's second attack. Note the order of the handlers' damage immunities: 50% chances are `d100 >= 50 -> no damage`.
+
+An uninitialised-register quirk the differential tests found: `0x11630` builds the weapon range word from the *caller's* register d2 (a byte move keeps bits 8..15), so the range is occasionally 0xFFxx; the AI then reads it as "very long range" (explosive blast radius clamps to 9, ranged branch of the turn, to-hit distance rules). `TurnContext.RangeD2` replays the captured bits in the tests; in a game leave it empty (0) to get the clean behaviour.
 
 ### Explosive weapons - `GenesisArea*.cs`
 

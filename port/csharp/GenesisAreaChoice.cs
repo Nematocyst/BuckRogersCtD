@@ -21,7 +21,7 @@ namespace BuckRogersGenesis
             int reach = kind == 7 ? 2 : kind == 9 ? 3 : 1;
             int center = Actor;
             int range = WeaponRangeOf(itemOff);
-            int r = range + reach;
+            int r = (range + reach) & 0xFFFF;
             if (r > 9)
             {
                 r = 9;

@@ -3,7 +3,7 @@ using System.IO;
 using BuckRogersGenesis;
 
 [Serializable] public class MonPre { public string haz, script, nav; public int n, idx, m97, d97dc, d513, mode; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
-[Serializable] public class MonPost { public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
+[Serializable] public class MonPost { public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
 [Serializable] public class MonCase { public string fn; public int a, range; public int[] mv; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
 
@@ -18,6 +18,8 @@ static class MonsterTests
         for (int i = 0; i < a.Length && i < b.Length; i++) if (a[i] != b[i]) { if (n++ < 8) r += $" {(baseAddr + i):X}: {a[i]:X2}/{b[i]:X2}"; }
         return r + (n > 8 ? $" (+{n - 8} more)" : "");
     }
+    static void StartTrace(TurnContext x) { x.Trace0 = new System.Collections.Generic.List<string>(); x.TraceLof = Environment.GetEnvironmentVariable("TRACE_LOF") != null; if (x.TraceLof) x.Rng.Log = d => x.Trace0.Add("rng " + d); }
+    static string NoLof(string t) { var tk = t.Split(' '); var o = new System.Collections.Generic.List<string>(); for (int i = 0; i < tk.Length; i++) { if (tk[i] == "lof") { i += 5; continue; } if (tk[i] == "grid") { i += 5; continue; } o.Add(tk[i]); } return string.Join(" ", o); }
     static bool Same(byte[] a, byte[] b) { if (a.Length != b.Length) return false; for (int i = 0; i < a.Length; i++) if (a[i] != b[i]) return false; return true; }
 
     public static TurnContext Build(MonCase c, ushort[] boot, RomView rom)
@@ -30,6 +32,7 @@ static class MonsterTests
         if (!string.IsNullOrEmpty(p.haz)) Array.Copy(Hex(p.haz), ctx.Haz, 256);
         if (!string.IsNullOrEmpty(p.script)) { var sc = Hex(p.script); ctx.TileScript = i => i < sc.Length ? sc[i] : 0; }
         ctx.Mode97AE = (byte)p.m97; ctx.D97DC = (byte)p.d97dc; Array.Copy(Hex(p.g), ctx.G, ctx.G.Length); Array.Copy(Hex(p.ca), ctx.Ca, ctx.Ca.Length); Array.Copy(Hex(p.nav), ctx.Nav, ctx.Nav.Length);
+        if (c.post != null && c.post.d2s != null) ctx.RangeD2 = new System.Collections.Generic.Queue<int>(c.post.d2s);
         { var q = c.post; int wi = 0; if (q != null && q.waves != null) ctx.WaveInit = () => q.waves[wi < q.waves.Length ? wi++ : q.waves.Length - 1]; }
         return ctx;
     }
@@ -62,8 +65,10 @@ static class MonsterTests
         var boot = new ushort[256]; for (int i = 0; i < 256; i++) boot[i] = (ushort)v.boot_table[i];
         var rom = RomView.FromRom(romBytes);
         var counts = new System.Collections.Generic.Dictionary<string, int>();
+        int ordinal = -1;
         foreach (var c in v.cases)
         {
+            ordinal++;
             var x = Build(c, boot, rom); x.Actor = c.a;
             string ctx = c.fn + " actor " + c.a;
             switch (c.fn)
@@ -79,12 +84,16 @@ static class MonsterTests
                     Check(x.MoveDx == c.post.mv[0] && x.MoveDy == c.post.mv[1], $"step after {x.MoveDx},{x.MoveDy} vs ROM {c.post.mv[0]},{c.post.mv[1]} ({ctx})");
                     break;
                 case "nav": x.Navigate(); break;
+                case "stage": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.Stage(c.range, c.mv[0]); break;
+                case "beginturn": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; StartTrace(x); x.BeginTurn();
+                    { var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace)); Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})"); if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace.txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0)); }
+                    break;
                 case "eb50s": { x.Trace0 = new System.Collections.Generic.List<string>(); x.TraceLof = Environment.GetEnvironmentVariable("TRACE_LOF") != null; int rv = x.AreaEval(true, c.range); Check(rv == c.post.ret, $"area score {rv} vs ROM {c.post.ret} ({ctx})"); if (rv != c.post.ret && x.TraceLof) Console.WriteLine("port: " + string.Join(" | ", x.Trace0) + "\nROM : " + string.Join(" | ", c.post.trace)); break; }
                 case "eb50x": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.Trace0 = new System.Collections.Generic.List<string>(); x.AreaEval(false, 0xAE); break;
                 case "blast": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.CursorX = c.mv[0]; x.CursorY = c.mv[1]; x.AreaAttack(); break;
                 case "tick": x.S.CombatMode = c.pre.mode; x.TickHazards(); break;
-                case "turn": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.Trace0 = new System.Collections.Generic.List<string>(); x.RunTurn();
-                    { var mine = string.Join(" ", x.Trace0); var rom0 = string.Join(" ", c.post.trace); Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})"); }
+                case "turn": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; StartTrace(x); x.RunTurn();
+                    { var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace)); Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})"); if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace.txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0)); }
                     break;
                 case "attack": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ExecuteAttack(); break;
                 default: Check(false, "unknown case " + c.fn); continue;

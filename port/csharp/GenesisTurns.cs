@@ -43,7 +43,7 @@ namespace BuckRogersGenesis
         /// monster is the slot of its type). Returns the new backstab mask bit state (the ROM sets bit <record index> of [0xD4FD] for party members whose
         /// skill 7 check reaches 2). Consumes 0-2 skill rolls, then the d10 and d100 of the initiative.
         public static int BeginRound(RomView rom, GenesisRng rng, byte[] slot, byte[] record, int recordIndex, int[] slotFlags0ByIndex,
-            int surprise, int roundParity, bool flag97DCBit4, int backstabMask)
+            int surprise, int roundParity, bool flag97DCBit4, int backstabMask, Action stage18 = null)
         {
             int f0 = slot[0];
             if (f0 == 0 || (f0 & 0xC0) != 0) return backstabMask;
@@ -58,6 +58,7 @@ namespace BuckRogersGenesis
                 slot[0x16] = (byte)((sbyte)slot[0x16] >> 2);
             }
             slot[0x18] = slot[6]; slot[0x19] = slot[7];                                      // attacks x2 -> attacks left (word copy)
+            stage18?.Invoke();                                                               // 0x664E stage 0x12: a slowed creature (effect 0x1D) halves movement and attacks
             int par = roundParity & 1;
             slot[0x18] = (byte)((sbyte)(byte)(slot[0x18] + par) >> 1);
             slot[0x19] = (byte)((sbyte)(byte)(slot[0x19] + par) >> 1);

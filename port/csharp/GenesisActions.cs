@@ -284,6 +284,8 @@ namespace BuckRogersGenesis
         public int BackstabMask;                     // [0xD4FD]
         public int CursorX, CursorY;                 // [0xB3F0], [0xB3F2]: pixel position of the targeting cursor (area attacks)
         public int DamageMultiplier;                 // [0xD496]: in/out
+        public Func<int> RangeGarbage;               // 0x11630 builds its range word from the CALLER's d2 (move.b into d2 keeps bits 8..15): returns that byte (0 when unknown)
+        public Action<int, int> Hook;                // 0x664E (stage, creature): the special-effect hooks run after each recompute (stage 11 victim, stage 10 attacker)
     }
 
     public struct AttackPlan
@@ -327,6 +329,7 @@ namespace BuckRogersGenesis
                 var tSlot = st.Slots[tIndex]; var tRec = st.Records[tSlot[2]];
                 tx = tSlot[0x12]; ty = tSlot[0x13];
                 GenesisStats.RecomputeSlot(rom, tSlot, tRec, env.SideModParty, env.SideModMonster, env.Mode97AE != 0);
+                env.Hook?.Invoke(0xB, tIndex);
                 int bearing = GenesisCombat.Octant(att[0x12], att[0x13], tx, ty);
                 var ar = GenesisCombat.ArmorAgainst(bearing, att[1], tSlot[1], tSlot[0x10], tSlot[4], tSlot[5], attRec[0x18], attRec[0x19], attacker,
                     env.BackstabMask, attRec[0xAE], weaponTypeOf);
@@ -336,6 +339,7 @@ namespace BuckRogersGenesis
                 armor = ar.Armor; tflags = tSlot[1];
             }
             GenesisStats.RecomputeSlot(rom, att, attRec, env.SideModParty, env.SideModMonster, env.Mode97AE != 0);
+            env.Hook?.Invoke(0xA, attacker);
             int attack = att[3];
             if ((((tflags ^ att[1]) & 1)) == 0) { plan.Message = 0xBC; return plan; }
 
@@ -379,6 +383,7 @@ namespace BuckRogersGenesis
         /// 0x11630: the same for the item at record offset `itemOff`.
         public static int WeaponRange(AttackEnv env, int attacker, byte[] attRec, int itemOff)
         {
+            int garbage = ((env.RangeGarbage != null ? env.RangeGarbage() : 0) & 0xFF) << 8;
             if (env.Mode97AE != 0 && attacker < 8) return 1;
             int id = attRec[itemOff];
             if (id == 0) return 1;
@@ -389,9 +394,9 @@ namespace BuckRogersGenesis
             {
                 bool partyRecord = env.State.Slots[attacker][2] < 8;      // 0x76FA: with [0x97AE] set only monster records are searched
                 if (!(env.Mode97AE != 0 && partyRecord))
-                    for (int k = 0; k < 13; k++) if (attRec[0x54 + 10 * k] == 0x10) { d2 = 12; break; }
+                    for (int k = 0; k < 13; k++) if (attRec[0x54 + 10 * k] == 0x10) { return 12; }       // moveq #12,d2: a clean long
             }
-            return d2;
+            return garbage | d2;
         }
     }
 }

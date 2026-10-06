@@ -66,8 +66,10 @@ namespace BuckRogersGenesis
         public byte Index => idx;
 
         /// The ROM routine at 0x6C94 with d0 = `d0`: returns the new d0 (a signed 32-bit value as the CPU would hold it).
+        public Action<int> Log;                                      // debugging aid: called with the divisor of every draw
         public int Next(int d0)
         {
+            Log?.Invoke(d0 & 0xFF);
             int divisor = (ushort)(short)(sbyte)(d0 & 0xFF);          // ext.w d0
             if (divisor == 0) return (int)((uint)d0 & 0xFFFF0000u);   // returns before touching the table
             int i = idx;

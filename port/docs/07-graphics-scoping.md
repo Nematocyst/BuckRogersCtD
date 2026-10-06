@@ -14,12 +14,23 @@
 * `tools/export_tokens.py ROM OUT [monster_file.bytes]` writes one full-colour strip of 18 frames per monster id (checked by eye for ids 0, 4, 5, 9, 23).
 * A small VDP model (captures colour / video memory writes of the real ROM routines in the emulator) was used for the palette; it is a throw-away script, not in the repo.
 
+## Animation frames and party tokens (traced by running the real draw code with a small video-chip model)
+Method: the ROM's own loaders (0x982A, 0x98E4, 0xCA7E) and the draw routine 0xCAEA were run in the emulator with a model of the VDP (video memory, colour memory) that records what is written; the 3x3 / 3x6 / 6x3 block the routine put on plane A was compared with every frame of the creature's sheet (exact pixel match, also mirrored).
+* **Party tokens: ROM table 0x998C, 12 sheets** (same 18-frame 3x3 layout, same palette). They are chosen by a record byte +0x42 with bit 7 set (`0x99BC` clears the bit and indexes the table by the rest); monsters have bit 7 clear and use the 0x9A14 table. Rendered: humans / desert people / others in coloured uniforms, firing poses with muzzle flashes, lying poses. `tools/export_tokens.py` writes them as `party_<n>.png`. (Which race / sex / career gives which index is not traced: it is set where party records are created.)
+* **Frames in the sheet** (id 0 and the party sheets): 0-2 facing the viewer / standing, 3-5 aiming and firing (5 with the flash), 6-8 side view / walking, 9-11 blank filler, 12-14 a second set of poses, 15 hurt / kneeling, 16 lying (dead), 17 ready.
+* **Which frames the fight animation module draws** (draw routine `0xCAEA(d0 = state)`; mirrored when the creature's facing byte `slot+0x10` is 5 or more; the sprite buffers are b58a, b582, b586 in RAM, each loading only a list of frames from the sheet, via 0x9BB6):
+  * state 0 = frame 17 (the actor's ready pose), state 1 = frame 15, state 3 = frame 11 (only for animation sets 1 and 2, see below); b58a holds frames [11, 15, 17] (list at 0xCABC, loaded by 0xCA7E for the current actor `[0xD513]`).
+  * state 2 = frame 16 (lying / dead) for every creature, small or big; b582 holds, per creature type of the fight, frames [0, 6, 12, 16] (list 0x98DC, when 0x982A is called with d0 = 0) or only [6, 16] (list 0x98E1, d0 != 0); each creature gets a slot index in `slot+0x11` (1 per small type, 2 per big type) which selects its chunk of the buffer.
+  * state 5 = a facing-dependent frame from b586 (list 0x9926: frames 1,2,3,4,5,7,8,9,10,11,13,14, loaded by 0x98E4); measured for id 0: facing 0 -> frame 5, facings 2-4 -> frame 13, mirrored for 6 (this state draws the other creature of an exchange, so its facing is relative; the exact rule is in 0x6EEC / the callers around 0x10796 and was not pinned down).
+  * the table 0xCC36 (6 bytes per animation set: the entry's byte +6, 0 / 1 / 2) says what each state does for the set: 0 = draw, 1 = special draw (0xCC1A), 2 = skip. Set 0: states 0, 1, 2, 5 draw, 3 and 4 skip; set 1: 3 = special; set 2: 3 draws, 4 special.
+* **Not traced**: the walking / idle frames of the sheet (0-8, 12-14) are not drawn by this module. They belong to the map-object renderer (0xC060-0xC2A0, which also loads sheets with 0x99BC) used for creatures on the map; its frame choice by facing and step is still open. The sequencing of states over time (callers around 0x10790-0x11B90) is also not traced.
+
 ## What was NOT found
-* The party members' tokens (player characters are drawn from other sheets, probably chosen by race / career, not found) and the animation sequencing (which frame is used when).
+* The map-object renderer's frame choice (walking / idle frames), the sequencing of the fight animation states over time, and the mapping from race / sex / career to the party sheet index.
 * The link from a monster record to its encounter picture (probably a byte of the record or an index in the monster file; not checked).
 * The shared palettes of the icons and the interface.
 
 ## Cost estimate
 * **Extract the encounter pictures into Unity**: done as a tool (PNG per picture, frames as a strip). About a unit to wire them to the monster ids (find the record field) and show them in the viewer. Art is not committed to the repo (it is the game's copyright); run the tool on your own ROM.
-* **Battlefield tokens**: located, laid out and coloured; the exporter writes full-colour frame strips. To use them in the viewer: the animation order (which frame for which action and facing: table 0xCC36 / 0xCC60 and the draw routine 0xCAEA, about a unit) and the party's tokens (the 12-entry table at 0x998C, reached through key bit 7 in 0x99BC, is the first candidate).
+* **Battlefield tokens**: located, laid out, coloured and the party's 12 sheets found; the exporter writes full-colour frame strips. To use them in the viewer: a static frame per creature is enough now (frame 17 ready, 16 dead, 15 hurt); a walking animation needs the map-object renderer traced (about a unit).
 * **Palettes / interface art / animation**: further units; the game uses tile animation and palette cycling, and a faithful port needs the VDP's colour handling.

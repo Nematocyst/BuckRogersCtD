@@ -95,6 +95,7 @@ namespace BuckRogersGenesis
         /// [0xD511] to-hit (0 = cannot attack), [0xD518] message, [0xD512] distance, [0xD513] target, [0xD496] damage multiplier, [0xD501..3] line-of-fire flags.
         public void PrepareAttack(int target)
         {
+            T("prep");
             Gs(A513, target); Gs(A511, 0); Gs(A518, 0); Gs(A518 + 1, 0);
             var env = new AttackEnv
             {
@@ -126,6 +127,7 @@ namespace BuckRogersGenesis
         /// A victim that is not alive aborts the whole thing. Returns the damage list.
         public List<byte> ExecuteAttack()
         {
+            T("exec");
             var list = new List<byte>();
             int t = (sbyte)Gb(A513);
             if (t < 0) return list;
@@ -176,6 +178,7 @@ namespace BuckRogersGenesis
         /// can attack it does so, once. Returns 1, or -1 when the mover did not survive. The mover's map markers are restored while the reactions run.
         public int Reactions()
         {
+            T("react");
             int mover = Actor; Gs(A513, mover);
             int moverSide = S.Slots[mover][1] & 1; bool first = false;
             Ca[0] = 0;
@@ -213,6 +216,7 @@ namespace BuckRogersGenesis
         /// Stepping off the map is "fleeing": allowed unless a faster enemy sees the creature; the creature gets status 0x85 and 6 movement points.
         public int MoveStep()
         {
+            T("step");
             var me = S.Slots[Actor];
             int nx = (me[0x12] + (MoveDx & 0xFF)) & 0xFF, ny = (me[0x13] + (MoveDy & 0xFF)) & 0xFF;
             bool cancel = false;
@@ -244,6 +248,166 @@ namespace BuckRogersGenesis
             me[0x12] = (byte)(me[0x12] + (MoveDx & 0xFF)); me[0x13] = (byte)(me[0x13] + (MoveDy & 0xFF));
             if (((MoveDx | MoveDy) & 0xFF) == 0) return 0;
             return Reactions();
+        }
+
+        // ------------------------------------------------------------------------------------ the turn controller
+        public byte D8FC;                   // [0xD8FC]: bit 7 = the player asked to take over (party members only)
+        public int Ticks;                   // safety net for the controller loop (the ROM has none; a path is finite)
+
+        /// 0xF156: bit 7 of [0xD8FC] hands the party over to the player: every party creature with flag bit 7 loses it; true when that was the current actor.
+        bool TakeoverRequested()
+        {
+            bool mine = false;
+            if ((D8FC & 0x80) == 0) return false;
+            for (int i = 0; i < 8 && i < S.SlotCount; i++)
+            {
+                var sl = S.Slots[i];
+                if ((sl[1] & 1) == 0 || (sl[1] & 0x40) != 0 || (sl[1] & 0x80) == 0) continue;
+                sl[1] &= 0x7F;
+                if (i == Actor) mine = true;
+            }
+            return mine;
+        }
+
+        /// 0xF1A2: the creature is done for the round (a creature that cannot throw explosives keeps its reaction ready).
+        void EndTurn()
+        {
+            T("end");
+            var me = S.Slots[Actor]; me[0x14] = 0;
+            if (!HoldsExplosive()) me[1] |= 0x10;
+        }
+
+        /// 0xF132: first visible action of the turn: the creature's stats are recomputed once.
+        bool turnShown;
+        void ShowTurn()
+        {
+            if (turnShown) return;
+            turnShown = true;
+            MoveDx = 0; MoveDy = 0;                                                       // 0xE5A8
+            var me = S.Slots[Actor];
+            GenesisStats.RecomputeSlot(Rom, me, S.Records[me[2]], Gb(A49A), Gb(A499), Mode97AE != 0);
+            Gs(0xD508, 0xFF);
+        }
+
+        /// 0xF0E2: attack the creature chosen as target (+0x17) if the preparation allows it. Explosive weapons (0xEB50) are not ported.
+        void AttackTarget()
+        {
+            T("attack");
+            var me = S.Slots[Actor];
+            if (me[0x14] == 0) return;
+            if (moving) { EndMotion(); }
+            if (HoldsExplosive()) throw new NotSupportedException("area weapons (ROM 0xEB50 / 0x10FAA) are not ported");
+            if ((sbyte)me[0x17] < 0) return;
+            CursorOnActor();
+            PrepareAttack(me[0x17]);
+            if (Gb(A511) == 0) return;
+            ShowTurn();
+            ExecuteAttack();
+        }
+
+        bool moving;                        // the ROM's d7: the creature has started walking (flag 4 set, map markers cleared)
+        void StartMotion() { var me = S.Slots[Actor]; S.ClearMarkers(Actor); me[1] |= 4; Gs(A510, 0xFF); moving = true; }          // 0xF9A6
+        void EndMotion() { if (!moving) return; var me = S.Slots[Actor]; me[1] &= 0xFB; S.SetMarkers(Actor); moving = false; }      // 0xFA22 via 0xF0D6
+
+        /// One decision of the monster's turn: ROM 0xEF64 (with the current actor in [0xCA20], its time in +0x14). The creature picks (or keeps) a target, equips its
+        /// best weapon, then walks along the shortest path to the nearest enemy, attacking as soon as the target is in line of fire within (half) weapon range
+        /// - or, for a weapon of range 1, as soon as an enemy stands next to it. Steps cost movement points; every step may draw reactions from adjacent enemies.
+        /// When it cannot get anywhere it waits (time 1); a creature that already waited attacks anything in reach, else ends its turn.
+        public void RunTurn()
+        {
+            var me = S.Slots[Actor];
+            moving = false; turnShown = false; Enumerated = false;
+            TakeoverRequested();
+            if ((me[1] & 1) != 0) { /* 0x10200: a party creature may first go to a fallen friend */ AllyRescueCheck(); }
+            if (me[0x14] == 0) { Finish(); return; }
+            bool waited = me[0x14] == 1;
+            if (waited) me[0x17] = 0xFF;
+            SelectTarget();
+            bool giveUp = (sbyte)me[0x17] < 0;
+            int range = 0, pi = 0;
+            if (!giveUp)
+            {
+                StageHook?.Invoke(0xE);
+                ChooseWeapon(1);
+                if (me[0x14] == 0 && me[0x15] == 0) { Finish(); return; }
+                range = WeaponRangeOfActor();
+                Navigate();
+                pi = 2;
+                if ((sbyte)Nav[pi] < 0) giveUp = true;
+            }
+            if (!giveUp)
+            {
+                while (true)
+                {
+                    if (++Ticks > 100000) throw new InvalidOperationException("turn does not end");
+                    if (TakeoverRequested()) { Finish(); return; }
+                    if (me[0x14] == 0) { Finish(); return; }
+                    bool attack;
+                    if (range > 1)
+                        attack = LineOfFireTo(me[0x17], range >> 1).Clear;
+                    else
+                    {
+                        D500 = (byte)((me[1] ^ 1) & 1);
+                        EnumerateTargets(Actor, 1);
+                        attack = D506 != 0;
+                        if (attack) me[0x17] = Ca[2 + 3 * Rng.Next(D506)];
+                    }
+                    if (attack)
+                    {
+                        AttackTarget();
+                        if (me[0x14] == 0) { Finish(); return; }
+                    }
+                    int dir = (sbyte)Nav[pi++];
+                    if (dir < 0) break;
+                    if (!moving) { ShowTurn(); StartMotion(); }
+                    MoveDx = CombatWorld.DX[dir]; MoveDy = CombatWorld.DY[dir];
+                    int r = MoveStep();
+                    if (r < 0) return;                                                     // the creature died on the way: nothing more to tidy up
+                    if (r == 0) break;
+                }
+            }
+            // 0xF07A: the way is blocked or finished. The ROM tests register d6 here, which holds "time was 1" until an enumeration (0x15C2C) overwrites it with the
+            // number of creatures: any turn that searched for a target therefore takes the "waited" branch.
+            bool d6 = waited || Enumerated;
+            if (!d6) { me[0x14] = 1; Finish(); return; }
+            if (range != 0)
+            {
+                D500 = (byte)((me[1] ^ 1) & 1);
+                EnumerateTargets(Actor, range);
+                if (D506 != 0)
+                {
+                    me[0x17] = Ca[2 + 3 * Rng.Next(D506)];
+                    AttackTarget();
+                    if (me[0x14] == 0) { Finish(); return; }
+                }
+            }
+            EndTurn();
+            Finish();
+        }
+
+        void Finish() { EndMotion(); }
+
+        /// 0x10200 / 0xF28A / 0xF22C: a party creature with healing skill (record +0x32 or +0x3B) first looks for fallen friends: party creatures with status 0x83
+        /// (dying), or 0x84 when the healer is skilled in +0x32 and the friend is not yet in the mask [0xD50A]. The list is left at [0xCA22] / [0xD506].
+        /// Going to the friend and treating it (0x1021E) is not ported: throws when a friend is found.
+        void AllyRescueCheck()
+        {
+            var me = S.Slots[Actor]; var rec = S.Records[me[2]];
+            if ((me[1] & 1) == 0 || (rec[0x32] == 0 && rec[0x3B] == 0)) return;
+            int d4 = rec[0x32], n = 0;
+            for (int i = 0; i < 8 && i < S.SlotCount; i++)
+            {
+                var sl = S.Slots[i]; int st = sl[0];
+                if (st != 0x83)
+                {
+                    if (d4 == 0 || st != 0x84) continue;
+                    if (((Gb(0xD50A) >> (sl[2] & 7)) & 1) != 0) continue;
+                }
+                if ((sl[1] & 1) == 0) continue;
+                Ca[2 + 3 * n++] = (byte)i;
+            }
+            D506 = (byte)n;
+            if (n != 0) throw new NotSupportedException("ally rescue by party creatures (ROM 0x1021E) is not ported");
         }
     }
 }

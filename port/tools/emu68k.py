@@ -66,6 +66,18 @@ class Machine:
         self.uc.hook_add(UC_HOOK_CODE, hook, begin=addr, end=addr)
         return calls
 
+    def stub_ret(self, addr, d0):
+        """like stub_rts, but the routine returns the value d0 (a decision made by a menu / prompt the test cannot answer)"""
+        from unicorn import UC_HOOK_CODE
+        def hook(uc, address, size, user):
+            if address == addr:
+                sp = uc.reg_read(UC_M68K_REG_A7)
+                ret = struct.unpack('>I', bytes(uc.mem_read(sp, 4)))[0]
+                uc.reg_write(UC_M68K_REG_A7, sp + 4)
+                uc.reg_write(UC_M68K_REG_D0, d0)
+                uc.reg_write(UC_M68K_REG_PC, ret)
+        self.uc.hook_add(UC_HOOK_CODE, hook, begin=addr, end=addr)
+
     def run_between(self, start, stops, max_insns=500000, **regs):
         """run from start until the PC reaches any address in stops; returns the stop address"""
         from unicorn import UC_HOOK_CODE

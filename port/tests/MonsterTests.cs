@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using BuckRogersGenesis;
 
-[Serializable] public class MonPre { public int n, idx, m97, d97dc, d513, mode; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
-[Serializable] public class MonPost { public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
+[Serializable] public class MonPre { public string nav; public int n, idx, m97, d97dc, d513, mode; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
+[Serializable] public class MonPost { public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
 [Serializable] public class MonCase { public string fn; public int a, range; public int[] mv; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
 
@@ -27,7 +27,8 @@ static class MonsterTests
         for (int i = 0; i < p.n; i++) s.Slots[i] = Hex(p.slots[i]);
         for (int r = 0; r < 11; r++) { var rec = new byte[214]; var h = Hex(p.recs[r]); Array.Copy(h, rec, h.Length); s.Records[r] = rec; s.RecordSizeType[r] = rec[0x23]; }
         var ctx = new TurnContext { S = s, Rng = GenesisRng.FromState(boot, (byte)p.idx), TerrainFlags = i => ft[i + 1], Rom = rom };
-        ctx.Mode97AE = (byte)p.m97; ctx.D97DC = (byte)p.d97dc; Array.Copy(Hex(p.g), ctx.G, ctx.G.Length); Array.Copy(Hex(p.ca), ctx.Ca, ctx.Ca.Length);
+        ctx.Mode97AE = (byte)p.m97; ctx.D97DC = (byte)p.d97dc; Array.Copy(Hex(p.g), ctx.G, ctx.G.Length); Array.Copy(Hex(p.ca), ctx.Ca, ctx.Ca.Length); Array.Copy(Hex(p.nav), ctx.Nav, ctx.Nav.Length);
+        { var q = c.post; int wi = 0; if (q != null && q.waves != null) ctx.WaveInit = () => q.waves[wi < q.waves.Length ? wi++ : q.waves.Length - 1]; }
         return ctx;
     }
 
@@ -37,6 +38,7 @@ static class MonsterTests
         for (int i = 0; i < c.pre.n; i++) Check(Same(x.S.Slots[i], Hex(q.slots[i])), $"slot {i} differs [offset: port/ROM]: {Diff(x.S.Slots[i], Hex(q.slots[i]), 0)} ({ctx})");
         Check(Same(x.S.Tiles, Hex(q.tiles)), $"tile map ({ctx})");
         Check(Same(x.G, Hex(q.g)), $"globals differ [address: port/ROM]: {Diff(x.G, Hex(q.g), TurnContext.GBase)} ({ctx})");
+        { var nv = Hex(q.nav); var mine = new byte[0x34]; var theirs = new byte[0x34]; Array.Copy(x.Nav, mine, 0x34); Array.Copy(nv, theirs, 0x34); Check(Same(mine, theirs), $"path buffer differs [address: port/ROM]: {Diff(mine, theirs, 0x6CAE)} ({ctx})"); }
         Check(Same(x.Ca, Hex(q.ca)), $"actor/target list differs [address: port/ROM]: {Diff(x.Ca, Hex(q.ca), TurnContext.CaBase)} ({ctx})");
         if (q.d8ca != null) Check(x.S.LivingBySide[0] == q.d8ca[0] && x.S.LivingBySide[1] == q.d8ca[1], $"living counters ({ctx})");
         long sum = 0; foreach (var w in x.Rng.TableCopy()) sum += w;
@@ -47,7 +49,9 @@ static class MonsterTests
 
     public static int Run(string vectors, byte[] romBytes)
     {
-        var v = UnityEngine.JsonUtility.FromJson<MonVectors>(File.ReadAllText(vectors));
+        string json;
+        using (var fs = File.OpenRead(vectors)) using (var gz = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionMode.Decompress)) using (var rd = new StreamReader(gz)) json = rd.ReadToEnd();
+        var v = UnityEngine.JsonUtility.FromJson<MonVectors>(json);
         var boot = new ushort[256]; for (int i = 0; i < 256; i++) boot[i] = (ushort)v.boot_table[i];
         var rom = RomView.FromRom(romBytes);
         var counts = new System.Collections.Generic.Dictionary<string, int>();
@@ -66,6 +70,10 @@ static class MonsterTests
                     int r = x.MoveStep();
                     Check(r == c.post.ret, $"step result {r} vs ROM {c.post.ret} ({ctx})");
                     Check(x.MoveDx == c.post.mv[0] && x.MoveDy == c.post.mv[1], $"step after {x.MoveDx},{x.MoveDy} vs ROM {c.post.mv[0]},{c.post.mv[1]} ({ctx})");
+                    break;
+                case "nav": x.Navigate(); break;
+                case "turn": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.Trace0 = new System.Collections.Generic.List<string>(); x.RunTurn();
+                    { var mine = string.Join(" ", x.Trace0); var rom0 = string.Join(" ", c.post.trace); Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})"); }
                     break;
                 case "attack": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ExecuteAttack(); break;
                 default: Check(false, "unknown case " + c.fn); continue;

@@ -1,26 +1,28 @@
 """Monster-turn vectors (ROM 0xEF64 and the routines it calls) from the real ROM code in a 68000 emulator.
 Every case stores the RAM the routines touch before and after (see monster_world.py). usage: python gen_monster_vectors.py ROM OUT.json"""
-import sys, json, struct, collections
+import sys, json, struct, collections, gzip
 from monster_world import *
 
+import os
 cases = []
+def N(name, default): return int(os.environ.get('N_' + name, default))
 
 # ---- A. 0x15C2C target list: d0 = actor, d2 = range
-for _ in range(500):
+for _ in range(N('enum', 500)):
     m = Machine(rom); w = build(m, rnd); load(m, w)
     rng_ = rnd.choice([3, 6, 10, 100]); a = w['actor']
     m.call(0x15C2C, d0=a, d2=rng_, max_insns=3000000)
     cases.append(dict(fn='enum', pre=pre(w), a=a, range=rng_, post=snap(m, w)))
 
 # ---- B. 0xE812 choose target: a3 = actor slot
-for _ in range(700):
+for _ in range(N('select', 700)):
     m = Machine(rom); w = build(m, rnd); load(m, w); a = w['actor']
     m.write_ram(0xCA20, bytes([a])); m.write_ram(0xBA64, struct.pack('>H', w['n']))
     m.call(0xE812, a3=RAM_BASE + SLOT + a * 26, max_insns=6000000)
     cases.append(dict(fn='select', pre=pre(w), a=a, post=snap(m, w)))
 
 # ---- C. 0xE89C weapon choice: a3 = actor slot, a2 = actor record, d0 = mode
-for _ in range(500):
+for _ in range(N('weapon', 500)):
     m = Machine(rom); w = build(m, rnd, full=True)
     w['g'][0xD499 - G0] = rnd.randrange(0, 4); w['g'][0xD49A - G0] = rnd.randrange(0, 4)
     for k in range(32):                                  # temporary effect list [0xD49C]: slot, effect, duration
@@ -35,7 +37,7 @@ for _ in range(500):
     cases.append(dict(fn='weapon', pre=pr, a=a, range=mode, post=snap(m, w)))
 
 # ---- D. 0x1074A: carry out an attack by the actor on [0xD513] (sane worlds, graphics routines stubbed)
-for _ in range(500):
+for _ in range(N('attack', 500)):
     m = machine(rom); w = sane_world(rnd); a = w['actor']; n = w['n']
     foes = [k for k in range(n) if (w['slots'][k][1] & 1) != (w['slots'][a][1] & 1) and w['slots'][k][0] in (1, 0x81)]
     t = rnd.choice(foes) if foes and rnd.random() < 0.9 else rnd.randrange(n)
@@ -49,7 +51,7 @@ for _ in range(500):
     cases.append(dict(fn='attack', pre=pr, a=a, range=t, post=sn))
 
 # ---- E. 0xF898: one step of the actor by ([0xB3F4],[0xB3F6]) including the reactions of the enemies (0x11A44)
-for _ in range(900):
+for _ in range(N('move', 900)):
     m = machine(rom); w = sane_world(rnd); a = w['actor']; n = w['n']; sa = w['slots'][a]
     off = rnd.random() < 0.12
     if off: sa[1] |= 0x80; sa[0x12] = rnd.choice([0, 20, rnd.randrange(21)]); sa[0x13] = rnd.choice([0, 20, rnd.randrange(21)])
@@ -71,6 +73,33 @@ for _ in range(900):
     sn['mv'] = list(struct.unpack('>hh', m.read_ram(0xB3F4, 4)))
     cases.append(dict(fn='move', pre=pr, a=a, range=0, mv=[dx, dy], post=sn))
 
+# ---- F. 0x15D8A: path to the nearest enemy (mode 0), actor = d0
+for _ in range(N('nav', 500)):
+    m = machine(rom); w = sane_world(rnd); a = w['actor']
+    w['ca'][0] = a; w['g'][0xD505 - G0] = 0
+    w['g'][0xD5F8 - G0: 0xD5F8 - G0 + 8] = bytes([0x55] * 8)
+    load(m, w)
+    m.call(0x15D8A, max_insns=20_000_000, d0=a, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + w['slots'][a][2] * 0xD6)
+    cases.append(dict(fn='nav', pre=pre(w), a=a, range=0, post=snap(m, w)))
+
+# ---- G. 0xEF64: a whole turn of a computer-controlled creature (monsters; party creatures without healing skill)
+import os
+for _ in range(N('turn', 1500)):
+    m = machine(rom); w = sane_world(rnd); a = w['actor']; n = w['n']; sa = w['slots'][a]
+    if rnd.random() < 0.15:                                    # a party creature under computer control
+        pa = rnd.randrange(w['npar']); a = pa; w['actor'] = a; sa = w['slots'][a]
+    sa[0] = 1; sa[0x14] = rnd.choice([2, 2, 2, 1, 3]); sa[1] &= ~0x04; sa[0x16] = rnd.randrange(0, 14)
+    if rnd.random() < 0.5: sa[1] &= ~0x10
+    w['recs'][sa[2]][0x32] = 0; w['recs'][sa[2]][0x3B] = 0
+    if rnd.random() < 0.3: sa[0x17] = 0xFF
+    w['ca'][0] = a; w['g'][0xD505 - G0] = 0; w['g'][0xD496 - G0] = 1
+    load(m, w)
+    m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xD8FC, b'\x00')
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0xEF64, max_insns=30_000_000, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + sa[2] * 0xD6, d5=0, d7=0, d3=0, d6=0)
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
+    cases.append(dict(fn='turn', pre=pr, a=a, range=0, post=sn))
+
 out['cases'] = cases
-json.dump(out, open(sys.argv[2], 'w'), separators=(',', ':'))
+json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

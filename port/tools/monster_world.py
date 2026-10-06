@@ -69,27 +69,41 @@ def load(m, w):
     m.write_ram(0xCFFF, bytes(w['ft'])); m.write_ram(0xD810, struct.pack('>I', 0xFFFF0000 + 0xD000))
     m.write_ram(G0, bytes(w['g'])); m.write_ram(CA0, bytes(w['ca']))
     m.write_ram(0xD604, boot_table); m.write_ram(0xD804, bytes([w['idx']]))
+    m.write_ram(0x6CAE, bytes(w.get('nav', bytes(0x100))))
 
 
 def snap(m, w):
     return dict(slots=[m.read_ram(SLOT + k * 26, 26).hex() for k in range(w['n'])], recsum=sum((i + 1) * b for i, b in enumerate(m.read_ram(REC, 11 * 0xD6))) & 0xFFFFFFFF, m97=m.ram_byte(0x97AE),
-                tiles=m.read_ram(0xCACA, 441).hex(), g=m.read_ram(G0, GN).hex(), ca=m.read_ram(CA0, CAN).hex(),
+                tiles=m.read_ram(0xCACA, 441).hex(), nav=m.read_ram(0x6CAE, 0x100).hex(), waves=getattr(m, 'waves', []), trace=getattr(m, 'trace', []), g=m.read_ram(G0, GN).hex(), ca=m.read_ram(CA0, CAN).hex(),
                 ridx=m.ram_byte(0xD804), rsum=sum(struct.unpack('>256H', m.read_ram(0xD604, 512))) & 0xFFFFFFFF)
 
 
 def pre(w):
     return dict(n=w['n'], recs=[bytes(r[:(214 if w.get('full') else 0x24)]).hex() for r in w['recs']], slots=[bytes(s).hex() for s in w['slots']], tiles=bytes(w['tiles']).hex(),
-                ft=bytes(w['ft']).hex(), g=bytes(w['g']).hex(), ca=bytes(w['ca']).hex(), idx=w['idx'])
+                ft=bytes(w['ft']).hex(), g=bytes(w['g']).hex(), ca=bytes(w['ca']).hex(), idx=w['idx'], nav=bytes(w.get('nav', bytes(0x100))).hex())
 
 
-UI_STUBS = (0x1B900, 0xE606, 0xCAEA, 0x75F8, 0x75FA, 0xCA7E, 0xAD5A, 0x9784, 0xDEE6, 0xDEC4, 0xDF08, 0xFA52, 0x98E4, 0xC3F0, 0xAD3E, 0x11C8E, 0x11C5A, 0x1343E, 0x1344A, 0x9240, 0x10FAA, 0x664E)
+UI_STUBS = (0x1B900, 0xE606, 0xCAEA, 0x75F8, 0x75FA, 0xCA7E, 0xAD5A, 0x9784, 0xDEE6, 0xDEC4, 0xDF08, 0xFA52, 0x98E4, 0xC3F0, 0xAD3E, 0x11C8E, 0x11C5A, 0x1343E, 0x1344A, 0x9240, 0x10FAA, 0x664E, 0xE5E6)
 
 
 def machine(rom):
     """emulator with the VDP/IO ranges mapped, the VDP registers in a4/a5 and every graphics / sound / animation routine replaced by an empty one"""
     m = Machine(rom); m.map_io()
     for a in UI_STUBS: m.stub_rts(a)
+    m.stub_ret(0x136DA, 1)                                  # the "leave the battlefield?" prompt: answer no
     m.set_reg('a4', 0xC00004); m.set_reg('a5', 0xC00000)
+    m.waves = []                                            # the stack garbage 0x15D8A starts its wave counter from, one entry per search
+    from unicorn import UC_HOOK_CODE
+    from unicorn.m68k_const import UC_M68K_REG_A6
+    def hook(uc, address, size, user):
+        a6 = uc.reg_read(UC_M68K_REG_A6)
+        m.waves.append(struct.unpack('>H', bytes(uc.mem_read(a6 - 0xC, 2)))[0])
+    m.uc.hook_add(UC_HOOK_CODE, hook, begin=0x15D8E, end=0x15D8E)
+    m.trace = []
+    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react'}
+    def thook(uc, address, size, user):
+        if address in names: m.trace.append(names[address])
+    m.uc.hook_add(UC_HOOK_CODE, thook)
     return m
 
 
@@ -142,11 +156,12 @@ def sane_world(rnd, nmin=4, nmax=11):
     ft = bytearray(129)
     for i in range(129): ft[i] = rnd.choice([0, 1, 1, 1, 2, 2, 3, 0x20, 0x40, 0x80, 0x01])
     g = bytearray(GN); ca = bytearray(CAN)
+    nav = bytearray(rnd.randrange(256) for _ in range(0x100))
     g[0xD504 - G0] = 0; g[0xD500 - G0] = 0xFF; g[0xD4FD - G0] = rnd.randrange(256)
     g[0xD499 - G0] = rnd.randrange(0, 3); g[0xD49A - G0] = rnd.randrange(0, 3); g[0xD50C - G0] = rnd.randrange(2)
     g[0xD496 - G0] = 1
     actor = rnd.randrange(npar, n)                            # a monster
     slots[actor][0] = 1
-    return dict(full=True, n=n, recs=recs, slots=slots, tiles=tiles, ft=ft, g=g, ca=ca, actor=actor, idx=rnd.randrange(256), npar=npar)
+    return dict(full=True, nav=nav, n=n, recs=recs, slots=slots, tiles=tiles, ft=ft, g=g, ca=ca, actor=actor, idx=rnd.randrange(256), npar=npar)
 
 

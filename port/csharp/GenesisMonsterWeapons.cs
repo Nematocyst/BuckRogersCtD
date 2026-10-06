@@ -82,6 +82,7 @@ namespace BuckRogersGenesis
         /// `mode` is the ROM's argument (1 from the turn controller): 0 is forced when the actor stands on tile id 0.
         public void ChooseWeapon(int mode)
         {
+            T("weapon");
             var me = S.Slots[Actor]; var rec = S.Records[me[2]];
             G[0xD513 - GBase] = me[0x17];
             int tileIdx = me[0x12] * 21 + me[0x13];                          // sic: x * 21 + y (the line of fire uses y * 21 + x)

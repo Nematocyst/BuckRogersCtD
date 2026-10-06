@@ -29,6 +29,11 @@ namespace BuckRogersGenesis
         public byte D503 { get { return G[0xD503 - GBase]; } set { G[0xD503 - GBase] = value; } }
         public byte D504 { get { return G[0xD504 - GBase]; } set { G[0xD504 - GBase] = value; } }
         public byte D506 { get { return G[0xD506 - GBase]; } set { G[0xD506 - GBase] = value; } }
+        public byte[] Nav = new byte[0x100];                  // 0x6CAE..0x6DAD: [0x6CAE] stale byte the search reads, [0x6CB0..] path (directions, 0xFF)
+        public Func<int> WaveInit;                            // the uninitialised stack word the ROM's search starts its wave counter from (see GenesisAi.FindPath)
+        public System.Collections.Generic.List<string> Trace0;   // optional event log used by the tests (names of the ROM routines entered)
+        public bool Enumerated;                               // the ROM's enumeration (0x15C2C) leaves its candidate counter in register d6, which the turn controller reuses (see RunTurn)
+        void T(string n) { if (Trace0 != null) Trace0.Add(n); }
         public byte Mode97AE;                                 // [0x97AE]: party members are driven by the player (no automatic weapon choice)
         public byte D97DC;                                    // [0x97DC] option bits (bit 4: no explosive weapon use)
         public byte[] Slot(int i) { return S.Slots[i]; }
@@ -56,6 +61,7 @@ namespace BuckRogersGenesis
         /// then sorted by distance (selection sort that also swaps equal distances). [0xD506] = number of entries; [0xD500] is set to 0xFF afterwards.
         public void EnumerateTargets(int actor, int range)
         {
+            T("enum"); Enumerated = true;
             D506 = 0;
             foreach (var ac in Cells(actor))
             {
@@ -109,6 +115,7 @@ namespace BuckRogersGenesis
         /// ([0xD4FF]) the target becomes 0xFF (none).
         public void SelectTarget()
         {
+            T("select");
             var me = S.Slots[Actor];
             int enemy = (me[1] ^ 1) & 1;
             int t = (sbyte)me[0x17];
@@ -129,6 +136,36 @@ namespace BuckRogersGenesis
             }
             int pick = Rng.Next(((D506 >> 1) + 1) & 0xFF);
             me[0x17] = Ca[2 + 3 * pick];
+        }
+
+        // ------------------------------------------------------------------------------------ 0x15D8A: find a way to the goal
+        /// Breadth-first search from the current actor (see GenesisAi.FindPath; the goal depends on [0xD505]): the found creature becomes the actor's target
+        /// (+0x17) and the directions are left at [0x6CB0..] ended by 0xFF (just 0xFF when nothing was found).
+        public GenesisAi.PathResult Navigate()
+        {
+            T("nav");
+            var w = new CombatWorld
+            {
+                Tiles = S.Tiles, TerrainFlags = TerrainFlags, SlotCount = S.SlotCount, Mode = Gb(0xD505), Count506 = D506,
+                Flags0 = new int[S.SlotCount], Flags1 = new int[S.SlotCount], X = new int[S.SlotCount], Y = new int[S.SlotCount], SizeType = new int[S.SlotCount], Target17 = new int[S.SlotCount]
+            };
+            for (int i = 0; i < S.SlotCount; i++)
+            {
+                var sl = S.Slots[i];
+                w.Flags0[i] = sl[0]; w.Flags1[i] = sl[1]; w.X[i] = sl[0x12]; w.Y[i] = sl[0x13]; w.SizeType[i] = S.RecordSizeType[sl[2]]; w.Target17[i] = sl[0x17];
+            }
+            w.Ca22 = new byte[Ca.Length - 2]; Array.Copy(Ca, 2, w.Ca22, 0, w.Ca22.Length);
+            var r = GenesisAi.FindPath(w, Actor, WaveInit == null ? 0 : WaveInit(), Nav[0]);
+            S.Slots[Actor][0x17] = (byte)w.Target17[Actor];
+            Nav[0] = r.Visited[440];
+            for (int i = 0; i < r.Path.Count; i++) Nav[2 + i] = (byte)r.Path[i];
+            Nav[2 + r.Path.Count] = 0xFF;
+            foreach (var list in w.OccupantLog)                           // every occupant lookup rewrote the list at [0xD5F8]: replay them
+            {
+                int n = 0; foreach (var o in list) G[A5F8 - GBase + n++] = (byte)o;
+                G[A5F8 - GBase + n] = 0xFF;
+            }
+            return r;
         }
     }
 }

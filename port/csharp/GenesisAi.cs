@@ -30,6 +30,7 @@ namespace BuckRogersGenesis
         public int[] Target17;                           // slot byte +0x17 (the actor's chosen target; written by the search)
         public int Mode;                                 // [0xD505]
         public int Count506;                             // [0xD506]
+        public List<List<int>> OccupantLog = new List<List<int>>();   // the occupant list each 0x1432E call wrote to [0xD5F8] (terminated by 0xFF), in call order
         public byte[] Ca22 = new byte[16];               // [0xCA22]: target list for mode 2 (only the first byte of each 3-byte entry is compared)
     }
 
@@ -43,6 +44,7 @@ namespace BuckRogersGenesis
         public static Occupants Occupant(CombatWorld w, int x, int y)
         {
             var r = new Occupants { Live = 0xFF, Fallen = 0xFF };
+            var calledList = new List<int>(); w.OccupantLog.Add(calledList);
             if ((w.Tiles[(y & 0xFFFF) * CombatWorld.Size + (x & 0xFFFF)] & 0x80) != 0)          // 0x1431A: only cells marked occupied are searched
             {
                 var list = new List<int>();
@@ -56,6 +58,7 @@ namespace BuckRogersGenesis
                     if (t == 3) { if (cx + 1 == x && cy == y) list.Add(s); }
                     else if (t == 2) { if (cx == x && cy + 1 == y) list.Add(s); }
                 }
+                calledList.AddRange(list);
                 if (list.Count > 0) r.Live = list[0];
             }
             int d3 = 0xFF;
@@ -77,6 +80,7 @@ namespace BuckRogersGenesis
             public bool Found;
             public int Target;                // the creature slot found (also stored to Target17[actor]); -1 if none
             public List<int> Path;            // directions from the actor to the goal (empty when not found)
+            public byte[] Visited;            // the search's visited/parent map (441 bytes); the last byte lives in RAM at 0x6CAE
         }
 
         // ---------------------------------------------------------------------------------------------- pathfinding 0x15D8A
@@ -88,7 +92,7 @@ namespace BuckRogersGenesis
             int curTarget = w.Target17[actor] & 0xFF, actorFlags = w.Flags1[actor] & 0xFF;
             var visited = new byte[CombatWorld.Size * CombatWorld.Size];
             for (int i = 0; i < 440; i++) visited[i] = 0xFF;
-            visited[440] = (byte)lastVisitedByte;
+            visited[440] = (byte)lastVisitedByte; res.Visited = visited;
             int startX = w.X[actor] & 0xFF, startY = w.Y[actor] & 0xFF;
             int moveType = w.SizeType[actor] == 2 ? -1 : (w.SizeType[actor] == 3 ? 1 : 0);   // 0x15DD2: record +0x23
             var queue = new byte[3000]; int a4 = 0, a5 = 0;

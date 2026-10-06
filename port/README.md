@@ -142,6 +142,19 @@ A party creature that is not on auto and steps off the map is asked first (text 
 and the 8-choice debug picker (message 9); the box clears [0xD592], [0xD593], [0xD595] when it closes, and the help button leaves [0xD596] set.
 Verified with 400 off-map steps of player-controlled creatures answered by random pad readings (7,190 checks: choice, step result, pad readings consumed, globals; the text box's cursor bytes [0xD5D6..0xD5E1] are ignored).
 
+### The round loop of a fight - `GenesisCombatLoop.cs` (ROM 0xE3A8..0xE42C, 0x158F2, 0x754C, 0xE434, 0x6AA4)
+
+`CombatRounds()` runs a fight from the state the setup leaves ([0xD50E] set) until one side has nobody standing:
+1. **round start** (0x158F2, `SideBonuses`): [0xD499] / [0xD49A] (monsters / party attack modifier, see `RecomputeSlot`) are cleared; then in slot order the first creature of each side that is not under effect 0xD / 0xE and passes a skill-2 check gives its side +1 (and
+   becomes the current actor [0xCA20] - a leftover the next turn overwrites); then every slot rolls its round start (`GenesisTurns.BeginRound`, 0x100D6: backstab mask, movement points, attacks, initiative);
+2. **turns**: `CountLiving` (0x754C: [0xD8CA] monsters / [0xD8CB] party) - the fight is over when either is 0 - then `PickNextActor` (highest speed/tie-break word among living creatures with time) acts through `BeginTurn` (0xE4F0); repeat until nobody has time;
+3. **round end** (`RoundEnd`, 0xE434): round counter [0xD50C]++, surprise [0x9DC1] cleared, lingering patches tick, timed effects ([0xD49C..]) count down, the **peace counter [0xD50D]** (reset to 3 by every attack) counts down - at 0 the monsters give up (status 0x82) -
+   and every dying party member (status 0x83) counts up its HP byte and is dead (0x87) after 16 rounds.
+`ChoicePrompt`, `PlayerTurn` and the AI turn all read the same `Pad` callback; note that **an AI turn also reads the pad** (0xF156, once per decision): bit 7 (cancel) hands the party over to the player (`TakeoverRequested`).
+`ActorVisible` stands for the camera: a creature that acts off screen makes the view scroll (0xE5A8 / 0xE5E6) and the cursor [0xB3F0/2] lands on it - matters for the cursor-based explosive preparation of reactions.
+Verified with 200 whole fights (random worlds, AI and player-controlled creatures with scripted menu / pad input, order of turns, RNG draws and event sequence compared with the ROM; 5,198 checks on 296 fights).
+In the manual turn the "explosive in hand" flag and the target index are uninitialised stack in the ROM; the test starts them at 0 (the port does too).
+
 ### The player's turn - `TurnContext.PlayerTurn` (ROM 0xF2AE) - `GenesisPlayerTurn.cs`
 
 A creature without the computer-control flag (slot +1 bit 7 clear: the party members unless the player chose "auto") plays through `PlayerTurn`; `BeginTurn` (0xE4F0) picks it. The ROM's two input

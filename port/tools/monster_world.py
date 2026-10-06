@@ -112,11 +112,13 @@ def machine(rom, unstub=(), extra=(), retreat=1):
     def d2hook(uc, address, size, user): m.d2s.append((uc.reg_read(UC_M68K_REG_D2) >> 8) & 0xFF)
     m.uc.hook_add(UC_HOOK_CODE, d2hook, begin=0x11630, end=0x11630)
     m.uc.hook_add(UC_HOOK_CODE, d2hook, begin=0x11638, end=0x11638)
-    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround', 0xE4F0: 'turn', 0x1021E: 'rescue', 0xF2AE: 'manual'}
-    from unicorn.m68k_const import UC_M68K_REG_D0, UC_M68K_REG_D1, UC_M68K_REG_D2, UC_M68K_REG_D3, UC_M68K_REG_D4
+    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround', 0xE4F0: 'turn', 0x1021E: 'rescue', 0xF2AE: 'manual', 0x158F2: 'aura', 0xE434: 'roundend', 0x100D6: 'begin'}
+    from unicorn.m68k_const import UC_M68K_REG_D0, UC_M68K_REG_D1, UC_M68K_REG_D2, UC_M68K_REG_D3, UC_M68K_REG_D4, UC_M68K_REG_A7
     trace_lof = bool(os.environ.get('TRACE_LOF'))
     def thook(uc, address, size, user):
-        if address in names: m.trace.append(names[address])
+        if address in names:
+            m.trace.append(names[address] + ('@%X' % struct.unpack('>I', bytes(uc.mem_read(uc.reg_read(UC_M68K_REG_A7), 4)))[0] if os.environ.get('DBG_PREP') and address == 0x10400 else ''))
+            if address == 0xE4F0 and getattr(m, 'actor_trace', False): m.trace.append('a%d' % m.ram_byte(0xCA20))
         elif trace_lof and address == 0x10898:
             m.trace.append('st %d' % m.ram_byte(0xD497))
         elif trace_lof and address == 0x6C94:

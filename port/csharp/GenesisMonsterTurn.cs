@@ -19,6 +19,8 @@ namespace BuckRogersGenesis
         /// Replaces the "leave the battlefield?" prompt (ROM 0x136DA, message 7) of a step off the map for a creature without the auto flag: nonzero = stay. Without it the prompt
         /// runs on the pad callback (ChoicePrompt); with neither the creature stays.
         public Func<int> RetreatPrompt;
+        /// 0xE5A8: is the acting creature inside the part of the map on screen? The host's camera answers; when it is not (the default: no camera) the view scrolls to it and the cursor [0xB3F0/2] lands on its cell.
+        public Func<bool> ActorVisible;
 
         static readonly int[] FacingByStep = { 7, 0, 1, 8, 6, 8, 2, 8, 5, 4, 3, 8 };    // 0xF97A.. indexed by 4*dy + dx + 5; 8 = no step
 
@@ -274,11 +276,12 @@ namespace BuckRogersGenesis
         }
         public int Ticks;                   // safety net for the controller loop (the ROM has none; a path is finite)
 
-        /// 0xF156: bit 7 of [0xD8FC] hands the party over to the player: every party creature with flag bit 7 loses it; true when that was the current actor.
+        /// 0xF156: bit 7 of the pad reading (cancel button, [0xD8FC]) hands the party over to the player: every party creature with flag bit 7 loses it; true when that was the current actor.
         bool TakeoverRequested()
         {
             bool mine = false;
-            if ((D8FC & 0x80) == 0) return false;
+            int pad = Pad != null ? Pad() & 0xFF : D8FC;                                      // 0xF1B66: the pad reading (the host's callback, else [0xD8FC])
+            if ((pad & 0x80) == 0) return false;
             for (int i = 0; i < 8 && i < S.SlotCount; i++)
             {
                 var sl = S.Slots[i];
@@ -303,7 +306,8 @@ namespace BuckRogersGenesis
         {
             if (turnShown) return;
             turnShown = true;
-            MoveDx = 0; MoveDy = 0;                                                       // 0xE5A8
+            MoveDx = 0; MoveDy = 0;                                                       // 0xE5A8: the view follows the creature; when it has to scroll (0xE5E6) the cursor lands on it
+            if (ActorVisible == null || !ActorVisible()) CursorOnActor();
             var me = S.Slots[Actor];
             GenesisStats.RecomputeSlot(Rom, me, S.Records[me[2]], Gb(A49A), Gb(A499), Mode97AE != 0);
             Gs(0xD508, 0xFF);

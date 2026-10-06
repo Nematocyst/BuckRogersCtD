@@ -411,6 +411,61 @@ for _ in range(N('retreat', 400)):
     sn['mv'] = list(struct.unpack('>hh', m.read_ram(0xB3F4, 4))); sn['polls'] = [0, used[0]]
     cases.append(dict(fn='retreat', pre=pr, a=a, range=0, mv=[dx, dy], pad=script, post=sn))
 
+# ---- R. 0xE3A8: the rounds of a whole fight (the setup before and the clean-up after are not part of it)
+def fight_world(rnd):
+    w = manual_world(rnd); n = w['n']; npar = w['npar']
+    for k in range(n):
+        sa = w['slots'][k]
+        sa[0] = rnd.choice([1, 1, 1, 1, 1, 1, 0x81]) if k else 1
+        sa[1] = (sa[1] | (0x80 if (k >= npar or rnd.random() < 0.7) else 0)) & ~0x04
+        sa[0x16] = rnd.randrange(0, 14); sa[0xE] = rnd.randrange(4, 40)
+        if k >= npar: w['recs'][sa[2]][0x32] = 0; w['recs'][sa[2]][0x3B] = 0
+    for k in range(npar):
+        if k != w['actor'] and rnd.random() < 0.15: w['slots'][k][0] = 0x83; w['slots'][k][0xE] = rnd.randrange(0, 14)
+    for r in range(8):
+        if rnd.random() < 0.5: w['recs'][r][0x32] = 0; w['recs'][r][0x3B] = 0
+    w['g'][0xD50E - G0] = 0xFF; w['g'][0xD50C - G0] = rnd.randrange(0, 4); w['g'][0xD50D - G0] = rnd.randrange(1, 5); w['g'][0xD505 - G0] = 0
+    w['g'][0xD51D - G0:0xD51D - G0 + 0x40] = bytes([0xFF] * 0x40); w['g'][0xD51C - G0] = 0
+    if rnd.random() < 0.3: w['d97dc'] = 0x10
+    remark(w)
+    return w
+
+
+for _fi in range(N('fight', 300)):
+    w = fight_world(rnd); n = w['n']
+    if os.environ.get('FIGHT_RANGE'):
+        lo, hi = map(int, os.environ['FIGHT_RANGE'].split(':'))
+        if not lo <= _fi < hi:
+            manual_script(rnd); rnd.choice([0, 0, 1, 2]); continue
+    m = machine(rom, unstub=(0xE5E6,), extra=(0x15FDA, 0xF81C, 0xF780, 0xF7BA, 0xF838, 0x116F8, 0x11746, 0x1172A, 0x6C54, 0xAD46, 0x96D8, 0x1344E, 0xFF7C, 0x11898, 0xFDC8))
+    m.actor_trace = True
+    from unicorn import UC_HOOK_CODE as _HC
+    from unicorn.m68k_const import UC_M68K_REG_A7 as _A7
+    def clean_frame(uc, address, size, user):                       # the manual turn's frame variables (explosive flag, target index) are uninitialised stack in the ROM: start them at 0
+        sp = uc.reg_read(_A7); uc.mem_write(sp - 0x100, bytes(0x100))
+    m.uc.hook_add(_HC, clean_frame, begin=0xF2AE, end=0xF2AE)
+    menu, pad = manual_script(rnd)
+    mq, pq, used = [x for x in menu if x != 2], list(pad), [0, 0]
+    def next_menu():
+        used[0] += 1
+        return (mq.pop(0) & 0xFFFF) if mq else 4
+    def next_pad():
+        used[1] += 1
+        return pq.pop(0) if pq else 0x80
+    m.stub_fn(0x1391A, next_menu); m.stub_fn(0xF1B66, next_pad)
+    load(m, w)
+    sur = rnd.choice([0, 0, 1, 2]); m.write_ram(0x9DC1, bytes([sur]))
+    m.write_ram(0xB400, struct.pack('>HH', 504, 504)); m.write_ram(0xEE00, bytes(0x200)); m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xD8FC, b'\x00')
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]; pr['shop'] = sur
+    sp = RAM_BASE + 0xF000 - 24
+    m.uc.mem_write(sp + 20, struct.pack('>I', 0x00FFF000)); m.set_reg('a7', sp)
+    m.set_reg('a3', RAM_BASE + SLOT)
+    try: m.uc.emu_start(0xE3A8, 0x00FFF000, count=150_000_000)
+    except Exception as e: continue
+    if m.reg('pc') != 0x00FFF000: continue
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['polls'] = used
+    cases.append(dict(fn='fight', pre=pr, a=w['actor'], range=0, menu=[x & 0xFFFF for x in menu if x != 2], pad=pad, post=sn))
+
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

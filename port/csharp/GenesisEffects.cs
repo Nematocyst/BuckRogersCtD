@@ -23,6 +23,7 @@ namespace BuckRogersGenesis
     public sealed partial class TurnContext
     {
         public bool HooksEnabled = true;
+        public bool TraceActors;                               // tests: the event log names the acting creature of every turn
         const int ATable = 0x6670;
 
         /// 0x664E: run the effect handlers of `stage` for creature `slot` (the ROM's a3).
@@ -117,7 +118,7 @@ namespace BuckRogersGenesis
         /// computer controlled creature (flag bit 7 set: every monster) takes its turn, and finally the end-of-turn item upkeep. A creature with flag bit 7 clear (a party member under the player's control) plays PlayerTurn (GenesisPlayerTurn.cs).
         public void BeginTurn()
         {
-            T("turn");
+            T("turn"); if (TraceActors) T("a" + Actor);
             var me = S.Slots[Actor];
             me[1] &= 0xEF;
             Stage(7, Actor);

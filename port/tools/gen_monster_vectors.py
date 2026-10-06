@@ -48,6 +48,29 @@ for _ in range(500):
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
     cases.append(dict(fn='attack', pre=pr, a=a, range=t, post=sn))
 
+# ---- E. 0xF898: one step of the actor by ([0xB3F4],[0xB3F6]) including the reactions of the enemies (0x11A44)
+for _ in range(900):
+    m = machine(rom); w = sane_world(rnd); a = w['actor']; n = w['n']; sa = w['slots'][a]
+    off = rnd.random() < 0.12
+    if off: sa[1] |= 0x80; sa[0x12] = rnd.choice([0, 20, rnd.randrange(21)]); sa[0x13] = rnd.choice([0, 20, rnd.randrange(21)])
+    dx, dy = rnd.choice([-1, 0, 1]), rnd.choice([-1, 0, 1])
+    if not off:
+        if not (0 <= sa[0x12] + dx < 21): dx = 0
+        if not (0 <= sa[0x13] + dy < 21): dy = 0
+    if rnd.random() < 0.6:                                  # the actor is "in motion": flag 4 set, its markers cleared (what 0xF9A6 does)
+        sa[1] |= 4
+        t = w['recs'][sa[2]][0x23]; x, y = sa[0x12], sa[0x13]
+        for (cx, cy) in [(x, y)] + ([(x + 1, y)] if t == 3 else []) + ([(x, y + 1)] if t == 2 else []):
+            if cx < 21 and cy < 21: w['tiles'][cy * 21 + cx] &= 0x7F
+    w['ca'][0] = a; w['g'][0xD496 - G0] = 1
+    load(m, w)
+    m.write_ram(0xB3F4, struct.pack('>hh', dx, dy)); m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5]))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0xF898, max_insns=6000000, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + sa[2] * 0xD6)
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['ret'] = struct.unpack('b', bytes([m.reg('d0') & 0xFF]))[0]
+    sn['mv'] = list(struct.unpack('>hh', m.read_ram(0xB3F4, 4)))
+    cases.append(dict(fn='move', pre=pr, a=a, range=0, mv=[dx, dy], post=sn))
+
 out['cases'] = cases
 json.dump(out, open(sys.argv[2], 'w'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

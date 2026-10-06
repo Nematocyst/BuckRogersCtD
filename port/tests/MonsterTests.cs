@@ -3,8 +3,8 @@ using System.IO;
 using BuckRogersGenesis;
 
 [Serializable] public class MonPre { public int n, idx, m97, d97dc, d513, mode; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
-[Serializable] public class MonPost { public string[] slots; public string tiles, g, ca; public int[] d8ca; public int ridx; public long rsum, recsum; }
-[Serializable] public class MonCase { public string fn; public int a, range; public MonPre pre; public MonPost post; }
+[Serializable] public class MonPost { public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
+[Serializable] public class MonCase { public string fn; public int a, range; public int[] mv; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
 
 static class MonsterTests
@@ -60,6 +60,13 @@ static class MonsterTests
                 case "enum": x.EnumerateTargets(c.a, c.range); break;
                 case "select": x.SelectTarget(); break;
                 case "weapon": x.ChooseWeapon(c.range); break;
+                case "move":
+                    x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1];
+                    x.MoveDx = c.mv[0]; x.MoveDy = c.mv[1];
+                    int r = x.MoveStep();
+                    Check(r == c.post.ret, $"step result {r} vs ROM {c.post.ret} ({ctx})");
+                    Check(x.MoveDx == c.post.mv[0] && x.MoveDy == c.post.mv[1], $"step after {x.MoveDx},{x.MoveDy} vs ROM {c.post.mv[0]},{c.post.mv[1]} ({ctx})");
+                    break;
                 case "attack": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ExecuteAttack(); break;
                 default: Check(false, "unknown case " + c.fn); continue;
             }

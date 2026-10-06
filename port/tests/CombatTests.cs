@@ -59,7 +59,8 @@ static class CombatTests
         int act = args.Length > 5 ? ActionTests.Run(args[5], rom) : 0;
         int mon = args.Length > 6 ? MonsterTests.Run(args[6], rom) : 0;
         int arena = args.Length > 7 ? ArenaTests.Run(args[7], rom) : 0;
-        return (fails == 0 ? 0 : 1) | dmg | prog | tally | turns | ai | act | mon | arena;
+        int comb = args.Length > 8 ? CombatantTests.Run(args[8], rom) : 0;
+        return (fails == 0 ? 0 : 1) | dmg | prog | tally | turns | ai | act | mon | arena | comb;
     }
 }
 

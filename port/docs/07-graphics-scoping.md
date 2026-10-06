@@ -6,18 +6,20 @@
 * **Icon set: table 0xF14F2, 185 entries.** 3x3-tile items, weapons, menu icons, projectile frames (no palette inside the piece: it comes from a shared palette set elsewhere). 120 are 3x3 or 6x6 and are exported in grey.
 * Other pieces are loaded from fixed addresses (title font, interface parts, terrain blobs, about 40 distinct streams in the 55 call sites).
 
-## Battlefield creature tokens: found (ROM table 0x9A14)
-* The creature drawing routine (around 0xCB00-0xCC30, size / position helper 0xCC66) looks the monster up by record byte +0x42 (which `LoadCombatant` sets from the monster id) in an 8-byte-entry table at ROM 0x9A14 (52 entries, ended by a first byte 0xFF): `[32-bit pointer to a piece][monster id][frames][animation set][extra]`.
-* Each piece is one creature's sprite sheet: 3x3-tile (24x24 px) frames, 9 tilemap words per frame, 18 frames (162 words) or 36 (324 words, `entry +5` = 18 / 36): walking, attacking, hurt and fallen poses per facing. Shared sheets exist (several ids point to the same piece, e.g. ids 0 and 43). Creatures of size class 2 / 3 (tall / wide) use bigger frames (the draw code sets 3x6 or 6x3 tiles, `0xCC66`); this is why the exporter slices them wrongly into 3x3 pieces.
-* The pieces contain no palette (palette mask 0): the fight screen supplies the colours (not yet traced; the table's last two bytes, 0 / 1 / 2 and 0 / 2 / 3 / 8 / 0x26 / 0x34 / 0x35, are the first candidates).
-* `tools/export_tokens.py` writes one grey sheet per monster id (checked by eye: warrior, ape, spider, scarab and other poses are recognisable).
+## Battlefield creature tokens: found, palette and layout traced (ROM table 0x9A14)
+* The creature drawing routine (around 0xCB00-0xCC30, size / position helper 0xCC66, tile blitter 0x961C) looks the monster up by record byte +0x42 (which `LoadCombatant` sets from the monster id) in an 8-byte-entry table at ROM 0x9A14 (52 entries, ended by a first byte 0xFF): `[32-bit pointer to a piece][monster id][tilemap bytes per frame][animation set][extra]`. The lookup is 0x99BC; the loader that cuts the frames out of the piece is 0x9BB6.
+* Each piece is one creature's sprite sheet of **18 frames** (walking, attacking, hurt and fallen poses per facing; frames 9-11 are blank filler). Several ids share a sheet (ids 0 and 43, 20-22, ...).
+* **Frame layout** (traced in 0x9BB6, 0xCC66 and 0x961C): entry byte +5 is the number of tilemap *bytes* per frame. 18 = 9 words = 3x3 tiles (24x24 px); 36 = 18 words for creatures of record size type 2 (tall: 3 wide x 6 high tiles) and type 3 (wide: 6 wide x 3 high). "36 <=> size type 2 or 3" holds for all 52 entries (checked against the monster file). The blitter reads width x height words per frame, row by row; facings 5 and up are drawn mirrored (it reads the frame backwards with the h-flip bit toggled), so the sheet holds only half of the facings.
+* **Palette**: the tilemap words carry palette line 0, and the fight screen builder 0x14D60 writes the same colour-memory contents for every area type (checked for 18 combinations of screen mode and area): line 0 is the 16-word system palette at ROM 0x9710 (line 1 follows at 0x9730; lines 2 and 3 come from piece palettes). Rendered with it the creatures have natural colours (brown apes, grey armadillos, blue-green crabs, a red-and-blue warrior).
+* `tools/export_tokens.py ROM OUT [monster_file.bytes]` writes one full-colour strip of 18 frames per monster id (checked by eye for ids 0, 4, 5, 9, 23).
+* A small VDP model (captures colour / video memory writes of the real ROM routines in the emulator) was used for the palette; it is a throw-away script, not in the repo.
 
 ## What was NOT found
-* The **palette** of the tokens, the exact frame layout for size-class 2 / 3 creatures, the party members' tokens (player characters are drawn from other sheets, probably chosen by race / career, not found) and the animation sequencing (which frame is used when).
+* The party members' tokens (player characters are drawn from other sheets, probably chosen by race / career, not found) and the animation sequencing (which frame is used when).
 * The link from a monster record to its encounter picture (probably a byte of the record or an index in the monster file; not checked).
 * The shared palettes of the icons and the interface.
 
 ## Cost estimate
 * **Extract the encounter pictures into Unity**: done as a tool (PNG per picture, frames as a strip). About a unit to wire them to the monster ids (find the record field) and show them in the viewer. Art is not committed to the repo (it is the game's copyright); run the tool on your own ROM.
-* **Battlefield tokens**: located and exportable (grey). To use them in the viewer: palette (about a unit of tracing), frame layout for big creatures, the animation order (about a unit), and the party's tokens.
+* **Battlefield tokens**: located, laid out and coloured; the exporter writes full-colour frame strips. To use them in the viewer: the animation order (which frame for which action and facing: table 0xCC36 / 0xCC60 and the draw routine 0xCAEA, about a unit) and the party's tokens (the 12-entry table at 0x998C, reached through key bit 7 in 0x99BC, is the first candidate).
 * **Palettes / interface art / animation**: further units; the game uses tile animation and palette cycling, and a faithful port needs the VDP's colour handling.

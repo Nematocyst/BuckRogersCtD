@@ -152,7 +152,7 @@ How a blast works. The item types (item byte +9) 5, 6, 8, 9, 10, 11, 12 are expl
 Damage = the weapon's dice + bonus (types 5 and 12 do none but draw an effect duration 2..5). The throw hits the aimed cell when d20 <= the to-hit value, otherwise it scatters up to four times to a
 neighbouring cell in sight; a blocked line stops at the last free cell. Types 8 and 9 leave a 3x3 patch (tile 0 / 1: smoke / gas) that replaces the terrain for 5 rounds (2 with the option bit) and blocks lines of fire. Types 6, 10, 11
 transform terrain around the blast along the [0xD814] chain and move a party creature that has effect 3 (a force field?) out of the blast to the nearest free cell it can see. Everybody in the
-blast radius with a line of fire gets a saving throw, takes the damage and the type's effect; the thrower's action time is spent and the item loses a charge (a monster keeps it unless a random number below its record byte +0x3F is zero, i.e. it saves ammunition.
+blast radius with a line of fire gets a saving throw, takes the damage and the type's effect; the thrower's action time is spent and the item loses a charge (a monster keeps it unless a random number below its record byte +0x3F is zero, i.e. it saves ammunition).
 
 Quirks reproduced: the blast-shape loop is a do-while, so a creature at the edge of the scoring area still gives its weight to one cell when clipping leaves nothing; `SetTile` indexes a patch's saved tiles in the opposite order from `OriginalTile`;
 the follow-up in the terrain search tests a byte as a word and is dead code; the throw does not run the to-hit preparation first, so [0xD511] is whatever the last attack left there (usually a lot of scatter).

@@ -3,7 +3,7 @@ using System.IO;
 using BuckRogersGenesis;
 
 [Serializable] public class MonPre { public string haz, script, nav; public int n, idx, m97, d97dc, d513, mode, shop; public long money; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
-[Serializable] public class MonPost { public int[] polls, cur, mvo; public long money; public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
+[Serializable] public class MonPost { public int[] polls, cur, mvo; public long[] misc; public long money; public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
 [Serializable] public class MonCase { public string fn; public int a, range; public int[] mv, menu, pad, qmax; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
 
@@ -42,12 +42,12 @@ static class MonsterTests
     {
         var q = c.post;
         for (int i = 0; i < c.pre.n; i++) Check(Same(x.S.Slots[i], Hex(q.slots[i])), $"slot {i} differs [offset: port/ROM]: {Diff(x.S.Slots[i], Hex(q.slots[i]), 0)} ({ctx})");
-        Check(Same(x.S.Tiles, Hex(q.tiles)), $"tile map ({ctx})");
+        Check(Same(x.S.Tiles, Hex(q.tiles)), $"tile map [index (x,y): port/ROM]{Diff(x.S.Tiles, Hex(q.tiles), 0)} ({ctx})");
         {   // [0xD51A..B] is the projectile animation's sprite scratch (written when a creature is moved by a blast): not game state
             var mine = (byte[])x.G.Clone(); var theirs = Hex(q.g);
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
             mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
-            if (ctx.StartsWith("retreat") || ctx.StartsWith("fight")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
+            if (ctx.StartsWith("retreat") || ctx.StartsWith("fight") || ctx.StartsWith("combat") || ctx.StartsWith("setup")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
             foreach (int a in new[] { 0xD594, 0xD59C, 0xD59D, 0xD59E, 0xD59F, 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
                 mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             Check(Same(mine, theirs), $"globals differ [address: port/ROM]: {Diff(mine, theirs, TurnContext.GBase)} ({ctx})");
@@ -125,6 +125,39 @@ static class MonsterTests
                         x.Pad = () => { padCalls++; return pi < c.pad.Length ? c.pad[pi++] : 0x80; };
                         x.MapPixelsX = 504; x.MapPixelsY = 504; x.RetreatPrompt = () => 1;
                         x.CombatRounds();
+                        Check(menuCalls == c.post.polls[0] && padCalls == c.post.polls[1], $"input readings: menu {menuCalls} pad {padCalls} vs ROM {c.post.polls[0]} {c.post.polls[1]} ({ctx})");
+                        var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace));
+                        Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})");
+                        if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace_" + ordinal + ".txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0));
+                    }
+                    break;
+                case "terrain": x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.GenerateBattlefield(c.range); Check(x.ForcedSpread == (short)c.post.misc[0], $"forced spread {x.ForcedSpread} vs ROM {(short)c.post.misc[0]} ({ctx})"); break;
+                case "deploy": x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.Facing = (byte)(c.pre.shop & 3); x.WideFormation = (byte)((c.pre.shop >> 4) & 1); x.GroupMask = (byte)(c.pre.shop >> 8);
+                    x.OriginX = (int)(c.pre.money & 0xFF); x.OriginY = (int)((c.pre.money >> 8) & 0xFF); x.DeployAll(); break;
+                case "setup":
+                    {
+                        x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; StartTrace(x);
+                        x.Facing = (byte)(c.pre.shop & 3); x.WideFormation = (byte)((c.pre.shop >> 4) & 1); x.SoloFlag = (byte)((c.pre.shop >> 5) & 1); x.Ambush = (byte)((c.pre.shop >> 6) & 1);
+                        x.GroupMask = (byte)(c.pre.money & 0xFF); x.AreaType = (byte)((c.pre.money >> 8) & 0xFF); x.SoloMember = (byte)((c.pre.money >> 16) & 0xFF);
+                        x.ContinuePrompt = () => 0;
+                        bool on = x.CombatSetup();
+                        Check(on == (c.post.ret != 0), $"fight on {on} vs ROM {c.post.ret} ({ctx})");
+                        Check(x.ForcedSpread == (short)c.post.misc[0] && x.OriginX == c.post.misc[1] && x.OriginY == c.post.misc[2], $"origin {x.OriginX},{x.OriginY} forced {x.ForcedSpread} vs ROM {c.post.misc[1]},{c.post.misc[2]} {(short)c.post.misc[0]} ({ctx})");
+                        Check(x.TerrainTable == c.post.misc[3] && x.ScriptTable == c.post.misc[4], $"area tables {x.TerrainTable:X} {x.ScriptTable:X} vs ROM {c.post.misc[3]:X} {c.post.misc[4]:X} ({ctx})");
+                        Check(x.S.CombatMode == c.post.misc[6] && x.PrevMode == c.post.misc[7] && (!on || x.ScreenMode == c.post.misc[8]), $"modes {x.S.CombatMode} {x.PrevMode} {x.ScreenMode} vs ROM {c.post.misc[6]} {c.post.misc[7]} {c.post.misc[8]} ({ctx})");
+                        if (on) Check(x.CursorX == c.post.cur[0] && x.CursorY == c.post.cur[1], $"cursor ({ctx})");
+                    }
+                    break;
+                case "combat":
+                    {
+                        x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; StartTrace(x); x.TraceActors = true; x.ActorVisible = () => false;
+                        x.Facing = (byte)(c.pre.shop & 3); x.WideFormation = (byte)((c.pre.shop >> 4) & 1); x.Ambush = (byte)((c.pre.shop >> 6) & 1); x.Surprise = (byte)(c.pre.shop >> 8);
+                        x.GroupMask = (byte)(c.pre.money & 0xFF); x.AreaType = (byte)((c.pre.money >> 8) & 0xFF); x.ContinuePrompt = () => 0;
+                        int mi = 0, pi = 0, menuCalls = 0, padCalls = 0;
+                        x.MenuChoice = () => { menuCalls++; return mi < c.menu.Length ? (short)c.menu[mi++] : 4; };
+                        x.Pad = () => { padCalls++; return pi < c.pad.Length ? c.pad[pi++] : 0x80; };
+                        x.MapPixelsX = 504; x.MapPixelsY = 504; x.RetreatPrompt = () => 1;
+                        x.RunCombat();
                         Check(menuCalls == c.post.polls[0] && padCalls == c.post.polls[1], $"input readings: menu {menuCalls} pad {padCalls} vs ROM {c.post.polls[0]} {c.post.polls[1]} ({ctx})");
                         var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace));
                         Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})");

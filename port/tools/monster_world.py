@@ -80,7 +80,7 @@ def load(m, w):
 def snap(m, w):
     return dict(slots=[m.read_ram(SLOT + k * 26, 26).hex() for k in range(w['n'])], recsum=sum((i + 1) * b for i, b in enumerate(m.read_ram(REC, 11 * 0xD6))) & 0xFFFFFFFF, m97=m.ram_byte(0x97AE),
                 tiles=m.read_ram(0xCACA, 441).hex(), nav=m.read_ram(0x6CAE, 0x100).hex(), waves=getattr(m, 'waves', []), d2s=getattr(m, 'd2s', []), trace=getattr(m, 'trace', []), g=m.read_ram(G0, GN).hex(), ca=m.read_ram(CA0, CAN).hex(),
-                haz=m.read_ram(0x78CE, 256).hex(), cur=list(struct.unpack('>hh', m.read_ram(0xB3F0, 4))), mvo=list(struct.unpack('>hh', m.read_ram(0xB3F4, 4))), ridx=m.ram_byte(0xD804), rsum=sum(struct.unpack('>256H', m.read_ram(0xD604, 512))) & 0xFFFFFFFF)
+                haz=m.read_ram(0x78CE, 256).hex(), misc=[m.ram_word(0xD8CE), m.ram_byte(0xD8D0), m.ram_byte(0xD8D1), struct.unpack('>I', m.read_ram(0xD810, 4))[0], struct.unpack('>I', m.read_ram(0xD814, 4))[0], m.ram_byte(0xB4CA), m.ram_byte(0x9BBC), m.ram_byte(0x9BBD), m.ram_word(0xB52A)], cur=list(struct.unpack('>hh', m.read_ram(0xB3F0, 4))), mvo=list(struct.unpack('>hh', m.read_ram(0xB3F4, 4))), ridx=m.ram_byte(0xD804), rsum=sum(struct.unpack('>256H', m.read_ram(0xD604, 512))) & 0xFFFFFFFF)
 
 
 def pre(w):
@@ -112,7 +112,7 @@ def machine(rom, unstub=(), extra=(), retreat=1):
     def d2hook(uc, address, size, user): m.d2s.append((uc.reg_read(UC_M68K_REG_D2) >> 8) & 0xFF)
     m.uc.hook_add(UC_HOOK_CODE, d2hook, begin=0x11630, end=0x11630)
     m.uc.hook_add(UC_HOOK_CODE, d2hook, begin=0x11638, end=0x11638)
-    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround', 0xE4F0: 'turn', 0x1021E: 'rescue', 0xF2AE: 'manual', 0x158F2: 'aura', 0xE434: 'roundend', 0x100D6: 'begin'}
+    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround', 0xE4F0: 'turn', 0x1021E: 'rescue', 0xF2AE: 'manual', 0x158F2: 'aura', 0xE434: 'roundend', 0x100D6: 'begin', 0x1503C: 'setup', 0x149BA: 'terrain', 0x14738: 'deploy', 0x14DF6: 'assign', 0xE394: 'combat'}
     from unicorn.m68k_const import UC_M68K_REG_D0, UC_M68K_REG_D1, UC_M68K_REG_D2, UC_M68K_REG_D3, UC_M68K_REG_D4, UC_M68K_REG_A7
     trace_lof = bool(os.environ.get('TRACE_LOF'))
     def thook(uc, address, size, user):

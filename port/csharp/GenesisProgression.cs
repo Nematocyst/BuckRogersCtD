@@ -28,6 +28,8 @@ namespace BuckRogersGenesis
             new[] { 0xF17CC, 0xF17CC + 10 * 128 },   // base item records
             new[] { 0x6670, 0x66D2 },                // effect lists of the hook stages
             new[] { 0xEF4E, 0xEF64 },                // blast shape table of the area weapons (circle extents by reach)
+            new[] { 0x2FF6, 0x3340 },                // battlefield generator: feature lists (0x2FF6, 0x300E), feature rows (0x30D8) - and the terrain / tile script tables of the two area kinds (0x31CB, 0x31F5, 0x3231, 0x325A)
+            new[] { 0x146E0, 0x14738 },              // deployment: neighbour offsets, start positions, formations
             new[] { 0x0000, 0x0010 },                // the vector table: the inventory's weapon-readying test reads ROM[6] when the picked item is not there
             new[] { 0x7D78, 0x7D7C },                // item class each equipment slot of the inventory accepts (hand, armour, shield, ammunition)
             new[] { 0x10F69, 0x10F69 + 13 * 5 },     // explosive item types 0..12: effect, radius, hazard tile?, damage mode, animation

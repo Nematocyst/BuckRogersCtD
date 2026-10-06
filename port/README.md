@@ -142,6 +142,23 @@ A party creature that is not on auto and steps off the map is asked first (text 
 and the 8-choice debug picker (message 9); the box clears [0xD592], [0xD593], [0xD595] when it closes, and the help button leaves [0xD596] set.
 Verified with 400 off-map steps of player-controlled creatures answered by random pad readings (7,190 checks: choice, step result, pad readings consumed, globals; the text box's cursor bytes [0xD5D6..0xD5E1] are ignored).
 
+### The start of a fight - `GenesisCombatSetup.cs` (ROM 0xE394, 0x1503C, 0x149BA, 0x14738, 0x147EE, 0x14DF6)
+
+`RunCombat()` is the whole of ROM 0xE394: `CombatSetup()` (0x1503C), the per-creature memory of the last victim [0xD51D..] forgotten, then `CombatRounds()`. The caller (the script engine) has filled the combat slots with the party and the monsters; what
+the original does after the fight (0x15FDA: experience, treasure, leftover statuses, the victory screens) is the host's.
+* **Mode and flags**: [0x9BBC] becomes 2 (the old value goes to [0x9BBD], `PrevMode`), [0xD509], [0xD50E], [0xD50A] are cleared, [0xD4FE] (`Ambush`, [0x9DB6]; forced to 1 when `GroupMask` [0xD8CC] is set) makes the monsters start one step further out.
+  The party's start cell [0xD8D0/1] comes from a table by `Facing` [0x9AFA] (when [0xD4FE] is set and no groups) or is fixed. The screen mode [0xB52A] is worked out from [0x97DC] (0xA2 → 4, 0xA8 → 5, else 6).
+* **Battlefield** (`GenerateBattlefield`, 0x149BA): outdoor types 0..10 start as a field of tiles 8 / 9 (a coin per cell), indoor types (screen mode 5: [0x97AD] + 11) of 0x16 / 0x17; then the feature list of the type (tables 0x2FF6 / 0x300E, rows of 11 bytes at 0x30D8) is stamped: each (kind, repeats) pair rolls
+  its chance, then how many stamps (dice), then for each stamp a random point within the row's spread of a random spot (a quarter-circle by a Newton square root, `ISqrt`, reproduced including its 16-bit overflow behaviour) - a stamp goes only on cells that are still plain ground.
+  Screen mode 4 / 5 select the terrain flag table and tile script of the area ([0xD810] / [0xD814] = ROM 0x31F5 / 0x325A or 0x31CB / 0x3231 - the port switches `TerrainFlags` and `TileScript` to them). **Screen mode 6** (fixed dungeon maps, 0xB100: the map around the party becomes the arena) is *not ported*:
+  `BuildDungeonArena` is the host's hook, the terrain table is 0x3297.
+* **Deployment** (`DeployAll`, 0x14738): every creature loses its place, then the party is placed from the start cell in the facing direction and the monsters from the opposite side (one group) or from each direction of the group mask (the monsters are shared out round-robin); `DeploySide`
+  starts at the start cell (shifted back by the spread) and does a breadth-first search over the neighbour pattern of the direction (a wider one in wide formation) for free cells: unoccupied, passable, terrain cost < 4, and for large creatures (record type 2 tall / 3 wide) the second cell too. After the first six cells have been looked at, occupied cells no longer
+  open up their neighbours. Creatures that find no room (and those not taking part in a solo fight, [0xBA5B]) get status bit 6.
+* **Control** (`AssignControl`, 0x14DF6): living party members that are not allies (flag bit 6) are player controlled (flag 7 clear), everybody else computer controlled; then every player-controlled party member in turn may recruit each ally (computer-controlled, not large, no effect 3) with a skill-2 check; "press C" waits if anyone did.
+* If either side has nobody left after the deployment the fight is not on ([0xD50E] stays 0). Otherwise the map markers are built, round counter 0, peace counter [0xD50D] = 3, the timed effects [0xD49C..] and lingering patches are cleared and the cursor is at 0,0.
+Verified against the ROM: 300 battlefields (every area type), 400 deployments, 400 whole starts; 37 whole fights from the first call (`RunCombat`: setup + rounds) matched in trial runs, but their vectors are not in the repo yet (`N_combat` in the generator).
+
 ### The round loop of a fight - `GenesisCombatLoop.cs` (ROM 0xE3A8..0xE42C, 0x158F2, 0x754C, 0xE434, 0x6AA4)
 
 `CombatRounds()` runs a fight from the state the setup leaves ([0xD50E] set) until one side has nobody standing:

@@ -466,6 +466,105 @@ for _fi in range(N('fight', 300)):
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['polls'] = used
     cases.append(dict(fn='fight', pre=pr, a=w['actor'], range=0, menu=[x & 0xFFFF for x in menu if x != 2], pad=pad, post=sn))
 
+# ---- S. 0x149BA: the battlefield generator
+for _ in range(N('terrain', 300)):
+    m = machine(rom); w = sane_world(rnd); typ = rnd.randrange(0, 24)
+    load(m, w); m.write_ram(0xD8CE, b'\x00\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5]))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0x149BA, max_insns=20_000_000, d2=typ)
+    sn = snap(m, w); sn['d8ca'] = [5, 5]
+    cases.append(dict(fn='terrain', pre=pr, a=0, range=typ, post=sn))
+
+# ---- T. 0x14738: placing both sides on the battlefield
+for _ in range(N('deploy', 400)):
+    m = machine(rom); w = sane_world(rnd, nmin=3, nmax=14); n = w['n']
+    for i in range(441): w['tiles'][i] = rnd.choice([2, 2, 2, 3, 4, 5, 6, 7]) if rnd.random() < 0.9 else rnd.randrange(128)
+    for sb in w['slots']:
+        if rnd.random() < 0.1: sb[0] = rnd.choice([0, 0x41, 0x81, 0x82])
+        if rnd.random() < 0.3: sb[0x12] = rnd.randrange(256)
+    for r in w['recs']: r[0x23] = rnd.choice([0, 0, 0, 1, 2, 3])
+    w['g'][0xD4FE - G0] = rnd.choice([0, 0, 1]); w['ca'][0] = 0
+    load(m, w)
+    face = rnd.randrange(4); mask = rnd.choice([0, 0, 0, 1, 2, 3, 4, 5, 8, 15, 6, 9, 0x13]); wide = rnd.choice([0, 0, 1])
+    m.write_ram(0x9AFA, bytes([face])); m.write_ram(0xD8CC, bytes([mask])); m.write_ram(0xBA5D, bytes([wide])); m.write_ram(0xD8D0, bytes([rnd.randrange(3, 18), rnd.randrange(3, 18)]))
+    m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5]))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]; pr['shop'] = face | (wide << 4) | (mask << 8)
+    pr['money'] = m.ram_byte(0xD8D0) | (m.ram_byte(0xD8D1) << 8)
+    m.call(0x14738, max_insns=20_000_000)
+    sn = snap(m, w); sn['d8ca'] = [5, 5]
+    cases.append(dict(fn='deploy', pre=pr, a=0, range=0, post=sn))
+
+# ---- U. 0x1503C: the whole start of a fight (battlefield, deployment, control of the allies)
+for _ in range(N('setup', 300)):
+    m = machine(rom, extra=(0xB100, 0x132A6, 0x14D60, 0x85D6, 0x8360, 0x982A, 0xA768, 0xFF7C, 0x860E, 0x14FEA, 0xB834, 0x14F12, 0x14F60, 0x14FBC, 0xA71E, 0x8A76, 0x8A90, 0xB0DA, 0x862A, 0xAB00, 0xA85A, 0x8A44, 0xC8FC), retreat=0)
+    w = sane_world(rnd, nmin=3, nmax=14, effects=rnd.random() < 0.3); n = w['n']; npar = w['npar']
+    for i in range(441): w['tiles'][i] = rnd.randrange(128)
+    for k, sb in enumerate(w['slots']):
+        if rnd.random() < 0.1: sb[0] = rnd.choice([0, 0x41, 0x81, 0x82])
+        sb[0x12] = rnd.randrange(256)
+        if (k < npar and rnd.random() < 0.4) or rnd.random() < 0.1: sb[1] |= 0x40
+        if rnd.random() < 0.4: sb[1] |= 0x80
+        else: sb[1] &= 0x7F
+    for r in w['recs']:
+        r[0x23] = rnd.choice([0, 0, 0, 1, 2, 3])
+        for i in range(5): r[0x31 + i] = rnd.choice([0, 3, 8, 15, 30])
+        r[0x19] = rnd.randrange(1, 12)
+    w['g'][0xD50E - G0] = rnd.choice([0, 0xFF]); w['g'][0xD50C - G0] = rnd.randrange(256); w['g'][0xD50D - G0] = rnd.randrange(256); w['ca'][0] = 0
+    for i in range(0x60): w['g'][0xD49C - G0 + i] = rnd.randrange(256) if rnd.random() < 0.2 else 0
+    if rnd.random() < 0.3: w['haz'] = bytearray(rnd.randrange(256) for _ in range(256))
+    w['d97dc'] = rnd.choice([0xA2, 0xA8])
+    load(m, w)
+    face = rnd.randrange(4); mask = rnd.choice([0, 0, 0, 1, 2, 3, 4, 5, 8, 15, 6, 9]); wide = rnd.choice([0, 0, 1]); amb = rnd.choice([0, 0, 1]); area = rnd.randrange(0, 13)
+    solo = rnd.choice([0, 0, 0, 1]); solom = rnd.randrange(8); mode0 = rnd.choice([1, 3, 2, 9])
+    m.write_ram(0x9AFA, bytes([face])); m.write_ram(0xD8CC, bytes([mask])); m.write_ram(0xBA5D, bytes([wide])); m.write_ram(0x9DB6, bytes([amb])); m.write_ram(0x97AD, bytes([area]))
+    m.write_ram(0xBA5B, bytes([solo])); m.write_ram(0x9DA7, bytes([solom])); m.write_ram(0x9BBC, bytes([mode0])); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xD57E, bytes(4)); m.write_ram(0x97DC, bytes([w['d97dc']]))
+    m.write_ram(0xEE00, bytes(0x200))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = mode0; pr['d8ca'] = [5, 5]; pr['shop'] = face | (wide << 4) | (solo << 5) | (amb << 6); pr['money'] = mask | (area << 8) | (solom << 16)
+    m.call(0x1503C, max_insns=40_000_000)
+    if m.reg('pc') != 0x00FFF000: continue
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['ret'] = m.ram_byte(0xD50E)
+    cases.append(dict(fn='setup', pre=pr, a=0, range=0, post=sn))
+
+# ---- V. 0xE394: a whole fight from its start (setup, rounds; the clean-up 0x15FDA is replaced by an empty routine)
+for _fi in range(N('combat', 150)):
+    w = fight_world(rnd); n = w['n']; npar = w['npar']
+    _skip = bool(os.environ.get('COMBAT_RANGE')) and not (lambda lo, hi: lo <= _fi < hi)(*map(int, os.environ['COMBAT_RANGE'].split(':')))
+    for i in range(441): w['tiles'][i] = rnd.randrange(128)
+    for k, sb in enumerate(w['slots']):
+        sb[0x12] = rnd.randrange(256); sb[0x17] = rnd.choice([0xFF, 0xFF, rnd.randrange(n)])
+        if rnd.random() < 0.1: sb[1] |= 0x40
+    w['g'][0xD50E - G0] = 0; w['d97dc'] = rnd.choice([0xA2, 0xA8])
+    m = machine(rom, unstub=(0xE5E6,), extra=(0x15FDA, 0xF81C, 0xF780, 0xF7BA, 0xF838, 0x116F8, 0x11746, 0x1172A, 0x6C54, 0xAD46, 0x96D8, 0x1344E, 0xFF7C, 0x11898, 0xFDC8,
+                                                0xB100, 0x132A6, 0x14D60, 0x85D6, 0x8360, 0x982A, 0xA768, 0x860E, 0x14FEA, 0xB834, 0x14F12, 0x14F60, 0x14FBC, 0xA71E, 0x8A76, 0x8A90, 0xB0DA, 0x862A, 0xAB00, 0xA85A, 0x8A44, 0xC8FC), retreat=1)
+    m.actor_trace = True
+    from unicorn import UC_HOOK_CODE as _HC
+    from unicorn.m68k_const import UC_M68K_REG_A7 as _A7
+    def clean_frame2(uc, address, size, user):
+        sp = uc.reg_read(_A7); uc.mem_write(sp - 0x100, bytes(0x100))
+    m.uc.hook_add(_HC, clean_frame2, begin=0xF2AE, end=0xF2AE)
+    menu, pad = manual_script(rnd)
+    mq, pq, used = [x for x in menu if x != 2], list(pad), [0, 0]
+    def next_menu():
+        used[0] += 1
+        return (mq.pop(0) & 0xFFFF) if mq else 4
+    def next_pad():
+        used[1] += 1
+        return pq.pop(0) if pq else 0x80
+    m.stub_fn(0x1391A, next_menu); m.stub_fn(0xF1B66, next_pad)
+    load(m, w)
+    face = rnd.randrange(4); mask = rnd.choice([0, 0, 0, 1, 2, 3, 4, 5, 8, 15]); wide = rnd.choice([0, 0, 1]); amb = rnd.choice([0, 0, 1]); area = rnd.randrange(0, 13)
+    sur = rnd.choice([0, 0, 1, 2])
+    if _skip: continue
+    m.write_ram(0x9AFA, bytes([face])); m.write_ram(0xD8CC, bytes([mask])); m.write_ram(0xBA5D, bytes([wide])); m.write_ram(0x9DB6, bytes([amb])); m.write_ram(0x97AD, bytes([area]))
+    m.write_ram(0xBA5B, b'\x00'); m.write_ram(0x9BBC, bytes([rnd.choice([1, 3])])); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xD57E, bytes(4)); m.write_ram(0x97DC, bytes([w['d97dc']]))
+    m.write_ram(0x9DC1, bytes([sur])); m.write_ram(0xB400, struct.pack('>HH', 504, 504)); m.write_ram(0xEE00, bytes(0x200)); m.write_ram(0x97AE, b'\x00'); m.write_ram(0xD8FC, b'\x00')
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = m.ram_byte(0x9BBC); pr['d8ca'] = [5, 5]; pr['shop'] = face | (wide << 4) | (amb << 6) | (sur << 8); pr['money'] = mask | (area << 8)
+    try: m.call(0xE394, max_insns=250_000_000)
+    except Exception as e: continue
+    if m.reg('pc') != 0x00FFF000: continue
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['polls'] = used
+    cases.append(dict(fn='combat', pre=pr, a=0, range=0, menu=[x & 0xFFFF for x in menu if x != 2], pad=pad, post=sn))
+
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

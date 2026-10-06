@@ -171,7 +171,7 @@ namespace BuckRogersGenesis
                 Tally();
                 Victory();
                 if ((sbyte)Scripted9930 < 0 || Gb(0xD50E) != 0) { MedicalAftermath(); Aftermath?.Invoke(); }
-                if (PoolCount != 0) LootScreen?.Invoke();
+                if (PoolCount != 0) { if (InventoryMenu != null && AskQuantity != null) ShareLoot(); LootScreen?.Invoke(); }
                 for (int i = 0xD57E; i < 0xD582; i++) Gs(i, 0);                                      // 0x16190
             }
             if ((sbyte)Scripted9930 < 0) { ScriptedFightEnd?.Invoke(); Scripted9930 = 0; }

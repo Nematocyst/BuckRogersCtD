@@ -611,6 +611,63 @@ for _ in range(N('cleanup', 300)):
     sn['pool'] = m.read_ram(0x6AF6, 140).hex()
     cases.append(dict(fn='cleanup', pre=pr, a=0, range=0, post=sn))
 
+# ---- X. 0x165A0: the loot sharing screen (menu 0x1391A, quantity box 0x16834 and the "leave items behind?" box 0x136DA scripted)
+for _ in range(N('loot', 400)):
+    w = inv_world(rnd); a = w['actor']; n = w['n']
+    shop = rnd.choice([0, 0, 1]); money = rnd.choice([0, 100, 5000, 65000, rnd.randrange(1 << 20)]); m97 = 0; fac = rnd.randrange(16, 64)
+    cnt = rnd.randrange(1, 15); pool = bytearray(140)
+    for k in range(14):
+        if k < cnt or rnd.random() < 0.2:
+            pool[10 * k:10 * k + 10] = bytes([rnd.randrange(1, 40), 0, 0, 0, rnd.choice([0, 0, 1]), rnd.choice([0, 0, 0x10]), 0, 0, 0, rnd.choice([0, 1, 2, 3])]) if rnd.random() < 0.9 else bytes(10)
+            pr_ = rnd.randrange(16, 3000); pool[10 * k + 6] = pr_ >> 8; pool[10 * k + 7] = pr_ & 255
+            pool[10 * k + 8] = rnd.choice([0, 0, 1, 5, 30, 200, 0x81, 0x81, 0x82, 0x85, 250])
+    m = machine(rom, extra=(0xC940, 0x16954, 0x1692A, 0x16B28, 0x169A4, 0x85D6, 0x6C54), retreat=None)
+    stay = rnd.choice([0, 0, 1, 2]); prompts = []
+    def prompt_fn():
+        a_ = 0 if len(prompts) < stay else 1
+        prompts.append(a_); return a_
+    m.stub_fn(0x136DA, prompt_fn)
+    from unicorn import UC_HOOK_CODE
+    from unicorn.m68k_const import UC_M68K_REG_A7, UC_M68K_REG_PC, UC_M68K_REG_D2, UC_M68K_REG_SR
+    menus, qtys, qmaxs = [], [], []
+    limit = rnd.randrange(3, 22)
+    def menu_fn():
+        lst = []; ad = 0xD564
+        while m.ram_byte(ad) < 0x80: lst.append(m.ram_byte(ad)); ad += 1
+        cands = [c for c in range(23) if c not in lst and c != 8]
+        if len(menus) >= limit or not cands or rnd.random() < 0.08: ans = 8
+        elif rnd.random() < 0.03: ans = 0xFFFF
+        else: ans = rnd.choice(cands)
+        menus.append(ans)
+        for ad in (0xD593, 0xD595, 0xD592, 0xD597, 0xD596): m.write_ram(ad, b'\x00')
+        return ans
+    m.stub_fn(0x1391A, menu_fn)
+    m.stub_fn(0x13DA2, lambda: (m.write_ram(0xD564, b'\xFF'), 0)[1])
+    def add_fn():
+        c = m.reg('d0') & 0xFF; ad = 0xD564
+        while m.ram_byte(ad) < 0x80: ad += 1
+        m.write_ram(ad, bytes([c, 0xFF])); return c
+    m.stub_fn(0x13E56, add_fn)
+    def qty_hook(uc, address, size, user):
+        if address != 0x16834: return
+        mx = uc.reg_read(UC_M68K_REG_D2) & 0xFF
+        q = rnd.choice([0, 1, mx, rnd.randrange(0, mx + 1)]) if rnd.random() > 0.1 else 0
+        qtys.append(q); qmaxs.append(mx)
+        sp = uc.reg_read(UC_M68K_REG_A7); ret = struct.unpack('>I', bytes(uc.mem_read(sp, 4)))[0]
+        uc.reg_write(UC_M68K_REG_A7, sp + 4); uc.reg_write(UC_M68K_REG_D2, q)
+        uc.reg_write(UC_M68K_REG_SR, (uc.reg_read(UC_M68K_REG_SR) & ~0xF) | (0x4 if q == 0 else 0)); uc.reg_write(UC_M68K_REG_PC, ret)
+    m.uc.hook_add(UC_HOOK_CODE, qty_hook, begin=0x16834, end=0x16834)
+    load(m, w)
+    m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xBA60, bytes([shop])); m.write_ram(0x9BD0, struct.pack('>I', money)); m.write_ram(0x9E63, bytes([fac]))
+    m.write_ram(0xB9F3, bytes([cnt])); m.write_ram(0x6AF6, bytes(pool)); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xEE00, bytes(0x200))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]; pr['shop'] = shop | (fac << 8); pr['money'] = money
+    pr['pool'] = bytes(pool).hex() + '%02x' % cnt
+    try: m.call(0x165A0, max_insns=20_000_000)
+    except Exception as e: print('loot error', e, hex(m.reg('pc'))); continue
+    if m.reg('pc') != 0x00FFF000: continue
+    sn = snap(m, w); sn['d8ca'] = [5, 5]; sn['money'] = struct.unpack('>I', m.read_ram(0x9BD0, 4))[0]; sn['polls'] = [len(menus), len(qtys)]; sn['pool'] = m.read_ram(0x6AF6, 140).hex()
+    cases.append(dict(fn='loot', pre=pr, a=a, range=0, mv=prompts, menu=menus, pad=qtys, qmax=qmaxs, post=sn))
+
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

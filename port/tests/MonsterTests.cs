@@ -47,7 +47,7 @@ static class MonsterTests
             var mine = (byte[])x.G.Clone(); var theirs = Hex(q.g);
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
             mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
-            if (ctx.StartsWith("retreat") || ctx.StartsWith("fight") || ctx.StartsWith("combat") || ctx.StartsWith("setup") || ctx.StartsWith("cleanup")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
+            if (ctx.StartsWith("retreat") || ctx.StartsWith("fight") || ctx.StartsWith("combat") || ctx.StartsWith("setup") || ctx.StartsWith("cleanup") || ctx.StartsWith("loot")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
             if (ctx.StartsWith("cleanup")) foreach (int a in new[] { 0xD5AB, 0xD5E2 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             foreach (int a in new[] { 0xD594, 0xD59C, 0xD59D, 0xD59E, 0xD59F, 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
                 mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
@@ -177,6 +177,20 @@ static class MonsterTests
                         var m = c.post.misc;
                         Check(x.PoolCount == m[0] && x.Credits == (uint)m[1] && x.Money == (uint)m[2] && x.FledMask == m[3] && x.GroupMask == m[4] && x.Flag9DBD == m[5] && x.S.CombatMode == m[6] && x.SavedMode == m[7] && x.Scripted9858 == m[8] && x.Scripted9930 == m[9] && x.Scripted9927 == m[10],
                               $"end-of-fight variables port [{x.PoolCount} {x.Credits} {x.Money} {x.FledMask} {x.GroupMask} {x.Flag9DBD} {x.S.CombatMode} {x.SavedMode} {x.Scripted9858} {x.Scripted9930} {x.Scripted9927}] vs ROM [{string.Join(" ", m)}] ({ctx})");
+                        Check(Same(x.Pool, Hex(c.post.pool)), $"loot pool differs [offset: port/ROM]: {Diff(x.Pool, Hex(c.post.pool), 0)} ({ctx})");
+                    }
+                    break;
+                case "loot":
+                    {
+                        x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ShopFlag = (byte)(c.pre.shop & 1); x.PriceFactor = (byte)((c.pre.shop >> 8) & 255); x.Money = (uint)c.pre.money;
+                        var pb = Hex(c.pre.pool); Array.Copy(pb, 0, x.Pool, 0, 140); x.PoolCount = pb[140];
+                        int mi = 0, qi = 0;
+                        x.InventoryMenu = () => { if (mi < c.menu.Length) return (short)c.menu[mi++]; mi++; return 8; };
+                        x.AskQuantity = mx => { if (qi < c.pad.Length) { Check(mx == c.qmax[qi], $"quantity prompt maximum {mx} vs ROM {c.qmax[qi]} ({ctx})"); return c.pad[qi++]; } qi++; return 0; };
+                        int pi = 0; x.PromptHook = msg => pi < c.mv.Length ? c.mv[pi++] : 1;
+                        x.ShareLoot();
+                        Check(mi == c.post.polls[0] && qi == c.post.polls[1], $"menu / quantity prompts: {mi} {qi} vs ROM {c.post.polls[0]} {c.post.polls[1]} ({ctx})");
+                        Check(x.Money == (uint)c.post.money, $"money {x.Money} vs ROM {c.post.money} ({ctx})");
                         Check(Same(x.Pool, Hex(c.post.pool)), $"loot pool differs [offset: port/ROM]: {Diff(x.Pool, Hex(c.post.pool), 0)} ({ctx})");
                     }
                     break;

@@ -25,6 +25,11 @@ class Machine:
         self.uc.mem_map(0x00FF0000, 0x10000)                  # RAM as seen with 24-bit addresses
         self.uc.mem_map(RAM_BASE, 0x10000)                    # RAM as seen through sign-extended abs.w addresses
 
+    def map_io(self):
+        """map the VDP / Z80 / IO register ranges as plain RAM so UI code that pokes them runs (writes are simply kept)"""
+        for base, size in ((0xA00000, 0x20000), (0xC00000, 0x10000)):
+            self.uc.mem_map(base, size)
+
     # --- memory (work RAM is mirrored: 0xFFFFxxxx and 0x00FFxxxx are the same bytes) -------------------------------
     def _w(self, a, data):
         self.uc.mem_write(RAM_BASE + (a & 0xFFFF), data); self.uc.mem_write(0x00FF0000 + (a & 0xFFFF), data)

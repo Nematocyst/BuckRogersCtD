@@ -38,6 +38,16 @@ namespace BuckRogersGenesis
             else if (t == 2) Mark((y + 1) * MapSize + x, false);
         }
 
+        /// 0x14298: sets the occupied bit of the cells a creature covers.
+        public void SetMarkers(int slot)
+        {
+            int x = Slots[slot][0x12], y = Slots[slot][0x13];
+            Mark(y * MapSize + x, true);
+            int t = SizeOf(slot);
+            if (t == 3) Mark(y * MapSize + x + 1, true);
+            else if (t == 2) Mark((y + 1) * MapSize + x, true);
+        }
+
         /// 0x14254: clears every marker, then marks the cells of all living creatures (status != 0, not down, flag bit 2 clear).
         public void RebuildMarkers()
         {
@@ -284,6 +294,8 @@ namespace BuckRogersGenesis
         public int Distance;        // [0xD512] (valid when TailReached)
         public bool TailReached;
         public int Target;          // [0xD513] after the call (0xFF for an area attack)
+        public bool LofRan;         // a line of fire was traced; the next three are the flags [0xD501..3] it left behind
+        public bool Flag501, Flag502, Flag503;
     }
 
     /// ROM 0x10400: everything the engine works out before an attack: who is attacked, the armor by facing, both creatures' stats from their gear,
@@ -332,6 +344,7 @@ namespace BuckRogersGenesis
             if (!(env.Mode97AE != 0 && attacker < 8) && attRec[0xAE] != 0) { d7 = attRec[0xAE + 9]; d5 = weaponTypeOf(attRec[0xAE]); }
 
             var lof = GenesisLineOfFire.Run(st.Tiles, env.TerrainFlags, att[0x12], att[0x13], tx, ty, range, false, env.SkipBlockers != 0);
+            plan.LofRan = true; plan.Flag501 = lof.Flag501; plan.Flag502 = lof.Flag502; plan.Flag503 = lof.Flag503;
             if (!lof.Clear)
             {
                 var last = lof;
@@ -344,6 +357,7 @@ namespace BuckRogersGenesis
                 if (second)
                 {
                     var lof2 = GenesisLineOfFire.Run(st.Tiles, env.TerrainFlags, att[0x12], att[0x13], x2, y2, range, false, env.SkipBlockers != 0);
+                    plan.Flag501 = lof2.Flag501; plan.Flag502 = lof2.Flag502; plan.Flag503 = lof2.Flag503;
                     if (lof2.Clear) { lof = lof2; goto tail; }
                     last = lof2;
                 }

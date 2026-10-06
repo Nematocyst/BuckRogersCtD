@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using BuckRogersGenesis;
 
-[Serializable] public class MonPre { public int n, idx, m97, d97dc; public string[] recs, slots; public string tiles, ft, g, ca; }
-[Serializable] public class MonPost { public string[] slots; public string tiles, g, ca; public int ridx; public long rsum, recsum; }
+[Serializable] public class MonPre { public int n, idx, m97, d97dc, d513, mode; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
+[Serializable] public class MonPost { public string[] slots; public string tiles, g, ca; public int[] d8ca; public int ridx; public long rsum, recsum; }
 [Serializable] public class MonCase { public string fn; public int a, range; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
 
@@ -12,6 +12,12 @@ static class MonsterTests
     static int fails, checks;
     static void Check(bool ok, string what) { checks++; if (!ok) { fails++; if (fails < 25) Console.WriteLine("FAIL: " + what); } }
     static byte[] Hex(string h) { var b = new byte[h.Length / 2]; for (int i = 0; i < b.Length; i++) b[i] = Convert.ToByte(h.Substring(2 * i, 2), 16); return b; }
+    static string Diff(byte[] a, byte[] b, int baseAddr)
+    {
+        string r = ""; int n = 0;
+        for (int i = 0; i < a.Length && i < b.Length; i++) if (a[i] != b[i]) { if (n++ < 8) r += $" {(baseAddr + i):X}: {a[i]:X2}/{b[i]:X2}"; }
+        return r + (n > 8 ? $" (+{n - 8} more)" : "");
+    }
     static bool Same(byte[] a, byte[] b) { if (a.Length != b.Length) return false; for (int i = 0; i < a.Length; i++) if (a[i] != b[i]) return false; return true; }
 
     public static TurnContext Build(MonCase c, ushort[] boot, RomView rom)
@@ -28,10 +34,11 @@ static class MonsterTests
     public static void Compare(TurnContext x, MonCase c, string ctx)
     {
         var q = c.post;
-        for (int i = 0; i < c.pre.n; i++) Check(Same(x.S.Slots[i], Hex(q.slots[i])), $"slot {i}: {BitConverter.ToString(x.S.Slots[i])} vs ROM {BitConverter.ToString(Hex(q.slots[i]))} ({ctx})");
+        for (int i = 0; i < c.pre.n; i++) Check(Same(x.S.Slots[i], Hex(q.slots[i])), $"slot {i} differs [offset: port/ROM]: {Diff(x.S.Slots[i], Hex(q.slots[i]), 0)} ({ctx})");
         Check(Same(x.S.Tiles, Hex(q.tiles)), $"tile map ({ctx})");
-        Check(Same(x.G, Hex(q.g)), $"globals {BitConverter.ToString(x.G)} vs ROM {BitConverter.ToString(Hex(q.g))} ({ctx})");
-        Check(Same(x.Ca, Hex(q.ca)), $"actor/target list {BitConverter.ToString(x.Ca)} vs ROM {BitConverter.ToString(Hex(q.ca))} ({ctx})");
+        Check(Same(x.G, Hex(q.g)), $"globals differ [address: port/ROM]: {Diff(x.G, Hex(q.g), TurnContext.GBase)} ({ctx})");
+        Check(Same(x.Ca, Hex(q.ca)), $"actor/target list differs [address: port/ROM]: {Diff(x.Ca, Hex(q.ca), TurnContext.CaBase)} ({ctx})");
+        if (q.d8ca != null) Check(x.S.LivingBySide[0] == q.d8ca[0] && x.S.LivingBySide[1] == q.d8ca[1], $"living counters ({ctx})");
         long sum = 0; foreach (var w in x.Rng.TableCopy()) sum += w;
         Check(x.Rng.Index == q.ridx && sum == q.rsum, $"RNG state: index {x.Rng.Index} vs {q.ridx}, sum {sum} vs {q.rsum} ({ctx})");
         long rs = 0, pos = 0; foreach (var r in x.S.Records) foreach (var b in r) { pos++; rs += pos * b; }
@@ -53,6 +60,7 @@ static class MonsterTests
                 case "enum": x.EnumerateTargets(c.a, c.range); break;
                 case "select": x.SelectTarget(); break;
                 case "weapon": x.ChooseWeapon(c.range); break;
+                case "attack": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ExecuteAttack(); break;
                 default: Check(false, "unknown case " + c.fn); continue;
             }
             Compare(x, c, ctx);

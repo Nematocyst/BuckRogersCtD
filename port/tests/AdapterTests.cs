@@ -23,6 +23,14 @@ static class AdapterTests
             ok = ok && (alive0 == 0 || alive1 == 0) && (alive1 > 0) == (w1 == 1);
             if (!ok) { fails++; Console.WriteLine($"FAIL: adapter fight seed {seed}: frames {a.Count}/{b.Count} winner {w1}/{w2} alive {alive0}/{alive1}"); }
         }
+        {   // the idle frame table, as measured in the ROM (0xAD5A) for facings 0..7
+            int[] want = { 0, 6, 6, 6, 12, 6, 6, 6 };
+            for (int f = 0; f < 8; f++)
+            {
+                int fr = TokenFrames.Idle(f, false, out bool m);
+                if (fr != want[f] || m != (f >= 5) || TokenFrames.Idle(f, true, out m) != 16) { fails++; Console.WriteLine("FAIL: token frame facing " + f); }
+            }
+        }
         Console.WriteLine($"adapter: {fights} fights, {frames} frames, party won {party}, {fails} failing");
         return fails;
     }

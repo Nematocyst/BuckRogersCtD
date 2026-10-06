@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using BuckRogersGenesis;
 
-[Serializable] public class MonPre { public string haz, script, nav; public int n, idx, m97, d97dc, d513, mode; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
-[Serializable] public class MonPost { public int[] polls, cur, mvo; public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
-[Serializable] public class MonCase { public string fn; public int a, range; public int[] mv, menu, pad; public MonPre pre; public MonPost post; }
+[Serializable] public class MonPre { public string haz, script, nav; public int n, idx, m97, d97dc, d513, mode, shop; public long money; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
+[Serializable] public class MonPost { public int[] polls, cur, mvo; public long money; public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
+[Serializable] public class MonCase { public string fn; public int a, range; public int[] mv, menu, pad, qmax; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
 
 static class MonsterTests
@@ -46,7 +46,7 @@ static class MonsterTests
             var mine = (byte[])x.G.Clone(); var theirs = Hex(q.g);
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
             mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
-            foreach (int a in new[] { 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
+            foreach (int a in new[] { 0xD594, 0xD59C, 0xD59D, 0xD59E, 0xD59F, 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
                 mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             Check(Same(mine, theirs), $"globals differ [address: port/ROM]: {Diff(mine, theirs, TurnContext.GBase)} ({ctx})");
         }
@@ -113,6 +113,18 @@ static class MonsterTests
                         var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace));
                         Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})");
                         if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace.txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0));
+                    }
+                    break;
+                case "inventory":
+                    {
+                        x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ShopFlag = (byte)c.pre.shop; x.Money = (uint)c.pre.money;
+                        int mi = 0, qi = 0;
+                        x.InventoryMenu = () => { if (mi < c.menu.Length) return (short)c.menu[mi++]; mi++; return 0xE; };
+                        x.AskQuantity = mx => { if (qi < c.pad.Length) { Check(mx == c.qmax[qi], $"quantity prompt maximum {mx} vs ROM {c.qmax[qi]} ({ctx})"); return c.pad[qi++]; } qi++; return 0; };
+                        int si = 0; x.SheetMenu = () => si < (c.mv?.Length ?? 0) ? (short)c.mv[si++] : 0; x.ShowSkills = () => { };
+                        if (c.range == 1) x.CharacterSheetScreen(); else x.InventoryScreen();
+                        Check(mi == c.post.polls[0] && qi == c.post.polls[1], $"menu / quantity prompts: {mi} {qi} vs ROM {c.post.polls[0]} {c.post.polls[1]} ({ctx})");
+                        Check(x.Money == (uint)c.post.money, $"money {x.Money} vs ROM {c.post.money} ({ctx})");
                     }
                     break;
                 case "attack": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ExecuteAttack(); break;

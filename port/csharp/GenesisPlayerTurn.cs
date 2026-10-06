@@ -53,6 +53,13 @@ namespace BuckRogersGenesis
             return first;
         }
 
+        /// 0xFDC8: the character sheet - the host's CharacterSheet callback, or the ported screens (CharacterSheetScreen) when the host supplies a SheetMenu.
+        void OpenSheet()
+        {
+            if (CharacterSheet != null) CharacterSheet();
+            else if (SheetMenu != null) CharacterSheetScreen();
+        }
+
         /// 0x10006: the cursor moves by (MoveDx, MoveDy) pixels and stays inside the map.
         void MoveCursor()
         {
@@ -153,7 +160,7 @@ namespace BuckRogersGenesis
                             if (c < 0)                                                                       // 0xF400: character sheet
                             {
                                 if (Actor >= 8) break;
-                                CharacterSheet?.Invoke();
+                                OpenSheet();
                                 if (me[0x14] == 0) return;
                                 pc = Menu; break;
                             }
@@ -207,7 +214,7 @@ namespace BuckRogersGenesis
                                 {
                                     if (mode == 0) { me[1] &= 0xFB; S.SetMarkers(Actor); moving = false; mode = -1; }
                                     if (Actor >= 8) { pc = Poll; break; }
-                                    CharacterSheet?.Invoke();
+                                    OpenSheet();
                                     if (me[0x14] == 0) return;
                                     pc = Menu; break;
                                 }

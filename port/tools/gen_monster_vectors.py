@@ -300,6 +300,84 @@ for _ in range(N('manual', 700)):
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['polls'] = used
     cases.append(dict(fn='manual', pre=pr, a=a, range=0, menu=[x & 0xFFFF for x in menu], pad=pad, post=sn))
 
+# ---- P. 0x78D6: the inventory screen, driven by a scripted menu (0x1391A answers cells that are not greyed out) and quantity prompt (0x7DE6)
+def inv_item(rnd, pool=None):
+    if rnd.random() < 0.4: return bytes(10)
+    return bytes([rnd.choice(pool) if pool else rnd.randrange(1, 39), 0, 0, 0, rnd.choice([0, 0, 1, 2] if not pool else [0, 0, 0, 1]), rnd.choice([0, 0, 0, 0x10, 0x30]), rnd.randrange(0, 40), rnd.randrange(0, 256),
+                  rnd.choice([0, 0, 1, 2, 5, 30, 200, 240, 245, 248, 249, 250, 255]) if not pool else rnd.choice([0, 1, 2, 3, 5, 30, 100, 150, 200, 240, 245, 248]), rnd.choice([0, 0, 1, 2, 3, 4, 13])])
+
+
+def inv_world(rnd):
+    w = sane_world(rnd, nmin=4, nmax=10); npar = w['npar']; n = w['n']
+    pool = rnd.sample(range(1, 39), 4) if rnd.random() < 0.6 else None           # members carrying the same things, so stacks merge
+    for r in range(8):
+        rec = w['recs'][r]
+        for k in range(13): rec[0x54 + 10 * k: 0x54 + 10 * k + 10] = inv_item(rnd, pool)
+        for o in (0xAE, 0xB8, 0xC2, 0xCC): rec[o:o + 10] = inv_item(rnd, pool) if rnd.random() < 0.6 else bytes(10)
+    for k in range(npar):
+        w['slots'][k][0] = rnd.choice([1, 1, 1, 0x81, 0x41, 0x83, 0x82, 0x01]); w['slots'][k][1] |= 1
+        w['slots'][k][0x14] = rnd.choice([0, 2, 2]); w['slots'][k][0x15] = rnd.randrange(3)
+    a = rnd.randrange(npar); w['actor'] = a; w['slots'][a][0] = rnd.choice([1, 1, 1, 0x81])
+    w['slots'][a][1] = (w['slots'][a][1] & ~0x40) | rnd.choice([0, 0, 0x40])
+    w['ca'][0] = a
+    return w
+
+
+for _ in range(N('inv', 600)):
+    w = inv_world(rnd); a = w['actor']; n = w['n']
+    mode = rnd.choice([9, 9, 2, 5, 1]); shop = rnd.choice([0, 0, 1]); money = rnd.choice([0, 100, 65000, 70000, rnd.randrange(1 << 24)]); m97 = rnd.choice([0, 0, 0, 0, 1])
+    m = machine(rom, extra=(0x8A44, 0x95BE, 0x9DD4, 0x978C, 0x7BA6, 0x7FC8, 0xC8FC, 0x7000, 0xA102, 0x138AC, 0x138FC, 0x8034))
+    sheet = rnd.random() < 0.3; smenus = []
+    if sheet: mode = 9
+    from unicorn import UC_HOOK_CODE
+    from unicorn.m68k_const import UC_M68K_REG_A7, UC_M68K_REG_PC, UC_M68K_REG_D2, UC_M68K_REG_SR
+    menus, qtys, qmaxs = [], [], []
+    limit = rnd.randrange(2, 16)
+    def menu_fn():
+        if sheet and m.reg('a2') == 0x7508:                                  # the sheet's page menu
+            ans = rnd.choice([0, 1, 2, 2, 2, 2, 3, 0xFFFF]) if len(smenus) < 3 else 0
+            smenus.append(ans)
+            for ad in (0xD593, 0xD595, 0xD592, 0xD597, 0xD596): m.write_ram(ad, b'\x00')
+            return ans
+        lst = []; ad = 0xD564
+        while m.ram_byte(ad) < 0x80: lst.append(m.ram_byte(ad)); ad += 1
+        def exists(c):
+            if c < 0xF: return True
+            st = m.ram_byte(SLOT + (c - 0xF) * 26) if c - 0xF < n else 0
+            return st != 0 and not (st & 0x40)
+        cands = [c for c in range(0x17) if c != 0xE and c not in lst and exists(c)]
+        if len(menus) >= limit or not cands or rnd.random() < 0.1: ans = 0xE
+        elif rnd.random() < 0.03: ans = 0xFFFF
+        else: ans = rnd.choice(cands)
+        menus.append(ans)
+        for ad in (0xD593, 0xD595, 0xD592, 0xD597, 0xD596): m.write_ram(ad, b'\x00')
+        return ans
+    m.stub_fn(0x1391A, menu_fn)
+    m.stub_fn(0x13DA2, lambda: (m.write_ram(0xD564, b'\xFF'), 0)[1])
+    def add_fn():
+        c = m.reg('d0') & 0xFF; ad = 0xD564
+        while m.ram_byte(ad) < 0x80: ad += 1
+        m.write_ram(ad, bytes([c, 0xFF])); return c
+    m.stub_fn(0x13E56, add_fn)
+    def qty_hook(uc, address, size, user):
+        if address != 0x7DE6: return
+        mx = uc.reg_read(UC_M68K_REG_D2) & 0xFF
+        q = rnd.choice([0, 1, mx, rnd.randrange(0, mx + 1)]) if rnd.random() > 0.1 else 0
+        qtys.append(q); qmaxs.append(mx)
+        sp = uc.reg_read(UC_M68K_REG_A7); ret = struct.unpack('>I', bytes(uc.mem_read(sp, 4)))[0]
+        uc.reg_write(UC_M68K_REG_A7, sp + 4); uc.reg_write(UC_M68K_REG_D2, q)
+        uc.reg_write(UC_M68K_REG_SR, (uc.reg_read(UC_M68K_REG_SR) & ~0xF) | (0x4 if q == 0 else 0)); uc.reg_write(UC_M68K_REG_PC, ret)
+    m.uc.hook_add(UC_HOOK_CODE, qty_hook, begin=0x7DE6, end=0x7DE6)
+    load(m, w)
+    m.write_ram(0x97AE, bytes([m97])); m.write_ram(0x9BBC, bytes([mode])); m.write_ram(0xBA60, bytes([shop])); m.write_ram(0x9BD0, struct.pack('>I', money)); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xEE00, bytes(0x200))
+    pr = pre(w); pr['m97'] = m97; pr['mode'] = mode; pr['d8ca'] = [5, 5]; pr['shop'] = shop; pr['money'] = money
+    try: m.call(0x748C if sheet else 0x78D6, max_insns=20_000_000)
+    except Exception as e:
+        continue                                                            # an item handed to a member with no room makes the ROM write into itself
+    if m.reg('pc') != 0x00FFF000: continue
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['money'] = struct.unpack('>I', m.read_ram(0x9BD0, 4))[0]; sn['polls'] = [len(menus), len(qtys)]
+    cases.append(dict(fn='inventory', pre=pr, a=a, range=1 if sheet else 0, mv=[x & 0xFFFF for x in smenus], menu=menus, pad=qtys, qmax=qmaxs, post=sn))
+
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

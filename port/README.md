@@ -154,6 +154,29 @@ Quirks of the original reproduced: the "explosive in hand" flag lives in an unin
 
 Verified with 700 scripted turns (13,600 checks) (random menu answers and pad readings, run in the ROM with the input routines replaced and compared with the port: the number of readings consumed, final cursor, slots, records, markers, scratch globals, RNG and the event sequence match; the menu window layout bytes [0xD582..9, 0xD592, 0xD595] are ignored).
 
+### The character sheet and inventory - `GenesisInventory.cs` (ROM 0xFDC8, 0x748C, 0x78D6)
+
+`CharacterSheetScreen()` is 0xFDC8/0x748C (the player turn opens it from the sheet key: `OpenSheet`, which calls the host's `CharacterSheet` callback or, when the host gave a `SheetMenu`, this
+screen): the character's stats are worked out again, the game mode [0x9BBC] is 9 while the sheet is open, and the page menu (`SheetMenu`: <= 0 leave, 1 skills page = `ShowSkills`, anything else the
+inventory) loops. The stat page (0x7000) and skills page (0x8034) only draw - the host reads the same record fields. **`InventoryScreen()` (0x78D6) holds all the rules.**
+
+The screen is a menu of 23 cells: 0..12 the character's 13 item slots (0..8 backpack, 9 hand, 10..12 armour / shield / ammunition), 13 drop (sell when `ShopFlag` = [0xBA60] is set), 14 leave, 15..22 the party members.
+The host's `InventoryMenu` callback answers with a cell (negative = cancel); **cells in the disabled list [0xD564..] (`CellDisabled`) cannot be chosen** - the ROM greys them out and ignores them.
+First an item is picked up, then put somewhere:
+* nothing picked: only non-empty item slots can be picked (no item can be touched at all when [0x97AE] is set); the party member cells are always grey while the sheet is open (mode 9), in other modes every living member but the current one switches the screen to that character;
+* picked item -> another slot: the two items swap (empty slots too). Slots 9..12 take only items of one weapon-table class each (0 hand, 3, 1, 7: table at 0x7D78), the backpack takes anything. **Moving something into the hand
+  costs the action time (+0x14/+0x15 are cleared) when the picked item's weapon-table row has a non-zero byte +6** (a slow weapon to ready); afterwards the character's stats are worked out again;
+* picked item -> drop cell: a stack asks "how many" (`AskQuantity(max)`, 0 cancels); the amount leaves the stack (the item disappears at 0). In a shop the item is sold instead: money [0x9BD0] += half the price (item bytes +6/+7) times the amount, **truncated to 16 bits per sale**;
+* picked item -> a party member (not in mode 9): reachable when alive, not out of the fight, not the current character and the item has somewhere to go (`FindDestination`, 0x81E6: a stack of the same item - same id and +4 - with fewer than 250, else the empty slot of its class -
+  hand 0xAE for classes 0/2, 0xC2 class 1, 0xB8 class 3, 0xCC class 7 - else the first free backpack slot). One item (stack count 0 or 1) moves whole; a stack asks for an amount up to what fits (250 - the destination's count) and is split (a new stack starts at the amount). The receiving member's stats are worked out again.
+
+Quirks reproduced: the member cells are greyed with the item pointer register left over from the slot checks, so while an item of slots 9..12 is picked the check uses *backpack slot 8's* item instead; handing over a single item to a member that already has a stack of it
+overwrites that stack (the whole 10 bytes are copied, count 1) - the item count of the destination is lost; and if the greyed-out check lets a member through that has no room, the ROM writes into its own ROM (ignored by the hardware) and the item is lost - `InventoryScreen` models that,
+but the tests cannot (the emulator faults on the write; 2 of 2,500 generated screens).
+
+Verified with 1,200 scripted screens (random choices among the cells the ROM leaves enabled, random quantities with the prompt maximum compared too; a third of them go through the sheet's page menu): records of every member, slots, scratch globals (including the disabled list),
+money and the order of prompts all match; the menu window scratch bytes [0xD594], [0xD59C..F] are ignored.
+
 ### Healer rescue - `TurnContext.AllyRescue` (ROM 0x10200, 0x1021E, 0xF28A, 0xF22C)
 
 A computer-controlled party creature with healing skill (record +0x32 or +0x3B non-zero) looks, at the start of its turn, for fallen friends: party creatures with status 0x83 (dying), or 0x84

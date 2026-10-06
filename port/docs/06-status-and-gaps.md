@@ -5,7 +5,7 @@ enum 200, select 200, weapon 200, attack 300, move 300, nav 150, whole turns 1,2
 
 ## Not ported
 * **Dungeon-map arena** (screen mode 6, ROM 0xB100): the map around the party becomes the battlefield. `BuildDungeonArena` is a host hook.
-* **Post-fight cleanup**: ported (see 04), except its three screens/phases: the medical aftermath of the dying (0x16B96), the loot sharing screen (0x165A0) and the scripted-fight end (0x16EF0) - host hooks.
+* **Post-fight cleanup**: ported (see 04), medical aftermath included; only the loot sharing screen (0x165A0) and the scripted-fight end (0x16EF0) are host hooks.
 * **Combat slot creation** from encounter data (the script engine).
 * **Graphics, sound, animation, text boxes**: assumed to have no effect on game state (checked wherever a UI routine turned out to carry state).
 * The "no room" hand-over path of the inventory and prompt messages other than 7 are implemented but untested.

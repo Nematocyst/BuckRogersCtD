@@ -567,17 +567,21 @@ for _fi in range(N('combat', 150)):
 
 # ---- W. 0x15FDA: the end of a fight (the medical aftermath 0x16B96 and the loot screen 0x165A0 are replaced by empty routines)
 for _ in range(N('cleanup', 300)):
-    m = machine(rom, extra=(0xCAC0, 0x85D6, 0x8360, 0x982A, 0xA768, 0x16B96, 0x165A0, 0x16EF0, 0x40D0, 0xBEF4, 0x82EC, 0xAF00, 0x862A, 0xA71E, 0x8A76, 0x8A60, 0xB0DA, 0x8A90, 0x13376, 0x1368C, 0x11CA0, 0x13268, 0x6C54), retreat=0)
+    m = machine(rom, extra=(0xCAC0, 0x85D6, 0x8360, 0x982A, 0xA768, 0x165A0, 0xC8FC, 0xAB5A, 0x16EF0, 0x40D0, 0xBEF4, 0x82EC, 0xAF00, 0x862A, 0xA71E, 0x8A76, 0x8A60, 0xB0DA, 0x8A90, 0x13376, 0x1368C, 0x11CA0, 0x13268, 0x6C54), retreat=0)
     w = sane_world(rnd, nmin=4, nmax=14, effects=rnd.random() < 0.3); n = w['n']; npar = w['npar']
     for k, sb in enumerate(w['slots']):
         sb[1] |= rnd.choice([0, 0, 0x04, 0x10, 0x14])
-        sb[0] = rnd.choice([1, 1, 0x81, 0x82, 0x83, 0x84, 0x85, 0x45, 0x01, 0xC1, 0x86, 0x05]) if k < npar else rnd.choice([1, 0x81, 0x82, 0x86, 0x81, 0x81, 0x41])
+        sb[0] = rnd.choice([1, 1, 0x81, 0x82, 0x83, 0x84, 0x85, 0x45, 0x01, 0xC1, 0x86, 0x05, 0x83, 0x84, 0x86, 0x87, 0x03, 0x04, 0x06]) if k < npar else rnd.choice([1, 0x81, 0x82, 0x86, 0x81, 0x81, 0x41])
     for r in w['recs']:
         r[0x40] = rnd.randrange(256); r[0x41] = rnd.randrange(256); r[0x52] = rnd.choice([0, 0, 1]); r[0x1A:0x1E] = bytes([0, 0, rnd.randrange(4), rnd.randrange(256)]); r[0x1E:0x22] = bytes([0, 0, rnd.randrange(256), rnd.randrange(256)])
+        r[0x32] = rnd.choice([0, 0, 2, 5, 9]); r[0x3B] = rnd.choice([0, 0, 3, 8]); r[0x2E] = rnd.randrange(10, 60)
+        if rnd.random() < 0.1: r[0x43 + rnd.randrange(10)] = 3
         for g in range(13):
             o = 0x54 + 10 * g
-            if rnd.random() < 0.4: r[o:o + 10] = bytes(10)
+            if rnd.random() < 0.08: r[o:o + 10] = bytes([0x1F, 0, 0, 0, 0, 0, 0, 0, rnd.choice([1, 1, 2]), 0])
+            elif rnd.random() < 0.4: r[o:o + 10] = bytes(10)
             else: r[o:o + 10] = bytes([rnd.randrange(1, 40), 0, 0, 0, rnd.choice([0, 1]), rnd.choice([0, 0x40, 0x80, 0xC0, 0x30, 0xF0]), 0, 0, rnd.choice([0, 0, 1, 5, 0x81]), rnd.choice([0, 1, 2])])
+    for sb in w['slots']: sb[0xE] = rnd.randrange(0, 60)
     w['g'][0xD50E - G0] = rnd.choice([0, 0xFF]); w['g'][0xD50B - G0] = rnd.choice([0, 0xFF]); w['ca'][0] = 0
     w['g'][0xD514 - G0:0xD518 - G0] = bytes(4); w['g'][0xD57E - G0:0xD582 - G0] = bytes([1, 2, 3, 4])
     load(m, w)
@@ -596,9 +600,11 @@ for _ in range(N('cleanup', 300)):
     from unicorn import UC_HOOK_CODE as _HC2
     from unicorn.m68k_const import UC_M68K_REG_PC as _PC2
     m.uc.hook_add(_HC2, lambda uc, a, sz, u: uc.reg_write(_PC2, 0x00FFF000), begin=0x7588, end=0x7588)          # 0x7588 (game over) never returns: end the run there
+    lastpc = []
+    m.uc.hook_add(_HC2, lambda uc, a, sz, u: (lastpc.append(a), lastpc.__delitem__(0) if len(lastpc) > 12 else None), begin=0x15000, end=0x17000)
     if os.environ.get('DBG_WR'): print('pre9927', m.ram_byte(0x9927), 's27', s27, 's30', m.ram_byte(0x9930), 'demo', demo)
     try: m.call(0x15FDA, max_insns=20_000_000)
-    except Exception as e: print('cleanup error', e); continue
+    except Exception as e: print('cleanup error', e, hex(m.reg('pc')), [hex(x) for x in lastpc[-8:]]); continue
     if m.reg('pc') != 0x00FFF000: continue
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
     sn['misc'] = [m.ram_byte(0xB9F3), struct.unpack('>I', m.read_ram(0xBA34, 4))[0], struct.unpack('>I', m.read_ram(0x9BD0, 4))[0], m.ram_byte(0xD8DA), m.ram_byte(0xD8CC), m.ram_byte(0x9DBD), m.ram_byte(0x9BBC), m.ram_byte(0xBA5E), m.ram_byte(0x9858), m.ram_byte(0x9930), m.ram_byte(0x9927)]

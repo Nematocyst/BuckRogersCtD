@@ -170,7 +170,7 @@ namespace BuckRogersGenesis
                 ScriptedTreasure();
                 Tally();
                 Victory();
-                if ((sbyte)Scripted9930 < 0 || Gb(0xD50E) != 0) Aftermath?.Invoke();
+                if ((sbyte)Scripted9930 < 0 || Gb(0xD50E) != 0) { MedicalAftermath(); Aftermath?.Invoke(); }
                 if (PoolCount != 0) LootScreen?.Invoke();
                 for (int i = 0xD57E; i < 0xD582; i++) Gs(i, 0);                                      // 0x16190
             }
@@ -178,6 +178,108 @@ namespace BuckRogersGenesis
             SavedMode = PrevMode;
             if (Scripted9858 != 0) Scripted9858 = 0;
             return false;
+        }
+
+        /// 0x76C4: the first party member's first backpack item with id `id` (record index order); null when nobody has one (or while the party is player driven, [0x97AE]).
+        byte[] FindPartyItem(int id, out int at)
+        {
+            at = 0;
+            if (Mode97AE != 0) return null;
+            for (int j = 0; j < 8 && j < S.Records.Length; j++)
+            {
+                if ((j < S.SlotCount ? S.Slots[j][0] : 0) == 0) continue;
+                var rec = S.Records[j];
+                for (int k = 0; k < 13; k++) if (rec[0x54 + 10 * k] == id) { at = 0x54 + 10 * k; return rec; }
+            }
+            return null;
+        }
+
+        void PressC() { Gs(0xD593, 0); if (ContinuePrompt != null) ContinuePrompt(); else if (Pad != null) ChoicePrompt(2); }
+
+        /// 0x16B96: what becomes of the party's wounded after a fight. A creature with effect 3 (Buck Rogers) is stood up with 45 HP. Then every party creature (flag bit 0, allies too) that
+        /// is hurt, dying or down is looked at: a creature in status 6 needs a healer (a standing party member with first-aid points, record +0x32: d10 + 4 within the points) or is
+        /// dead (0x87, HP 0, and listed); everybody else is healed by the best of the standing healers' rolls: d24 (d48 after a scripted fight) + 2 x (4 x) the points - 12, or d6 for a
+        /// medicine skill roll (+0x3B, d10 within it); the dying (3, 4, 6) come back as 1 if healed or fall to 0x84 (unconscious) at HP 0. If anything changed the new statuses are written,
+        /// the HP raised (never past the maximum) and each listed dead creature is brought back to 0x84 with a revive item (id 0x1F, one used each) while there are any.
+        public void MedicalAftermath()
+        {
+            T("medical");
+            for (int d7 = 7; d7 >= 0; d7--)                                                         // 0x16B9E: the first creature with effect 3 (highest slot) is back on its feet
+            {
+                if (d7 >= S.SlotCount || S.Slots[d7][0] == 0) continue;
+                var rec = S.Records[S.Slots[d7][2]]; bool has = false;
+                for (int k = 0; k < 10; k++) if (rec[0x43 + k] == 3) has = true;
+                if (has) { S.Slots[d7][0] = 1; S.Slots[d7][0xE] = 0x2D; break; }
+            }
+            var newSt = new int[8]; var heal = new int[8]; var dead = new List<int>(); bool changed = false;
+            for (int i = 0; i < 8; i++)
+            {
+                int d7 = 7 - i;
+                if (i >= S.SlotCount || i >= S.Records.Length) continue;
+                var a3 = S.Slots[i]; var a2 = S.Records[i];
+                int st = a3[0]; newSt[d7] = st;
+                if (st == 0 || (a3[1] & 1) == 0) continue;
+                int low = st & 0x3F;
+                if (low == 6)
+                {
+                    changed = true;
+                    bool saved = false;
+                    for (int j = 0; j < 8 && j < S.SlotCount && j < S.Records.Length; j++)
+                    {
+                        int sj = S.Slots[j][0];
+                        if (sj == 0 || (sj & 0x80) != 0) continue;
+                        int pts = S.Records[j][0x32];
+                        if (pts == 0) continue;
+                        if (((Rng.Roll(10) + 4) & 0xFF) <= pts) { saved = true; break; }
+                    }
+                    if (!saved) { dead.Add(a3[2]); newSt[d7] = 0x87; a3[0xE] = 0; continue; }
+                }
+                else
+                {
+                    if ((sbyte)st >= 0 && a3[0xE] == a2[0x2E]) continue;
+                    if (low == 7 || low == 2) continue;
+                }
+                for (int j = 0; j < 8 && j < S.SlotCount && j < S.Records.Length; j++)             // 0x16C86: the healers' rolls
+                {
+                    int sj = S.Slots[j][0];
+                    if (sj == 0 || (sj & 0x80) != 0) continue;
+                    var hr = S.Records[j];
+                    int pts = hr[0x32];
+                    if (pts != 0)
+                    {
+                        pts = (pts << 1) & 0xFF; int sides = 0x18;
+                        if ((sbyte)Scripted9930 < 0) { pts = (pts << 1) & 0xFF; sides = 0x30; }
+                        int r = (Rng.Roll(sides) + pts) & 0xFF; r = (r - 0xC) & 0xFF;
+                        if ((sbyte)r >= 0 && r > heal[d7]) heal[d7] = r;
+                    }
+                    int med = hr[0x3B];
+                    if (med != 0 && Rng.Roll(10) <= med) { int r = Rng.Roll(6); if (r > heal[d7]) heal[d7] = r; }
+                }
+                int s2 = a3[0];
+                if ((sbyte)s2 >= 0) newSt[d7] = 1;
+                else
+                {
+                    int l2 = s2 & 0x3F;
+                    if (l2 == 4 || l2 == 6 || l2 == 3) { a3[0xE] = 0; newSt[d7] = heal[d7] != 0 ? 1 : 0x84; }
+                    else newSt[d7] = 1;
+                }
+                changed = true;
+                int room = (a2[0x2E] - a3[0xE]) & 0xFF;
+                if (room < heal[d7]) heal[d7] = room;
+            }
+            if (!changed) return;
+            for (int i = 0; i < 8 && i < S.SlotCount; i++) { S.Slots[i][0] = (byte)newSt[7 - i]; S.Slots[i][0xE] = (byte)(S.Slots[i][0xE] + heal[7 - i]); }
+            PressC();
+            bool any = false;
+            for (int k = dead.Count - 1; k >= 0; k--)                                                 // 0x16E2C: revive items
+            {
+                int at; var owner = FindPartyItem(0x1F, out at);
+                if (owner == null) break;
+                owner[at + 8]--; if (owner[at + 8] == 0) owner[at] = 0;
+                int idx = dead[k]; if (idx < S.SlotCount) { S.Slots[idx][0] = 0x84; S.Slots[idx][0xE] = 0; }
+                any = true;
+            }
+            if (any) PressC();
         }
     }
 }

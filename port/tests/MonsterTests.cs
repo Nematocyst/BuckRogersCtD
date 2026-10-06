@@ -48,7 +48,7 @@ static class MonsterTests
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
             mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
             if (ctx.StartsWith("retreat") || ctx.StartsWith("fight") || ctx.StartsWith("combat") || ctx.StartsWith("setup") || ctx.StartsWith("cleanup")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
-            if (ctx.StartsWith("cleanup")) { int a = 0xD5AB; mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0; }
+            if (ctx.StartsWith("cleanup")) foreach (int a in new[] { 0xD5AB, 0xD5E2 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             foreach (int a in new[] { 0xD594, 0xD59C, 0xD59D, 0xD59E, 0xD59F, 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
                 mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             Check(Same(mine, theirs), $"globals differ [address: port/ROM]: {Diff(mine, theirs, TurnContext.GBase)} ({ctx})");

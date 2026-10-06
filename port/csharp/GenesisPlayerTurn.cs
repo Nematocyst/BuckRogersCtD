@@ -66,7 +66,13 @@ namespace BuckRogersGenesis
         {
             if (D506 == 0) return;
             var t = S.Slots[Ca[2 + 3 * index]];
-            CursorX = (t[0x12] * 24 + 12) & 0xFFFF; CursorY = (t[0x13] * 24 + 12) & 0xFFFF;
+            int tx = t[0x12] * 24 + 12, ty = t[0x13] * 24 + 12, sx = (short)CursorX, sy = (short)CursorY;
+            for (int d1 = 1; d1 <= 32; d1++)                    // the cursor glides over in 32 steps; the last step vector stays behind in [0xB3F4/6]
+            {
+                MoveDx = (short)((((tx - sx) * d1) >> 5) + sx - (short)CursorX);
+                MoveDy = (short)((((ty - sy) * d1) >> 5) + sy - (short)CursorY);
+                MoveCursor();
+            }
             index = (index + 1) & 0xFF;
             if (index >= D506) index = 0;
         }

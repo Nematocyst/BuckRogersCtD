@@ -152,7 +152,7 @@ turn is a small state machine over the modes *menu*, *walk* (0), *attack* (1) an
 
 Quirks of the original reproduced: the "explosive in hand" flag lives in an uninitialised stack slot until the attack mode sets it and survives a visit to the character sheet (the port starts it at false); the target-list index likewise (starts 0).
 
-Verified with 700 scripted turns (random menu answers and pad readings, run in the ROM with the input routines replaced and compared with the port: the number of readings consumed, final cursor, slots, records, markers, scratch globals, RNG and the event sequence match; the menu window layout bytes [0xD582..9, 0xD592, 0xD595] are ignored).
+Verified with 700 scripted turns (13,600 checks) (random menu answers and pad readings, run in the ROM with the input routines replaced and compared with the port: the number of readings consumed, final cursor, slots, records, markers, scratch globals, RNG and the event sequence match; the menu window layout bytes [0xD582..9, 0xD592, 0xD595] are ignored).
 
 ### Healer rescue - `TurnContext.AllyRescue` (ROM 0x10200, 0x1021E, 0xF28A, 0xF22C)
 

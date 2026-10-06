@@ -1,4 +1,4 @@
-"""Export the battlefield creature tokens (ROM table 0x9A14: 8-byte entries [32-bit pointer to an LZW piece][monster id][frames][anim set][extra], ended by id 0xFF).
+"""Export the battlefield creature tokens (ROM table 0x9A14: 8-byte entries [32-bit pointer to an LZW piece][monster id][frames][anim set][extra], ended by a first byte of 0xFF).
 Each piece holds the creature's 3x3-tile frames (tilemap = 9 words per frame; entry +5 = 18 or 36 frames: walking, attacking, falling per facing; creatures of size
 class 2/3 use bigger frames, which this tool slices as 3x3 anyway). The pieces carry no palette (the fight screen supplies it), so frames are written in grey.
 usage: python export_tokens.py ROM OUTDIR  -> token_<monster id>.png (all frames in a row of 18)"""
@@ -22,9 +22,8 @@ def piece(ptr):
     return nt, [struct.unpack('>H', tmap[2 * i:2 * i + 2])[0] for i in range(tm // 2)], get(nt * 32)
 
 n = 0
-while rom[0x9A14 + 8 * n + 4] != 0xFF or n == 0 and False:
+while rom[0x9A14 + 8 * n] != 0xFF:
     e = rom[0x9A14 + 8 * n:0x9A14 + 8 * n + 8]; n += 1
-    if e[4] == 0xFF: break
     nt, words, tiles = piece(struct.unpack('>I', e[:4])[0])
     frames = len(words) // 9
     im = Image.new('RGB', (24 * min(frames, 18), 24 * ((frames + 17) // 18)), (255, 0, 255))
@@ -38,4 +37,4 @@ while rom[0x9A14 + 8 * n + 4] != 0xFF or n == 0 and False:
                     v = (b >> 4) if xx % 2 == 0 else b & 15
                     if v: im.putpixel(((f % 18) * 24 + (k % 3) * 8 + x, (f // 18) * 24 + (k // 3) * 8 + y), GREY[v])
     im.save(f'{out}/token_{e[4]:02d}.png')
-print(n - 1 if rom[0x9A14 + 8 * (n - 1) + 4] == 0xFF else n, 'creature token sheets ->', out)
+print(n, 'creature token sheets ->', out)

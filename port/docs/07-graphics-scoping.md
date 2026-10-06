@@ -7,7 +7,7 @@
 * Other pieces are loaded from fixed addresses (title font, interface parts, terrain blobs, about 40 distinct streams in the 55 call sites).
 
 ## Battlefield creature tokens: found (ROM table 0x9A14)
-* The creature drawing routine (around 0xCB00-0xCC30, size / position helper 0xCC66) looks the monster up by record byte +0x42 (which `LoadCombatant` sets from the monster id) in an 8-byte-entry table at ROM 0x9A14 (52 entries, ended by id 0xFF): `[32-bit pointer to a piece][monster id][frames][animation set][extra]`.
+* The creature drawing routine (around 0xCB00-0xCC30, size / position helper 0xCC66) looks the monster up by record byte +0x42 (which `LoadCombatant` sets from the monster id) in an 8-byte-entry table at ROM 0x9A14 (52 entries, ended by a first byte 0xFF): `[32-bit pointer to a piece][monster id][frames][animation set][extra]`.
 * Each piece is one creature's sprite sheet: 3x3-tile (24x24 px) frames, 9 tilemap words per frame, 18 frames (162 words) or 36 (324 words, `entry +5` = 18 / 36): walking, attacking, hurt and fallen poses per facing. Shared sheets exist (several ids point to the same piece, e.g. ids 0 and 43). Creatures of size class 2 / 3 (tall / wide) use bigger frames (the draw code sets 3x6 or 6x3 tiles, `0xCC66`); this is why the exporter slices them wrongly into 3x3 pieces.
 * The pieces contain no palette (palette mask 0): the fight screen supplies the colours (not yet traced; the table's last two bytes, 0 / 1 / 2 and 0 / 2 / 3 / 8 / 0x26 / 0x34 / 0x35, are the first candidates).
 * `tools/export_tokens.py` writes one grey sheet per monster id (checked by eye: warrior, ape, spider, scarab and other poses are recognisable).

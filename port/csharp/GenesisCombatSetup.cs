@@ -319,9 +319,7 @@ namespace BuckRogersGenesis
         }
 
         // ------------------------------------------------------------------------------------ 0x1503C: the start of a fight
-        /// The host builds the arena for a fixed-map fight (screen mode 6, the dungeon maps): 0xB100 converts the map around the party into the 21x21 battlefield. Not ported.
-        public Action BuildDungeonArena;
-
+        
         /// 0x1503C: the game mode becomes 2 (fight), the per-fight flags are reset, the battlefield is made (ground generated for the area type, or the host's arena for screen mode 6),
         /// the sides are deployed and counted; if both sides have creatures the fight is on: map markers are built, the round counter is 0, the peace counter 3, the recruits take command
         /// of the allies and the timed effects and lingering patches are cleared. Returns whether a fight is on ([0xD50E] set).
@@ -336,7 +334,7 @@ namespace BuckRogersGenesis
             else { OriginX = Rom.Byte(0x146FA); OriginY = Rom.Byte(0x146FF); }
             int kind = D97DC == 0xA2 ? 1 : D97DC == 0xA8 ? 2 : 3;                                   // 0x82AC: the kind of area (the screen mode)
             ScreenMode = kind + 3;
-            if (ScreenMode == 6) { TerrainTable = 0x3297; ScriptTable = 0; BuildDungeonArena?.Invoke(); }
+            if (ScreenMode == 6) { TerrainTable = 0x3297; ScriptTable = 0; BuildDungeonArena(); }
             else if (ScreenMode == 4) { GenerateBattlefield(AreaType); TerrainTable = 0x31F5; ScriptTable = 0x325A; }
             else { GenerateBattlefield(AreaType + 0xB); TerrainTable = 0x31CB; ScriptTable = 0x3231; }
             int table = TerrainTable;

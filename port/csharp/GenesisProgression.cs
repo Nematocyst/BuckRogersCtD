@@ -33,6 +33,7 @@ namespace BuckRogersGenesis
             new[] { 0x16402, 0x16412 },              // scripted bonus experience by scripted fight (8 words)
             new[] { 0xA802, 0xA902 },                // item icons by id (loot screen)
             new[] { 0x16AE2, 0x16B28 },              // the loot screen's menu cell table
+            new[] { 0xB332, 0xB396 },                // the dungeon arena: view offsets and the cell pattern table
             new[] { 0x0000, 0x0010 },                // the vector table: the inventory's weapon-readying test reads ROM[6] when the picked item is not there
             new[] { 0x7D78, 0x7D7C },                // item class each equipment slot of the inventory accepts (hand, armour, shield, ammunition)
             new[] { 0x10F69, 0x10F69 + 13 * 5 },     // explosive item types 0..12: effect, radius, hazard tile?, damage mode, animation

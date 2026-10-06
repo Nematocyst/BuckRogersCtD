@@ -3,8 +3,10 @@
 ## Verified against the ROM (135,348 monster-turn checks in the repo vectors)
 enum 200, select 200, weapon 200, attack 300, move 300, nav 150, whole turns 1,200, explosive scoring 200 / execution 300 / blast 500, patch ticks 60, effect stages 800, begin-turn 500, rescue 383, manual turns 700, inventory 1,200, retreat prompt 400, whole fights 200, battlefield 150, deployment 200, fight setup 200, fight clean-up 250, loot screen 250, ship repair 250. Earlier work (RNG, combat maths, progression, rewards, skills, initiative, pathfinding, actions) has its own vectors; see `port/README.md`.
 
+## Dungeon-map arena (ROM 0xB100): ported
+`BuildDungeonArena` is checked on 400 random maps (layers, wall densities, class tables, party positions including off-map ones) against the ROM, the whole 441-cell result compared; 7 mutations of the port are all caught. The host only has to supply the loaded map (`MapLayerA/B`, `MapWalls`, `TileClassA/B`, `MapX/MapY`).
+
 ## Not ported
-* **Dungeon-map arena** (screen mode 6, ROM 0xB100): the map around the party becomes the battlefield. `BuildDungeonArena` is a host hook.
 * **Post-fight cleanup**: ported (see 04), medical aftermath, loot sharing screen and the starship repair at the end of scripted fights are all included; the host hooks `Aftermath`, `LootScreen`, `ScriptedFightEnd`, `GameOver` remain for drawing / story only.
 * **Combat slot creation** from encounter data (the script engine).
 * **Graphics, sound, animation, text boxes**: assumed to have no effect on game state (checked wherever a UI routine turned out to carry state).

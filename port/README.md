@@ -131,7 +131,16 @@ Quirks of the original that the port reproduces (found by the differential tests
 * the weapon choice tests the actor's tile at index x*21+y (everything else uses y*21+x) and reads the *actor's* record flags where it looks at the target;
 * the damage list overlaps the multiplier [0xD496], the damage scratch [0xD497] and the monsters' attack modifier [0xD499] when an attack round hits 9 or more times.
 
-Not ported (the ROM test replaces them by empty routines, so these are the known gaps): the screen, sound and animation routines (assumed to have no effect on the game state, except the projectile animation's sprite scratch [0xD51A/B], which the test ignores); the "leave the battlefield?" prompt (0x136DA, `RetreatPrompt`).
+Not ported (the ROM test replaces them by empty routines, so these are the known gaps): the screen, sound and animation routines (assumed to have no effect on the game state, except the projectile animation's sprite scratch [0xD51A/B], which the test ignores); 
+
+### The "leave the battlefield?" prompt - `ChoicePrompt` (ROM 0x136DA)
+
+A party creature that is not on auto and steps off the map is asked first (text box 7: "yes / no"); "yes" (choice 0) lets `MoveStep` go on to the escape rules, anything else (no, cancel) keeps it where it is.
+`ChoicePrompt(message)` is the whole box on the host's `Pad` callback (the same pad readings as the player turn; `RetreatPrompt` still overrides it with a plain answer): the cursor starts on the choice stored in [0xD593]
+(0 = yes, the menus leave it 0), left / right (and the next-target button) move it, confirm takes it, cancel answers -1 unless [0xD592] forbids that; pad readings of 0 are skipped; in demonstration mode ([0xBA5A],
+`DemoFlag`) any button press takes the preset choice. The same routine asks the other yes / no questions (messages 1, 6, 8), shows "abort" / "press c to continue" style boxes with a single choice (any of the buttons 4..7 answers)
+and the 8-choice debug picker (message 9); the box clears [0xD592], [0xD593], [0xD595] when it closes, and the help button leaves [0xD596] set.
+Verified with 400 off-map steps of player-controlled creatures answered by random pad readings (7,190 checks: choice, step result, pad readings consumed, globals; the text box's cursor bytes [0xD5D6..0xD5E1] are ignored).
 
 ### The player's turn - `TurnContext.PlayerTurn` (ROM 0xF2AE) - `GenesisPlayerTurn.cs`
 

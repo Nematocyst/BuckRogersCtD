@@ -46,6 +46,7 @@ static class MonsterTests
             var mine = (byte[])x.G.Clone(); var theirs = Hex(q.g);
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
             mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
+            if (ctx.StartsWith("retreat")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
             foreach (int a in new[] { 0xD594, 0xD59C, 0xD59D, 0xD59E, 0xD59F, 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
                 mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             Check(Same(mine, theirs), $"globals differ [address: port/ROM]: {Diff(mine, theirs, TurnContext.GBase)} ({ctx})");
@@ -105,7 +106,7 @@ static class MonsterTests
                         int mi = 0, pi = 0, menuCalls = 0, padCalls = 0;
                         x.MenuChoice = () => { menuCalls++; return mi < c.menu.Length ? (short)c.menu[mi++] : 4; };
                         x.Pad = () => { padCalls++; return pi < c.pad.Length ? c.pad[pi++] : 0x80; };
-                        x.MapPixelsX = 504; x.MapPixelsY = 504;
+                        x.MapPixelsX = 504; x.MapPixelsY = 504; x.RetreatPrompt = () => 1;               // the ROM run answers the "leave the battlefield?" box with "no"
                         x.PlayerTurn();
                         Check(menuCalls == c.post.polls[0] && padCalls == c.post.polls[1], $"input readings: menu {menuCalls} pad {padCalls} vs ROM {c.post.polls[0]} {c.post.polls[1]} ({ctx})");
                         Check(x.CursorX == c.post.cur[0] && x.CursorY == c.post.cur[1], $"cursor {x.CursorX},{x.CursorY} vs ROM {c.post.cur[0]},{c.post.cur[1]} ({ctx})");
@@ -113,6 +114,17 @@ static class MonsterTests
                         var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace));
                         Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})");
                         if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace.txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0));
+                    }
+                    break;
+                case "retreat":
+                    {
+                        x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.DemoFlag = (byte)c.pre.shop;
+                        int pi = 0, reads = 0; x.Pad = () => { reads++; return pi < c.pad.Length ? c.pad[pi++] : 0x20; };
+                        x.MoveDx = c.mv[0]; x.MoveDy = c.mv[1];
+                        int rr = x.MoveStep();
+                        Check(rr == c.post.ret, $"step result {rr} vs ROM {c.post.ret} ({ctx})");
+                        Check(x.MoveDx == c.post.mv[0] && x.MoveDy == c.post.mv[1], $"step after {x.MoveDx},{x.MoveDy} vs ROM {c.post.mv[0]},{c.post.mv[1]} ({ctx})");
+                        Check(reads == c.post.polls[1], $"pad readings {reads} vs ROM {c.post.polls[1]} ({ctx})");
                     }
                     break;
                 case "inventory":

@@ -92,12 +92,12 @@ def pre(w):
 UI_STUBS = (0x1B900, 0xE606, 0xCAEA, 0x75F8, 0x75FA, 0xCA7E, 0xAD5A, 0x9784, 0xDEE6, 0xDEC4, 0xDF08, 0xFA52, 0x98E4, 0xC3F0, 0xAD3E, 0x11C8E, 0x11C5A, 0x1343E, 0x1344A, 0x9240, 0xE5E6, 0xFEA8, 0x114D6, 0x11CA4, 0xAC9C)
 
 
-def machine(rom, unstub=(), extra=()):
+def machine(rom, unstub=(), extra=(), retreat=1):
     """emulator with the VDP/IO ranges mapped, the VDP registers in a4/a5 and every graphics / sound / animation routine replaced by an empty one"""
     m = Machine(rom); m.map_io()
     for a in UI_STUBS + tuple(extra):
         if a not in unstub: m.stub_rts(a)
-    m.stub_ret(0x136DA, 1)                                  # the "leave the battlefield?" prompt: answer no
+    if retreat is not None: m.stub_ret(0x136DA, retreat)    # the "leave the battlefield?" prompt: answer no
     m.set_reg('a4', 0xC00004); m.set_reg('a5', 0xC00000)
     m.call(0xF28E, max_insns=100, a3=RAM_BASE + SLOT, a2=RAM_BASE + REC)       # priming run: Unicorn aborts when its first translated block is the btst at 0xF28A
     m.waves = []                                            # the stack garbage 0x15D8A starts its wave counter from, one entry per search

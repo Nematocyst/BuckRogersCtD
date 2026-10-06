@@ -378,6 +378,39 @@ for _ in range(N('inv', 600)):
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['money'] = struct.unpack('>I', m.read_ram(0x9BD0, 4))[0]; sn['polls'] = [len(menus), len(qtys)]
     cases.append(dict(fn='inventory', pre=pr, a=a, range=1 if sheet else 0, mv=[x & 0xFFFF for x in smenus], menu=menus, pad=qtys, qmax=qmaxs, post=sn))
 
+# ---- Q. 0xF898 with the real "leave the battlefield?" prompt (0x136DA) answered by scripted pad readings
+for _ in range(N('retreat', 400)):
+    m = machine(rom, retreat=None, extra=(0x1388E, 0x1382C, 0x138FC, 0x6C54, 0x6C3A, 0x5308)); w = sane_world(rnd); a = w['actor']; n = w['n']; sa = w['slots'][a]
+    sa[1] &= ~0x80
+    sa[0x12] = rnd.choice([0, 20, rnd.randrange(21)]); sa[0x13] = rnd.choice([0, 20, rnd.randrange(21)])
+    dx, dy = rnd.choice([-1, 0, 1]), rnd.choice([-1, 0, 1])
+    if sa[0x12] == 0: dx = rnd.choice([-1, -1, 0, 1])
+    if sa[0x12] == 20: dx = rnd.choice([1, 1, 0, -1])
+    if sa[0x13] == 0: dy = rnd.choice([-1, -1, 0, 1])
+    if sa[0x13] == 20: dy = rnd.choice([1, 1, 0, -1])
+    if not (0 <= sa[0x12] + dx < 21 and 0 <= sa[0x13] + dy < 21) is False and rnd.random() < 0.5: pass
+    sa[1] |= 0x04
+    t = w['recs'][sa[2]][0x23]; x, y = sa[0x12], sa[0x13]
+    for (cx, cy) in [(x, y)] + ([(x + 1, y)] if t == 3 else []) + ([(x, y + 1)] if t == 2 else []):
+        if cx < 21 and cy < 21: w['tiles'][cy * 21 + cx] &= 0x7F
+    w['ca'][0] = a; w['g'][0xD496 - G0] = 1
+    w['g'][0xD593 - G0] = rnd.choice([0, 0, 0, 1, 3]); w['g'][0xD592 - G0] = rnd.choice([0, 0, 1]); w['g'][0xD595 - G0] = rnd.choice([0, 0, 0x40])
+    demo = rnd.choice([0, 0, 0, 1])
+    load(m, w)
+    m.write_ram(0xB3F4, struct.pack('>hh', dx, dy)); m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xBA5A, bytes([demo])); m.write_ram(0xEE00, bytes(0x200))
+    script = [rnd.choice([0, 1, 2, 4, 8, 0x10, 0x20, 0x40, 0x80, 0x80, 0x20, 0x24, rnd.randrange(256)]) for _ in range(rnd.randrange(1, 10))]
+    sq, used = list(script), [0]
+    def next_pad():
+        used[0] += 1
+        return sq.pop(0) if sq else 0x20
+    m.stub_fn(0xF1B66, next_pad)
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]; pr['shop'] = demo
+    m.call(0xF898, max_insns=6000000, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + sa[2] * 0xD6)
+    if m.reg('pc') != 0x00FFF000: continue
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['ret'] = struct.unpack('b', bytes([m.reg('d0') & 0xFF]))[0]
+    sn['mv'] = list(struct.unpack('>hh', m.read_ram(0xB3F4, 4))); sn['polls'] = [0, used[0]]
+    cases.append(dict(fn='retreat', pre=pr, a=a, range=0, mv=[dx, dy], pad=script, post=sn))
+
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

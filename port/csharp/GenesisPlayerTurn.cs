@@ -53,6 +53,32 @@ namespace BuckRogersGenesis
             return first;
         }
 
+        public byte DemoFlag;                               // [0xBA5A]: demonstration mode, every prompt takes its preset answer after one button press
+        /// the number of choices of the text boxes 0x136DA shows by message number (the text "yes~no" has two, "abort", "press c to continue" ... one)
+        static readonly int[] PromptOptions = { 1, 2, 1, 1, 1, 1, 2, 2, 2, 8 };
+
+        /// 0x136DA: a text box with a row of choices (message 7 = "leave the battlefield?" yes / no; 1, 6, 8 are other yes / no questions). The cursor starts on the choice in [0xD593]
+        /// (the menus leave it 0 = the first), left / right (and the 'next target' button) move it, confirm picks it, cancel answers -1 unless [0xD592] forbids it. A box with a single
+        /// choice just waits for any of the buttons 4..7. Every reading of the pad that is 0 is skipped. Returns the choice (0 = "yes").
+        public int ChoicePrompt(int message)
+        {
+            int count = PromptOptions[message], d4 = Gb(0xD593);
+            while (true)
+            {
+                int pad;
+                do { pad = Pad() & 0xFF; if (++Polls > 100000) throw new InvalidOperationException("prompt does not end"); } while (pad == 0);
+                if (DemoFlag != 0) break;
+                if ((Gb(0xD595) & 0x40) != 0 && (pad & 0x40) != 0) { Gs(0xD596, 0xFF); continue; }   // help text (drawn by the host); leaves [0xD596] set
+                if (count <= 1) { if ((pad & 0xF0) == 0) continue; d4 = 0; break; }
+                if ((pad & 0x80) != 0 && Gb(0xD592) == 0) { d4 = -1; break; }
+                if ((pad & 0x20) != 0) break;
+                if ((pad & 0x18) != 0) { d4++; if ((d4 & 0xFF) >= count) d4--; }
+                else if ((pad & 4) != 0) { d4--; if (d4 < 0) d4 = 0; }
+            }
+            Gs(0xD592, 0); Gs(0xD593, 0); Gs(0xD595, 0);
+            return d4;
+        }
+
         /// 0xFDC8: the character sheet - the host's CharacterSheet callback, or the ported screens (CharacterSheetScreen) when the host supplies a SheetMenu.
         void OpenSheet()
         {

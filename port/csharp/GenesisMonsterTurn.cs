@@ -16,7 +16,8 @@ namespace BuckRogersGenesis
 
         public int MoveDx, MoveDy;          // [0xB3F4], [0xB3F6]: the step being taken (words)
         public int CursorX, CursorY;        // [0xB3F0], [0xB3F2]: pixel position used by area attacks
-        /// ROM 0x136DA(7): the "leave the battlefield?" prompt of a step off the map for a creature without the auto flag; nonzero = cancel. Default: cancel.
+        /// Replaces the "leave the battlefield?" prompt (ROM 0x136DA, message 7) of a step off the map for a creature without the auto flag: nonzero = stay. Without it the prompt
+        /// runs on the pad callback (ChoicePrompt); with neither the creature stays.
         public Func<int> RetreatPrompt;
 
         static readonly int[] FacingByStep = { 7, 0, 1, 8, 6, 8, 2, 8, 5, 4, 3, 8 };    // 0xF97A.. indexed by 4*dy + dx + 5; 8 = no step
@@ -232,7 +233,7 @@ namespace BuckRogersGenesis
             bool cancel = false;
             if (nx >= 21 || ny >= 21)
             {
-                if ((me[1] & 0x80) == 0 && (RetreatPrompt == null || RetreatPrompt() != 0)) cancel = true;
+                if ((me[1] & 0x80) == 0 && (RetreatPrompt != null ? RetreatPrompt() : Pad != null ? ChoicePrompt(7) : 1) != 0) cancel = true;
                 else if (!CanEscape()) { G[A5D6 - GBase] = 0; G[A5D6 - GBase + 1] = 4; G[A5D6 - GBase + 2] = 0; G[A5D6 - GBase + 3] = 0x17; cancel = true; }
                 else { me[0] = 0x85; me[0x16] = 6; me[0x14] = 0; }
             }

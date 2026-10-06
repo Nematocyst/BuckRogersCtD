@@ -132,6 +132,27 @@ Quirks of the original that the port reproduces (found by the differential tests
 * the damage list overlaps the multiplier [0xD496], the damage scratch [0xD497] and the monsters' attack modifier [0xD499] when an attack round hits 9 or more times.
 
 Not ported (the ROM test replaces them by empty routines, so these are the known gaps): the **special-effect hooks** (0x664E: status effects such as paralysis, slowing, the damage clamp,
-the rocket special as a creature effect) - `TurnContext.StageHook` is a no-op; **explosive weapons** (0xEB50 scoring/targeting, 0x10FAA area attack and its lingering objects) -
-`RunTurn` throws `NotSupportedException` for a creature holding one; **party creatures that go to help a fallen friend** (0x10200/0x1021E) - throws when a friend is found;
-the screen, sound and animation routines (assumed to have no effect on the game state); the "leave the battlefield?" prompt (0x136DA, `RetreatPrompt`).
+the rocket special as a creature effect) - `TurnContext.StageHook` is a no-op; **party creatures that go to help a fallen friend** (0x10200/0x1021E) - throws when a friend is found;
+the screen, sound and animation routines (assumed to have no effect on the game state, except the projectile animation's sprite scratch [0xD51A/B], which the test ignores); the "leave the battlefield?" prompt (0x136DA, `RetreatPrompt`).
+
+### Explosive weapons - `GenesisArea*.cs`
+
+Verified like the rest (300 scorings, 500 executions, 800 blasts, 100 patch ticks and the 2,000 whole turns, half of them in worlds with explosives, gas patches and a terrain-transformation table).
+
+| C# | ROM | What it does |
+|---|---|---|
+| `AreaEval(score:true)` | 0xEB50 (+0xEAA6) | the weapon scorer's value for an explosive: the best cell's score times a typical damage by item id (draws random numbers) |
+| `AreaEval(score:false)` | 0xEB50 | the turn controller's throw: every cell within reach of the thrower (or of its target when range + reach > 9) is scored by the creatures a blast there would hit, the best cell with a line of fire wins (ties: 25% replace); no cell worth it -> `ChooseWeapon(0)` picks something else |
+| `AreaAttack` | 0x10FAA (+0x1137E, 0x113EC, 0x15C54) | the blast |
+| `OriginalTile`, `SetTile`, `TileChain` | 0x145DE, 0x14670, 0x144FE | terrain under a lingering patch, replacement, and the terrain transformation chain of [0xD814] |
+| `RemoveHazard`, `TickHazards` | 0x1150E, 0x1158A | the 16 lingering patches at 0x78CE count down once per round |
+| `SavingThrow`, `ApplyEffect`, `AreaDamage` | 0x6990, 0x6A34, 0x115CE | d20 + modifier against record +0x15; status effects in the temporary list at [0xD49C]; save = half damage (or none for damage mode 2) |
+
+How a blast works. The item types (item byte +9) 5, 6, 8, 9, 10, 11, 12 are explosives; the table at 0x10F69 gives per type the status effect, radius, whether it leaves a patch and the damage mode.
+Damage = the weapon's dice + bonus (types 5 and 12 do none but draw an effect duration 2..5). The throw hits the aimed cell when d20 <= the to-hit value, otherwise it scatters up to four times to a
+neighbouring cell in sight; a blocked line stops at the last free cell. Types 8 and 9 leave a 3x3 patch (tile 0 / 1: smoke / gas) that replaces the terrain for 5 rounds (2 with the option bit) and blocks lines of fire. Types 6, 10, 11
+transform terrain around the blast along the [0xD814] chain and move a party creature that has effect 3 (a force field?) out of the blast to the nearest free cell it can see. Everybody in the
+blast radius with a line of fire gets a saving throw, takes the damage and the type's effect; the thrower's action time is spent and the item loses a charge (a monster keeps it unless a random number below its record byte +0x3F is zero, i.e. it saves ammunition.
+
+Quirks reproduced: the blast-shape loop is a do-while, so a creature at the edge of the scoring area still gives its weight to one cell when clipping leaves nothing; `SetTile` indexes a patch's saved tiles in the opposite order from `OriginalTile`;
+the follow-up in the terrain search tests a byte as a word and is dead code; the throw does not run the to-hit preparation first, so [0xD511] is whatever the last attack left there (usually a lot of scatter).

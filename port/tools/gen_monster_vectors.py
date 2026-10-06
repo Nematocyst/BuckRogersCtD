@@ -85,7 +85,7 @@ for _ in range(N('nav', 500)):
 # ---- G. 0xEF64: a whole turn of a computer-controlled creature (monsters; party creatures without healing skill)
 import os
 for _ in range(N('turn', 1500)):
-    m = machine(rom); w = sane_world(rnd); a = w['actor']; n = w['n']; sa = w['slots'][a]
+    m = machine(rom); w = sane_world(rnd, fx=rnd.random() < 0.5); a = w['actor']; n = w['n']; sa = w['slots'][a]
     if rnd.random() < 0.15:                                    # a party creature under computer control
         pa = rnd.randrange(w['npar']); a = pa; w['actor'] = a; sa = w['slots'][a]
     sa[0] = 1; sa[0x14] = rnd.choice([2, 2, 2, 1, 3]); sa[1] &= ~0x04; sa[0x16] = rnd.randrange(0, 14)
@@ -99,6 +99,67 @@ for _ in range(N('turn', 1500)):
     m.call(0xEF64, max_insns=30_000_000, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + sa[2] * 0xD6, d5=0, d7=0, d3=0, d6=0)
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
     cases.append(dict(fn='turn', pre=pr, a=a, range=0, post=sn))
+
+# ---- H. 0xEB50 scoring mode: the expected value of throwing the item in item slot k
+def explosive_world(rnd, hand_only=False):
+    for _ in range(50):
+        w = sane_world(rnd, fx=True); a = w['actor']; rec = w['recs'][w['slots'][a][2]]
+        w['slots'][a][1] = w['slots'][a][1] & ~0x04
+        slots_ex = [k for k in range(13) if 5 <= rec[0x54 + 10 * k + 9] <= 12 and rec[0x54 + 10 * k]]
+        if hand_only and not (5 <= rec[0xAE + 9] <= 12 and rec[0xAE]): continue
+        if slots_ex or hand_only: return w, slots_ex
+    return w, []
+
+
+for _ in range(N('eb50s', 400)):
+    m = machine(rom); w, ex = explosive_world(rnd)
+    if not ex: continue
+    a = w['actor']; rec = w['recs'][w['slots'][a][2]]; k = rnd.choice(ex); off = 0x54 + 10 * k
+    w['ca'][0] = a; w['g'][0xD505 - G0] = 0; w['g'][0xD500 - G0] = rnd.choice([0, 1, 0xFF])
+    load(m, w); m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02')
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0xEB50, max_insns=8_000_000, d0=1, a0=RAM_BASE + REC + w['slots'][a][2] * 0xD6 + off, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + w['slots'][a][2] * 0xD6)
+    sn = snap(m, w); sn['ret'] = m.reg('d0') & 0xFFFF
+    cases.append(dict(fn='eb50s', pre=pr, a=a, range=off, post=sn))
+
+# ---- I. 0xEB50 execution mode: throw the hand item at the best cell (or choose another weapon)
+for _ in range(N('eb50x', 400)):
+    m = machine(rom); w, ex = explosive_world(rnd, hand_only=True)
+    a = w['actor']; rec = w['recs'][w['slots'][a][2]]
+    if not (5 <= rec[0xAE + 9] <= 12 and rec[0xAE]): continue
+    w['ca'][0] = a; w['g'][0xD505 - G0] = 0; w['g'][0xD500 - G0] = rnd.choice([0, 1, 0xFF]); w['g'][0xD511 - G0] = rnd.randrange(0, 20)
+    load(m, w); m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5]))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0xEB50, max_insns=12_000_000, d0=0, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + w['slots'][a][2] * 0xD6)
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['mv'] = list(struct.unpack('>hh', m.read_ram(0xB3F0, 4)))
+    cases.append(dict(fn='eb50x', pre=pr, a=a, range=0, post=sn))
+
+# ---- J. 0x10FAA: the blast at the cursor cell
+for _ in range(N('blast', 500)):
+    m = machine(rom); w, ex = explosive_world(rnd, hand_only=True)
+    a = w['actor']; rec = w['recs'][w['slots'][a][2]]
+    if not (5 <= rec[0xAE + 9] <= 12 and rec[0xAE]): continue
+    sa = w['slots'][a]
+    tgt = w['slots'][rnd.randrange(w['n'])]
+    cell = (rnd.randrange(21), rnd.randrange(21)) if rnd.random() < 0.25 else (max(0, min(20, tgt[0x12] + rnd.randrange(-1, 2))), max(0, min(20, tgt[0x13] + rnd.randrange(-1, 2)))) if rnd.random() < 0.7 else (max(0, min(20, sa[0x12] + rnd.randrange(-6, 7))), max(0, min(20, sa[0x13] + rnd.randrange(-6, 7))))
+    cur = (cell[0] * 24 + rnd.randrange(24), cell[1] * 24 + rnd.randrange(24))
+    w['ca'][0] = a; w['g'][0xD505 - G0] = 0; w['g'][0xD500 - G0] = rnd.choice([0, 1, 0xFF]); w['g'][0xD511 - G0] = rnd.randrange(0, 20)
+    load(m, w); m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xB3F0, struct.pack('>HH', *cur))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0x10FAA, max_insns=12_000_000, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + sa[2] * 0xD6)
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
+    cases.append(dict(fn='blast', pre=pr, a=a, range=0, mv=list(cur), post=sn))
+
+# ---- K. 0x1158A: patches count down
+for _ in range(N('tick', 100)):
+    m = machine(rom); w = sane_world(rnd, fx=True)
+    for o in range(0, 256, 16):
+        if w['haz'][o + 0xE] == 0 and rnd.random() < 0.3: pass
+    w['ca'][0] = w['actor']
+    load(m, w); m.write_ram(0x9BBC, b'\x02')
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0x1158A, max_insns=2_000_000)
+    cases.append(dict(fn='tick', pre=pr, a=w['actor'], range=0, post=snap(m, w)))
 
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))

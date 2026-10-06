@@ -26,6 +26,8 @@ namespace BuckRogersGenesis
             new[] { 0x779E - 8 * 128, 0x779E + 8 * 128 },   // weapon table; item ids are sign-extended, so ids 0x80..0xFF index backwards
             new[] { 0xA829, 0xA829 + 0x100 },        // item drop category table (+ the bytes after it that ids >= 0x28 would read)
             new[] { 0xF17CC, 0xF17CC + 10 * 128 },   // base item records
+            new[] { 0xEF4E, 0xEF64 },                // blast shape table of the area weapons (circle extents by reach)
+            new[] { 0x10F69, 0x10F69 + 13 * 5 },     // explosive item types 0..12: effect, radius, hazard tile?, damage mode, animation
         };
 
         readonly SortedList<int, byte[]> seg = new SortedList<int, byte[]>();

@@ -296,7 +296,7 @@ namespace BuckRogersGenesis
             var me = S.Slots[Actor];
             if (me[0x14] == 0) return;
             if (moving) { EndMotion(); }
-            if (HoldsExplosive()) throw new NotSupportedException("area weapons (ROM 0xEB50 / 0x10FAA) are not ported");
+            if (HoldsExplosive()) { ShowTurn(); AreaEval(false, 0xAE); return; }                 // 0xF0E2: an explosive is thrown by the area logic
             if ((sbyte)me[0x17] < 0) return;
             CursorOnActor();
             PrepareAttack(me[0x17]);

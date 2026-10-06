@@ -33,6 +33,7 @@ namespace BuckRogersGenesis
         public Func<int> WaveInit;                            // the uninitialised stack word the ROM's search starts its wave counter from (see GenesisAi.FindPath)
         public System.Collections.Generic.List<string> Trace0;   // optional event log used by the tests (names of the ROM routines entered)
         public bool Enumerated;                               // the ROM's enumeration (0x15C2C) leaves its candidate counter in register d6, which the turn controller reuses (see RunTurn)
+        public bool TraceLof;
         void T(string n) { if (Trace0 != null) Trace0.Add(n); }
         public byte Mode97AE;                                 // [0x97AE]: party members are driven by the player (no automatic weapon choice)
         public byte D97DC;                                    // [0x97DC] option bits (bit 4: no explosive weapon use)
@@ -49,6 +50,7 @@ namespace BuckRogersGenesis
         /// 0x15B5A with the globals: [0xD504] (cleared afterwards) / [0xD4FF] as inputs, [0xD501..3] as outputs.
         public GenesisLineOfFire.Trace Trace(int x0, int y0, int x1, int y1, int range)
         {
+            if (TraceLof) T($"lof {x0 & 0xFFFF} {y0 & 0xFFFF} {x1 & 0xFFFF} {y1 & 0xFFFF} {range & 0xFFFF}");
             var t = GenesisLineOfFire.Run(S.Tiles, TerrainFlags, x0, y0, x1, y1, range, D504 != 0, D4FF != 0);
             D504 = 0;                                          // one-shot: the ROM clears it at the end of every trace (0x15C20)
             D501 = (byte)(t.Flag501 ? 0xFF : 0); D502 = (byte)(t.Flag502 ? 0xFF : 0); D503 = (byte)(t.Flag503 ? 0xFF : 0);

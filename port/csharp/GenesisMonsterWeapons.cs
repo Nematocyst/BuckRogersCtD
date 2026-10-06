@@ -12,9 +12,11 @@ namespace BuckRogersGenesis
         // ------------------------------------------------------------------------------------ 0x69C8 / 0x69DA
         /// Does creature `slot` have effect `effect`? Looks in the ten effect ids at record +0x43..+0x4C, then in the temporary effect list at [0xD49C]
         /// (32 entries of 3 bytes: slot, effect id, duration).
-        public bool HasEffect(int slot, int effect)
+        public bool HasEffect(int slot, int effect) { return HasEffectFor(slot, S.Records[S.Slots[slot][2]], effect); }
+
+        /// 0x69DA with explicit pieces: the temporary list is searched for `slot`, the permanent ids in `rec` (the ROM passes whichever record register a2 holds).
+        public bool HasEffectFor(int slot, byte[] rec, int effect)
         {
-            var rec = S.Records[S.Slots[slot][2]];
             for (int i = 0; i < 10; i++) if (rec[0x43 + i] == effect) return true;
             for (int k = 0; k < 32; k++)
             {
@@ -65,9 +67,7 @@ namespace BuckRogersGenesis
             return (int)(((uint)d2 * (uint)Tbl(id, 2)) & 0xFFFF);
         }
 
-        /// 0xEB50 in evaluation mode (area weapons): not ported yet.
-        public Func<int, int> AreaScoreHook;
-        int AreaScore(int itemOff) { if (AreaScoreHook == null) throw new NotImplementedException("area weapon evaluation (0xEB50)"); return AreaScoreHook(itemOff); }
+        int AreaScore(int itemOff) { return AreaEval(true, itemOff); }
 
         // ------------------------------------------------------------------------------------ 0xEA90
         static void SwapItems(byte[] rec, int a, int b) { for (int i = 0; i < 10; i++) { byte t = rec[a + i]; rec[a + i] = rec[b + i]; rec[b + i] = t; } }

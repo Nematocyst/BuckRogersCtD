@@ -374,14 +374,17 @@ namespace BuckRogersGenesis
 
         /// ROM 0x11638: range in cells of the attacker's primary weapon (weapon table +7; 1 for no weapon / unlimited markers); throwing-class weapons
         /// (modifier 5..12 except 10, 11) reach 12 cells when the attacker carries item 0x10 (grenade launcher).
-        public static int WeaponRange(AttackEnv env, int attacker, byte[] attRec)
+        public static int WeaponRange(AttackEnv env, int attacker, byte[] attRec) { return WeaponRange(env, attacker, attRec, 0xAE); }
+
+        /// 0x11630: the same for the item at record offset `itemOff`.
+        public static int WeaponRange(AttackEnv env, int attacker, byte[] attRec, int itemOff)
         {
             if (env.Mode97AE != 0 && attacker < 8) return 1;
-            int id = attRec[0xAE];
+            int id = attRec[itemOff];
             if (id == 0) return 1;
             int d2 = env.Rom.Byte(GenesisStats.WeaponTable + 8 * (sbyte)id + 7);
             if (d2 == 0 || d2 == 0xFF) return 1;
-            int mod = attRec[0xAE + 9];
+            int mod = attRec[itemOff + 9];
             if (mod >= 5 && mod <= 12 && mod != 10 && mod != 11)
             {
                 bool partyRecord = env.State.Slots[attacker][2] < 8;      // 0x76FA: with [0x97AE] set only monster records are searched

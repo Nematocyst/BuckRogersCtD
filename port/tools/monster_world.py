@@ -70,20 +70,26 @@ def load(m, w):
     m.write_ram(G0, bytes(w['g'])); m.write_ram(CA0, bytes(w['ca']))
     m.write_ram(0xD604, boot_table); m.write_ram(0xD804, bytes([w['idx']]))
     m.write_ram(0x6CAE, bytes(w.get('nav', bytes(0x100))))
+    if w.get('haz') is not None: m.write_ram(0x78CE, bytes(w['haz']))
+    if w.get('script') is not None:
+        m.write_ram(0xD100, bytes(w['script'])); m.write_ram(0xD814, struct.pack('>I', 0xFFFF0000 + 0xD100))
+    else: m.write_ram(0xD814, bytes(4))
+    m.write_ram(0x97DC, bytes([w.get('d97dc', 0)]))
 
 
 def snap(m, w):
     return dict(slots=[m.read_ram(SLOT + k * 26, 26).hex() for k in range(w['n'])], recsum=sum((i + 1) * b for i, b in enumerate(m.read_ram(REC, 11 * 0xD6))) & 0xFFFFFFFF, m97=m.ram_byte(0x97AE),
                 tiles=m.read_ram(0xCACA, 441).hex(), nav=m.read_ram(0x6CAE, 0x100).hex(), waves=getattr(m, 'waves', []), trace=getattr(m, 'trace', []), g=m.read_ram(G0, GN).hex(), ca=m.read_ram(CA0, CAN).hex(),
-                ridx=m.ram_byte(0xD804), rsum=sum(struct.unpack('>256H', m.read_ram(0xD604, 512))) & 0xFFFFFFFF)
+                haz=m.read_ram(0x78CE, 256).hex(), ridx=m.ram_byte(0xD804), rsum=sum(struct.unpack('>256H', m.read_ram(0xD604, 512))) & 0xFFFFFFFF)
 
 
 def pre(w):
     return dict(n=w['n'], recs=[bytes(r[:(214 if w.get('full') else 0x24)]).hex() for r in w['recs']], slots=[bytes(s).hex() for s in w['slots']], tiles=bytes(w['tiles']).hex(),
-                ft=bytes(w['ft']).hex(), g=bytes(w['g']).hex(), ca=bytes(w['ca']).hex(), idx=w['idx'], nav=bytes(w.get('nav', bytes(0x100))).hex())
+                ft=bytes(w['ft']).hex(), g=bytes(w['g']).hex(), ca=bytes(w['ca']).hex(), idx=w['idx'], nav=bytes(w.get('nav', bytes(0x100))).hex(),
+                haz=bytes(w['haz']).hex() if w.get('haz') is not None else '', script=bytes(w['script']).hex() if w.get('script') is not None else '', d97dc=w.get('d97dc', 0))
 
 
-UI_STUBS = (0x1B900, 0xE606, 0xCAEA, 0x75F8, 0x75FA, 0xCA7E, 0xAD5A, 0x9784, 0xDEE6, 0xDEC4, 0xDF08, 0xFA52, 0x98E4, 0xC3F0, 0xAD3E, 0x11C8E, 0x11C5A, 0x1343E, 0x1344A, 0x9240, 0x10FAA, 0x664E, 0xE5E6)
+UI_STUBS = (0x1B900, 0xE606, 0xCAEA, 0x75F8, 0x75FA, 0xCA7E, 0xAD5A, 0x9784, 0xDEE6, 0xDEC4, 0xDF08, 0xFA52, 0x98E4, 0xC3F0, 0xAD3E, 0x11C8E, 0x11C5A, 0x1343E, 0x1344A, 0x9240, 0x664E, 0xE5E6, 0xFEA8, 0x114D6, 0x11CA4)
 
 
 def machine(rom):
@@ -100,14 +106,21 @@ def machine(rom):
         m.waves.append(struct.unpack('>H', bytes(uc.mem_read(a6 - 0xC, 2)))[0])
     m.uc.hook_add(UC_HOOK_CODE, hook, begin=0x15D8E, end=0x15D8E)
     m.trace = []
-    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react'}
+    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround'}
+    from unicorn.m68k_const import UC_M68K_REG_D0, UC_M68K_REG_D1, UC_M68K_REG_D2, UC_M68K_REG_D3, UC_M68K_REG_D4
+    trace_lof = bool(os.environ.get('TRACE_LOF'))
     def thook(uc, address, size, user):
         if address in names: m.trace.append(names[address])
+        elif trace_lof and address == 0x15B5A:
+            m.trace.append('lof ' + ' '.join(str(uc.reg_read(r) & 0xFFFF) for r in (UC_M68K_REG_D0, UC_M68K_REG_D1, UC_M68K_REG_D2, UC_M68K_REG_D3, UC_M68K_REG_D4)))
     m.uc.hook_add(UC_HOOK_CODE, thook)
     return m
 
 
-def sane_record(rnd, party):
+EXPLOSIVES = [(33, 6), (35, 12), (36, 5), (37, 8), (38, 9), (17, 10), (18, 11), (33, 6), (36, 5), (38, 9)]   # item id, item type byte (+9) as the monster data has them
+
+
+def sane_record(rnd, party, fx=False):
     b = bytearray(214)
     b[0x10] = rnd.randrange(3, 19); b[0x11] = rnd.randrange(3, 19); b[0x12] = rnd.randrange(3, 19)
     b[0x18] = rnd.randrange(0, 5); b[0x19] = rnd.randrange(1, 12)
@@ -122,13 +135,20 @@ def sane_record(rnd, party):
     if rnd.random() < 0.8: b[0xAE] = rnd.choice([0, 1, 2, 4, 5, 6, 7, 9, 10, 11, 12, 13, 17, 18, 19])
     for i in range(10):
         if rnd.random() < 0.05: b[0x43 + i] = rnd.choice([0x14, 0x18, 3])
+    if fx:
+        b[0x15] = rnd.randrange(4, 16); b[0x3F] = rnd.choice([0, 1, 2, 3]); b[0x2F] |= rnd.choice([0, 0, 1])
+        if rnd.random() < 0.7:
+            iid, ty = rnd.choice(EXPLOSIVES); k = rnd.randrange(0, 5); o = 0x54 + 10 * k
+            b[o:o + 10] = bytes([iid, 0, 0, 0, rnd.choice([0, 0, 1]), rnd.choice([0, 0, 0x80, 0x40]), 0, 0x32, rnd.randrange(1, 9), ty])
+            if rnd.random() < 0.6: b[0xAE:0xAE + 10] = b[o:o + 10]
+        if rnd.random() < 0.2: b[0xC2 + 0] = 16 if rnd.random() < 0.5 else b[0xC2]     # a grenade launcher among the items stretches throwing range
     return b
 
 
-def sane_world(rnd, nmin=4, nmax=11):
+def sane_world(rnd, nmin=4, nmax=11, fx=False):
     """a believable fight: 2-4 party members, monsters, consistent map markers, sensible stats"""
     n = rnd.randrange(nmin, nmax); npar = rnd.randrange(1, min(5, n))
-    recs = [sane_record(rnd, r < 8) for r in range(11)]
+    recs = [sane_record(rnd, r < 8, fx) for r in range(11)]
     slots = []; taken = set()
     for k in range(n):
         sb = bytearray(26)
@@ -153,6 +173,33 @@ def sane_world(rnd, nmin=4, nmax=11):
         t = recs[sb[2]][0x23]; x, y = sb[0x12], sb[0x13]
         for (cx, cy) in [(x, y)] + ([(x + 1, y)] if t == 3 else []) + ([(x, y + 1)] if t == 2 else []):
             if cx < 21 and cy < 21: tiles[cy * 21 + cx] |= 0x80
+    haz = bytearray(256); script = None
+    if fx:
+        for k in range(rnd.choice([0, 0, 1, 2, 3])):                       # lingering patches already on the map (tile 0 / 1 over a saved original)
+            o = 16 * rnd.randrange(16)
+            if haz[o + 0xE]: continue
+            px, py = rnd.randrange(-1, 20), rnd.randrange(-1, 20); pid = rnd.choice([0, 1])
+            haz[o:o + 4] = struct.pack('>hh', px, py); haz[o + 0xE] = rnd.randrange(1, 6); haz[o + 0xF] = pid
+            n9 = 0
+            for dy in (2, 1, 0):
+                for dx in (2, 1, 0):
+                    cx, cy = px + dx, py + dy
+                    if 0 <= cx < 21 and 0 <= cy < 21 and rnd.random() < 0.85:
+                        haz[o + 4 + n9] = rnd.randrange(2, 8); tiles[cy * 21 + cx] = pid
+                    else: haz[o + 4 + n9] = 0xFF
+                    n9 += 1
+        if rnd.random() < 0.7:
+            script = bytearray(rnd.randrange(2, 9) for _ in range(256))
+            for i in range(0, 128, 2):
+                if rnd.random() < 0.25:
+                    script[i] = 0x80; script[i + 1] = rnd.randrange(256)
+                elif rnd.random() < 0.15:
+                    script[i] = 0x81; script[i + 1] = rnd.randrange(2, 256)
+                elif rnd.random() < 0.1:
+                    script[i] = rnd.randrange(0x82, 0x100)
+            for i in range(0, 128, 2):                                       # chains must end: the entry after an opcode, and everything above 0x7F, is a plain tile id
+                if script[i] >= 0x80: script[i + 2 if i + 2 < 256 else i] = rnd.randrange(2, 9)
+            for i in range(128, 256): script[i] = rnd.randrange(2, 9)
     ft = bytearray(129)
     for i in range(129): ft[i] = rnd.choice([0, 1, 1, 1, 2, 2, 3, 0x20, 0x40, 0x80, 0x01])
     g = bytearray(GN); ca = bytearray(CAN)
@@ -162,6 +209,6 @@ def sane_world(rnd, nmin=4, nmax=11):
     g[0xD496 - G0] = 1
     actor = rnd.randrange(npar, n)                            # a monster
     slots[actor][0] = 1
-    return dict(full=True, nav=nav, n=n, recs=recs, slots=slots, tiles=tiles, ft=ft, g=g, ca=ca, actor=actor, idx=rnd.randrange(256), npar=npar)
+    return dict(full=True, haz=haz if fx else None, script=script, d97dc=rnd.choice([0, 0, 0x10]) if fx else 0, nav=nav, n=n, recs=recs, slots=slots, tiles=tiles, ft=ft, g=g, ca=ca, actor=actor, idx=rnd.randrange(256), npar=npar)
 
 

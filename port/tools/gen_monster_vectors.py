@@ -668,6 +668,30 @@ for _ in range(N('loot', 400)):
     sn = snap(m, w); sn['d8ca'] = [5, 5]; sn['money'] = struct.unpack('>I', m.read_ram(0x9BD0, 4))[0]; sn['polls'] = [len(menus), len(qtys)]; sn['pool'] = m.read_ram(0x6AF6, 140).hex()
     cases.append(dict(fn='loot', pre=pr, a=a, range=0, mv=prompts, menu=menus, pad=qtys, qmax=qmaxs, post=sn))
 
+# ---- Y. 0x16EF0: the end of a scripted (starship) fight: the crew repairs the ship
+for _ in range(N('ship', 300)):
+    w = sane_world(rnd, nmin=4, nmax=10); n = w['n']
+    for r in w['recs']:
+        for i in range(14): r[0x31 + i] = rnd.choice([0, 0, 3, 8, 15, 30])
+        r[0x19] = rnd.randrange(1, 12)
+    for sb in w['slots']: sb[0] = rnd.choice([1, 1, 1, 0x81, 0x41, 1])
+    m = machine(rom, extra=(0x175E0, 0x862A, 0x8360, 0x171E0, 0x17270, 0x17368, 0x175BE, 0x17546, 0x176DC, 0x860E, 0x85D6), retreat=0)
+    ship = bytearray(0x30)
+    for off in (0, 2, 6):
+        mx = rnd.randrange(100, 700); cur = max(0, mx - rnd.choice([0, 0, rnd.randrange(0, 400)]))
+        ship[off] = mx >> 8; ship[off + 1] = mx & 255; ship[off + 0x24] = cur >> 8; ship[off + 0x25] = cur & 255
+    for k in range(4):
+        mx = rnd.randrange(0, 20); cur = max(0, mx - rnd.choice([0, 0, rnd.randrange(0, 12)])); a = 0x0C + 5 * k
+        ship[a + 1] = mx; ship[a + 2] = cur
+    load(m, w); w['ca'][0] = 0
+    m.write_ram(0x98F6, bytes(ship)); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0x97AE, b'\x00'); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xEE00, bytes(0x200))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]; pr['pool'] = bytes(ship).hex()
+    try: m.call(0x16EF0, max_insns=20_000_000)
+    except Exception as e: print('ship error', e, hex(m.reg('pc'))); continue
+    if m.reg('pc') != 0x00FFF000: continue
+    sn = snap(m, w); sn['d8ca'] = [5, 5]; sn['pool'] = m.read_ram(0x98F6, 0x30).hex(); sn['misc'] = [m.ram_byte(0x9BBC)]
+    cases.append(dict(fn='ship', pre=pr, a=0, range=0, post=sn))
+
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

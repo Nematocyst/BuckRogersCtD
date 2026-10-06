@@ -174,7 +174,7 @@ namespace BuckRogersGenesis
                 if (PoolCount != 0) { if (InventoryMenu != null && AskQuantity != null) ShareLoot(); LootScreen?.Invoke(); }
                 for (int i = 0xD57E; i < 0xD582; i++) Gs(i, 0);                                      // 0x16190
             }
-            if ((sbyte)Scripted9930 < 0) { ScriptedFightEnd?.Invoke(); Scripted9930 = 0; }
+            if ((sbyte)Scripted9930 < 0) { ShipRepair(); ScriptedFightEnd?.Invoke(); Scripted9930 = 0; }
             SavedMode = PrevMode;
             if (Scripted9858 != 0) Scripted9858 = 0;
             return false;

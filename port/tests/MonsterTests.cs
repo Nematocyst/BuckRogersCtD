@@ -47,7 +47,7 @@ static class MonsterTests
             var mine = (byte[])x.G.Clone(); var theirs = Hex(q.g);
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
             mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
-            if (ctx.StartsWith("retreat") || ctx.StartsWith("fight") || ctx.StartsWith("combat") || ctx.StartsWith("setup") || ctx.StartsWith("cleanup") || ctx.StartsWith("loot")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
+            if (ctx.StartsWith("retreat") || ctx.StartsWith("fight") || ctx.StartsWith("combat") || ctx.StartsWith("setup") || ctx.StartsWith("cleanup") || ctx.StartsWith("loot") || ctx.StartsWith("ship")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
             if (ctx.StartsWith("cleanup")) foreach (int a in new[] { 0xD5AB, 0xD5E2 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             foreach (int a in new[] { 0xD594, 0xD59C, 0xD59D, 0xD59E, 0xD59F, 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
                 mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
@@ -192,6 +192,15 @@ static class MonsterTests
                         Check(mi == c.post.polls[0] && qi == c.post.polls[1], $"menu / quantity prompts: {mi} {qi} vs ROM {c.post.polls[0]} {c.post.polls[1]} ({ctx})");
                         Check(x.Money == (uint)c.post.money, $"money {x.Money} vs ROM {c.post.money} ({ctx})");
                         Check(Same(x.Pool, Hex(c.post.pool)), $"loot pool differs [offset: port/ROM]: {Diff(x.Pool, Hex(c.post.pool), 0)} ({ctx})");
+                    }
+                    break;
+                case "ship":
+                    {
+                        x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.ContinuePrompt = () => 0;
+                        Array.Copy(Hex(c.pre.pool), x.Ship, 0x30);
+                        x.ShipRepair();
+                        Check(Same(x.Ship, Hex(c.post.pool)), $"ship table differs [offset: port/ROM]: {Diff(x.Ship, Hex(c.post.pool), 0)} ({ctx})");
+                        Check(x.S.CombatMode == c.post.misc[0], $"mode {x.S.CombatMode} vs ROM {c.post.misc[0]} ({ctx})");
                     }
                     break;
                 case "retreat":

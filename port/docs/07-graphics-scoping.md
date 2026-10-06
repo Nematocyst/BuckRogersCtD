@@ -32,6 +32,11 @@ Method: the ROM's own loaders (0x982A, 0x98E4, 0xCA7E) and the draw routine 0xCA
   4. *Area attacks* (0x112A0 loop): for each victim in turn, the same hit / death routines with a delay between.
   `TokenFrames.Aim / HitPose / Death / DeathTicks` encode this; the 0x75FA tick is the ROM's frame delay (about a sixtieth of a second per tick on NTSC, not measured).
 
+## Terrain art (traced and exported)
+* The battlefield ground is painted by ROM 0xFEF8 (called through 0xFEA8 when the view scrolls / starts): for every cell of the 21x21 tile map at 0xCACA the byte `& 0x7F` selects a **3x3-tile block** (block `id * 9` of the tilemap of the screen mode's tile piece, loaded by the fight screen builder 0x14D60 -> 0x8360) which is written to plane A at column x * 3, row y * 3 (palette lines 0-2 from colour memory). Bit 7 of the map byte is the creature marker and is ignored.
+* The art depends only on the screen mode (outdoor = [0x97DC] 0xA2, mode 4; indoor = 0xA8, mode 5): the screen builder produces identical plane / tile / colour memory for all 13 ground types of a mode (checked), the ground type only changes which ids the generator puts on the map. `tools/export_terrain.py` runs 0xFEF8 for every id 0-127 with a VDP model and writes one atlas per mode (16 x 8 ids of 24x24 px). Mode 4 is an alien jungle (plants, mushrooms, trees), mode 5 a rocky / desert set (checked by eye). Dungeon arenas (mode 6, the 0xB100 builder) use other pieces and are not exported.
+* Not exported: the 3-D wall pieces of mode 6, the area-dependent colour variants (if any: none seen), animated tiles.
+
 ## Viewer
 `BattleSequence` (csharp/unity, tested under mono: 127 attack sequences over 12 fights, start / end poses consistent with the boards) turns two consecutive board snapshots into the animation above; `CombatBoardView` plays it. Not drawn: projectile flight, sounds, the ROM's exact on-screen timing (ticks assumed 1/60 s).
 

@@ -15,6 +15,7 @@ static class AdapterTests
             var pids = setups[seed % 3]; var mids = new[] { 4 + seed % 5, 10 + seed % 3 };
             var a = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed % 11, out int w1);
             var b = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed % 11, out int w2);
+            if (seed <= 4) { var ind = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed, true, out int w3); if (ind.Count < 2 || !ind[0].Indoor || a[0].Indoor) { fails++; Console.WriteLine("FAIL: indoor fight seed " + seed); } }
             fights++; frames += a.Count; if (w1 == 1) party++;
             int attacks = 0;
             for (int k = 0; k + 1 < a.Count; k++)

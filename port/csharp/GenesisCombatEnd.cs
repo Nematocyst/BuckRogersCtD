@@ -117,8 +117,9 @@ namespace BuckRogersGenesis
             if (ContinuePrompt != null) ContinuePrompt(); else if (Pad != null) ChoicePrompt(2);
         }
 
-        /// 0x15FDA: the end of a fight (the caller has run CombatRounds).
-        public void CombatCleanup()
+        /// 0x15FDA: the end of a fight (the caller has run CombatRounds). Returns true when the party is lost for good (the ROM jumps to the game-over screen and never returns: the
+        /// rest of the clean-up is skipped). Note what does NOT count as lost: any creature with the party flag standing - allies that joined the fight included - and any party creature that fled.
+        public bool CombatCleanup()
         {
             T("cleanup");
             FledMask = 0; GroupMask = 0;
@@ -154,7 +155,7 @@ namespace BuckRogersGenesis
                 }
                 for (int i = 7; i >= 0; i--)
                     if (i < S.SlotCount && S.Slots[i][0] != 0) GenesisStats.RecomputeSlot(Rom, S.Slots[i], S.Records[i], Gb(A49A), Gb(A499), Mode97AE != 0);
-                if (!anyParty) { GameOver?.Invoke(); return; }
+                if (!anyParty) { GameOver?.Invoke(); return true; }                                  // 0x160D8: nobody standing or fled: the game is over (the ROM jumps and never comes back)
                 if (!anyUp)
                 {
                     Flag9DBD = 0xFF;
@@ -174,6 +175,7 @@ namespace BuckRogersGenesis
             if ((sbyte)Scripted9930 < 0) { ScriptedFightEnd?.Invoke(); Scripted9930 = 0; }
             SavedMode = PrevMode;
             if (Scripted9858 != 0) Scripted9858 = 0;
+            return false;
         }
     }
 }

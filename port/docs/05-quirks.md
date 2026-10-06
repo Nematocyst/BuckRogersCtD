@@ -12,3 +12,4 @@ Found by the tests (a difference that survived a careful reading is usually a re
 * **Battlefield generator**: the random radius is a divide by the signed byte 0x81, and the square root can run on a negative number.
 * **Manual turn**: two frame variables (explosive-in-hand flag, target index) are uninitialised stack in the ROM; the port starts them at 0.
 * **AI turns read the pad**: pressing cancel during a computer turn hands the party to the player.
+* **Party wipe is not the same as game over**: the clean-up declares the game lost (ROM 0x160D8) only when no creature with the party flag is standing and none fled. Allies that joined a fight (flag bit 6, party flag set - e.g. in the scripted fights where an NPC joins) and party members that fled the map both count as survivors, so a fight can end with every player character down and still not be a game over. The port's `CombatCleanup()` returns true only for the real game-over case.

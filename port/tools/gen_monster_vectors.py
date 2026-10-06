@@ -91,7 +91,8 @@ for _ in range(N('turn', 1500)):
     sa[0] = 1; sa[0x14] = rnd.choice([2, 2, 2, 1, 3]); sa[1] &= ~0x04; sa[0x16] = rnd.randrange(0, 14)
     if rnd.random() < 0.7: sa[1] |= 0x80                       # computer controlled (every monster has it)
     if rnd.random() < 0.5: sa[1] &= ~0x10
-    w['recs'][sa[2]][0x32] = 0; w['recs'][sa[2]][0x3B] = 0
+    if rnd.random() < 0.5: w['recs'][sa[2]][0x32] = 0; w['recs'][sa[2]][0x3B] = 0
+    else: w['recs'][sa[2]][0x32] = rnd.choice([0, 2, 6]); w['recs'][sa[2]][0x3B] = rnd.choice([4, 10, 16])
     if rnd.random() < 0.3: sa[0x17] = 0xFF
     w['ca'][0] = a; w['g'][0xD505 - G0] = 0; w['g'][0xD496 - G0] = 1
     load(m, w)
@@ -193,6 +194,42 @@ for _ in range(N('beginturn', 800)):
     m.call(0xE4F0, max_insns=40_000_000, d5=0, d7=0, d3=0, d6=0)
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
     cases.append(dict(fn='beginturn', pre=pr, a=a, range=0, post=sn))
+
+# ---- N. 0x10200: a party creature with healing skill goes to a fallen friend and treats it
+def healer_world(rnd):
+    w = sane_world(rnd, nmin=5, nmax=11, effects=rnd.random() < 0.3); n = w['n']; npar = w['npar']
+    if npar < 2: return None
+    a = rnd.randrange(npar); w['actor'] = a; sa = w['slots'][a]; rec = w['recs'][sa[2]]
+    sa[0] = 1; sa[1] = (sa[1] | 1) & ~0x04; sa[0x14] = 2
+    rec[0x32] = rnd.choice([0, 0, 1, 3, 6, 12]); rec[0x3B] = rnd.choice([0, 3, 8, 14, 20]); rec[0x19] = rnd.randrange(1, 12)
+    for i in range(0x31, 0x3F):
+        if i not in (0x32, 0x3B) and rnd.random() < 0.3: rec[i] = rnd.randrange(0, 20)
+    downed = [k for k in range(npar) if k != a]
+    for k in downed:
+        if rnd.random() < 0.7: w['slots'][k][0] = rnd.choice([0x83, 0x84, 0x83]); w['slots'][k][0xE] = 0
+    for r in range(8): w['recs'][r][0x2E] = rnd.randrange(8, 60)
+    w['g'][0xD50A - G0] = rnd.choice([0, 0, rnd.randrange(256)])
+    return w
+
+
+for _ in range(N('rescue', 600)):
+    w = healer_world(rnd)
+    if w is None: continue
+    m = machine(rom); a = w['actor']; sa = w['slots'][a]
+    # markers must follow the statuses (down creatures leave the map markers)
+    for i in range(441): w['tiles'][i] &= 0x7F
+    for sb in w['slots']:
+        st = sb[0]
+        if st == 0 or (st & 0xC0) or (sb[1] & 4): continue
+        t = w['recs'][sb[2]][0x23]; x, y = sb[0x12], sb[0x13]
+        for (cx, cy) in [(x, y)] + ([(x + 1, y)] if t == 3 else []) + ([(x, y + 1)] if t == 2 else []):
+            if cx < 21 and cy < 21: w['tiles'][cy * 21 + cx] |= 0x80
+    w['ca'][0] = a; w['g'][0xD505 - G0] = 0; w['g'][0xD496 - G0] = 1
+    load(m, w); m.write_ram(0x97AE, b'\x00'); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5]))
+    pr = pre(w); pr['m97'] = 0; pr['mode'] = 2; pr['d8ca'] = [5, 5]
+    m.call(0x10200, max_insns=30_000_000, a3=RAM_BASE + SLOT + a * 26, a2=RAM_BASE + REC + sa[2] * 0xD6, d7=0, d3=0)
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
+    cases.append(dict(fn='rescue', pre=pr, a=a, range=0, post=sn))
 
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))

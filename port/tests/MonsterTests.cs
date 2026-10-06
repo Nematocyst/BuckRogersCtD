@@ -45,6 +45,7 @@ static class MonsterTests
         {   // [0xD51A..B] is the projectile animation's sprite scratch (written when a creature is moved by a blast): not game state
             var mine = (byte[])x.G.Clone(); var theirs = Hex(q.g);
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
+            mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
             Check(Same(mine, theirs), $"globals differ [address: port/ROM]: {Diff(mine, theirs, TurnContext.GBase)} ({ctx})");
         }
         { var nv = Hex(q.nav); var mine = new byte[0x34]; var theirs = new byte[0x34]; Array.Copy(x.Nav, mine, 0x34); Array.Copy(nv, theirs, 0x34); Check(Same(mine, theirs), $"path buffer differs [address: port/ROM]: {Diff(mine, theirs, 0x6CAE)} ({ctx})"); }
@@ -84,6 +85,7 @@ static class MonsterTests
                     Check(x.MoveDx == c.post.mv[0] && x.MoveDy == c.post.mv[1], $"step after {x.MoveDx},{x.MoveDy} vs ROM {c.post.mv[0]},{c.post.mv[1]} ({ctx})");
                     break;
                 case "nav": x.Navigate(); break;
+                case "rescue": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; StartTrace(x); x.AllyRescue(); break;
                 case "stage": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; x.Stage(c.range, c.mv[0]); break;
                 case "beginturn": x.S.CombatMode = c.pre.mode; x.S.LivingBySide[0] = c.pre.d8ca[0]; x.S.LivingBySide[1] = c.pre.d8ca[1]; StartTrace(x); x.BeginTurn();
                     { var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace)); Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})"); if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace.txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0)); }

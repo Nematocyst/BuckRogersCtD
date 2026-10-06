@@ -337,7 +337,7 @@ namespace BuckRogersGenesis
             var me = S.Slots[Actor];
             moving = false; turnShown = false; Enumerated = false;
             TakeoverRequested();
-            if ((me[1] & 1) != 0) { /* 0x10200: a party creature may first go to a fallen friend */ AllyRescueCheck(); }
+            if ((me[1] & 1) != 0) { /* 0x10200: a party creature may first go to a fallen friend */ AllyRescue(); }
             if (me[0x14] == 0) { Finish(); return; }
             bool waited = me[0x14] == 1;
             if (waited) me[0x17] = 0xFF;
@@ -406,13 +406,12 @@ namespace BuckRogersGenesis
 
         void Finish() { EndMotion(); }
 
-        /// 0x10200 / 0xF28A / 0xF22C: a party creature with healing skill (record +0x32 or +0x3B) first looks for fallen friends: party creatures with status 0x83
-        /// (dying), or 0x84 when the healer is skilled in +0x32 and the friend is not yet in the mask [0xD50A]. The list is left at [0xCA22] / [0xD506].
-        /// Going to the friend and treating it (0x1021E) is not ported: throws when a friend is found.
-        void AllyRescueCheck()
+        /// 0xF28A / 0xF22C: does a party creature with healing skill (record +0x32 or +0x3B) have a fallen friend to help? The candidates (party creatures with status 0x83
+        /// (dying), or 0x84 when the healer has skill points in +0x32 and the friend is not yet in the mask [0xD50A]) are left at [0xCA22] / [0xD506].
+        bool AllyRescueCheck()
         {
             var me = S.Slots[Actor]; var rec = S.Records[me[2]];
-            if ((me[1] & 1) == 0 || (rec[0x32] == 0 && rec[0x3B] == 0)) return;
+            if ((me[1] & 1) == 0 || (rec[0x32] == 0 && rec[0x3B] == 0)) return false;
             int d4 = rec[0x32], n = 0;
             for (int i = 0; i < 8 && i < S.SlotCount; i++)
             {
@@ -426,7 +425,79 @@ namespace BuckRogersGenesis
                 Ca[2 + 3 * n++] = (byte)i;
             }
             D506 = (byte)n;
-            if (n != 0) throw new NotSupportedException("ally rescue by party creatures (ROM 0x1021E) is not ported");
+            return n != 0;
+        }
+
+        /// 0x10200: the first fallen friend becomes the target; the creature walks to it along the shortest path (mode 2 of the search) and treats it.
+        public void AllyRescue()
+        {
+            if (!AllyRescueCheck()) return;
+            S.Slots[Actor][0x17] = Ca[2];
+            Gs(0xD505, 2); Rescue(); Gs(0xD505, 0);
+        }
+
+        /// 0x1039E: is the target (+0x17) within one cell of the current actor?
+        bool TargetAdjacent()
+        {
+            var me = S.Slots[Actor]; int t = (sbyte)me[0x17];
+            if (t < 0 || t >= S.SlotCount) return false;
+            var v = S.Slots[t];
+            return (byte)(v[0x12] - me[0x12] + 1) <= 2 && (byte)(v[0x13] - me[0x13] + 1) <= 2;
+        }
+
+        static readonly int[] Dx9 = { 0, 1, 1, 1, 0, -1, -1, -1, 0 }, Dy9 = { -1, -1, 0, 1, 1, 1, 0, -1, 0 };    // 0x146E0 / 0x146EB incl. entry 8 (the cell itself)
+
+        /// 0x1021E: walk to the fallen friend; once next to it the creature spends its turn: without healing skill points (+0x32) a first-aid check (skill 10) must reach 2;
+        /// then the friend is stabilised (status 0x84, HP 0) and - unless it was already revived in this fight ([0xD50A] bit of its record) - a medicine check (skill 1, result - 2,
+        /// times 4, plus the healer's +0x32 points; at most the friend's maximum HP) brings it back on its feet on the nearest free cell around it.
+        void Rescue()
+        {
+            T("rescue");
+            var me = S.Slots[Actor]; var rec = S.Records[me[2]];
+            bool moved = false, shown = false;
+            Navigate(); int pi = 2;
+            if ((sbyte)Nav[pi] >= 0)
+                while (true)
+                {
+                    if (TargetAdjacent()) break;
+                    int dir = (sbyte)Nav[pi++];
+                    if (dir < 0) break;
+                    if (!moved)
+                    {
+                        if (!shown) { shown = true; MoveDx = 0; MoveDy = 0; GenesisStats.RecomputeSlot(Rom, me, rec, Gb(A49A), Gb(A499), Mode97AE != 0); Gs(0xD508, 0xFF); }
+                        S.ClearMarkers(Actor); me[1] |= 4; Gs(A510, 0xFF); moved = true;                  // 0xF9A6
+                    }
+                    MoveDx = Dx9[dir]; MoveDy = Dy9[dir];
+                    int r = MoveStep();
+                    if (r < 0) return;
+                    if (r == 0) break;
+                }
+            me[1] &= 0xFB; S.SetMarkers(Actor); moving = false;                                          // 0xFA22 (also when it never moved)
+            if ((sbyte)me[0] < 0) return;
+            if (!TargetAdjacent()) return;
+            me[0x14] = 0;
+            int t = me[0x17]; var v = S.Slots[t];
+            int skillFlags = S.Slots[me[2]][0];
+            if (rec[0x32] == 0 && GenesisSkills.SkillCheck(Rom, Rng, rec, skillFlags, 0xA, 2) < 2) return;
+            v[0xE] = 0; v[0] = 0x84;
+            if (((Gb(0xD50A) >> (v[2] & 7)) & 1) != 0) return;
+            int d0 = (GenesisSkills.SkillCheck(Rom, Rng, rec, skillFlags, 1, 2) - 2) & 0xFF;
+            if ((sbyte)d0 < 0) return;
+            d0 = (d0 << 2) & 0xFF; d0 = (d0 + rec[0x32]) & 0xFF;
+            v[0xE] = (byte)d0;
+            var vrec = S.Records[v[2]];
+            if (vrec[0x2E] < v[0xE]) v[0xE] = vrec[0x2E];
+            for (int d4 = 8; d4 >= 0; d4--)
+            {
+                int x = (v[0x12] + Dx9[d4]) & 0xFF, y = (v[0x13] + Dy9[d4]) & 0xFF;
+                int tile; int occ = CellInfo(x, y, out tile);
+                if (occ < 0x80) continue;
+                if ((TerrainByte(tile) & 0x20) != 0) continue;
+                v[0] = 1; v[0x12] = (byte)x; v[0x13] = (byte)y;
+                S.RebuildMarkers();
+                G[0xD50A - GBase] |= (byte)(1 << (v[2] & 7));
+                return;
+            }
         }
     }
 }

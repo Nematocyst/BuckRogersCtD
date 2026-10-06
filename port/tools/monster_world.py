@@ -89,7 +89,7 @@ def pre(w):
                 haz=bytes(w['haz']).hex() if w.get('haz') is not None else '', script=bytes(w['script']).hex() if w.get('script') is not None else '', d97dc=w.get('d97dc', 0))
 
 
-UI_STUBS = (0x1B900, 0xE606, 0xCAEA, 0x75F8, 0x75FA, 0xCA7E, 0xAD5A, 0x9784, 0xDEE6, 0xDEC4, 0xDF08, 0xFA52, 0x98E4, 0xC3F0, 0xAD3E, 0x11C8E, 0x11C5A, 0x1343E, 0x1344A, 0x9240, 0xE5E6, 0xFEA8, 0x114D6, 0x11CA4)
+UI_STUBS = (0x1B900, 0xE606, 0xCAEA, 0x75F8, 0x75FA, 0xCA7E, 0xAD5A, 0x9784, 0xDEE6, 0xDEC4, 0xDF08, 0xFA52, 0x98E4, 0xC3F0, 0xAD3E, 0x11C8E, 0x11C5A, 0x1343E, 0x1344A, 0x9240, 0xE5E6, 0xFEA8, 0x114D6, 0x11CA4, 0xAC9C)
 
 
 def machine(rom):
@@ -98,6 +98,7 @@ def machine(rom):
     for a in UI_STUBS: m.stub_rts(a)
     m.stub_ret(0x136DA, 1)                                  # the "leave the battlefield?" prompt: answer no
     m.set_reg('a4', 0xC00004); m.set_reg('a5', 0xC00000)
+    m.call(0xF28E, max_insns=100, a3=RAM_BASE + SLOT, a2=RAM_BASE + REC)       # priming run: Unicorn aborts when its first translated block is the btst at 0xF28A
     m.waves = []                                            # the stack garbage 0x15D8A starts its wave counter from, one entry per search
     from unicorn import UC_HOOK_CODE
     from unicorn.m68k_const import UC_M68K_REG_A6
@@ -110,7 +111,7 @@ def machine(rom):
     def d2hook(uc, address, size, user): m.d2s.append((uc.reg_read(UC_M68K_REG_D2) >> 8) & 0xFF)
     m.uc.hook_add(UC_HOOK_CODE, d2hook, begin=0x11630, end=0x11630)
     m.uc.hook_add(UC_HOOK_CODE, d2hook, begin=0x11638, end=0x11638)
-    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround', 0xE4F0: 'turn'}
+    names = {0xE812: 'select', 0xE89C: 'weapon', 0x15D8A: 'nav', 0xF898: 'step', 0xF0E2: 'attack', 0x10400: 'prep', 0x1074A: 'exec', 0xF1A2: 'end', 0x15C2C: 'enum', 0x11A44: 'react', 0xEB50: 'eb50', 0x10FAA: '10faa', 0x15C54: 'enumAround', 0xE4F0: 'turn', 0x1021E: 'rescue'}
     from unicorn.m68k_const import UC_M68K_REG_D0, UC_M68K_REG_D1, UC_M68K_REG_D2, UC_M68K_REG_D3, UC_M68K_REG_D4
     trace_lof = bool(os.environ.get('TRACE_LOF'))
     def thook(uc, address, size, user):

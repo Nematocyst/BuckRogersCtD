@@ -131,8 +131,17 @@ Quirks of the original that the port reproduces (found by the differential tests
 * the weapon choice tests the actor's tile at index x*21+y (everything else uses y*21+x) and reads the *actor's* record flags where it looks at the target;
 * the damage list overlaps the multiplier [0xD496], the damage scratch [0xD497] and the monsters' attack modifier [0xD499] when an attack round hits 9 or more times.
 
-Not ported (the ROM test replaces them by empty routines, so these are the known gaps): **party creatures that go to help a fallen friend** (0x10200/0x1021E) - throws when a friend is found; **manually played turns** (0xF2AE; `BeginTurn` throws for a creature without the computer-control flag 0x80);
+Not ported (the ROM test replaces them by empty routines, so these are the known gaps): **manually played turns** (0xF2AE; `BeginTurn` throws for a creature without the computer-control flag 0x80);
 the screen, sound and animation routines (assumed to have no effect on the game state, except the projectile animation's sprite scratch [0xD51A/B], which the test ignores); the "leave the battlefield?" prompt (0x136DA, `RetreatPrompt`).
+
+### Healer rescue - `TurnContext.AllyRescue` (ROM 0x10200, 0x1021E, 0xF28A, 0xF22C)
+
+A computer-controlled party creature with healing skill (record +0x32 or +0x3B non-zero) looks, at the start of its turn, for fallen friends: party creatures with status 0x83 (dying), or 0x84
+(unconscious) when the healer has skill points in +0x32 and the friend is not yet in the revived mask [0xD50A]. The first becomes its target and it walks to it (the path search in mode 2), every step costing
+movement and drawing reactions. Next to the friend the creature spends its whole turn: without +0x32 points a first-aid check (skill 10) must reach 2; then the friend is stabilised (status 0x84, HP 0) and,
+unless it was already revived in this fight, a medicine check (skill 1: result - 2, times 4, plus the healer's +0x32 points, at most the friend's maximum HP) puts it back on its feet on the nearest free passable cell
+around it, and its bit is set in [0xD50A]. Revival does not touch the living counters. If the way is blocked or the friend is not reached the creature carries on with a normal turn with the fallen friend as stale target.
+383 cases verified (225 + the party turns of the whole-turn tests); the text colour [0xD5AC] of the messages is ignored by the test.
 
 ### Special-effect hooks - `GenesisEffects.cs`
 

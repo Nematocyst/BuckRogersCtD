@@ -10,7 +10,7 @@ namespace BuckRogersGenesis
     {
         public int Round, Actor;
         public byte[] Tiles;
-        public int[] X, Y, Hp, Side, Status, Id;
+        public int[] X, Y, Hp, Side, Status, Id, Facing, Size;   // Facing = slot byte +0x10 (0..7), Size = record size type (1 normal, 2 tall, 3 wide)
     }
 
     public static class AutoBattle
@@ -47,10 +47,10 @@ namespace BuckRogersGenesis
         static BattleFrame Snap(TurnContext x)
         {
             var s = x.S; int n = s.SlotCount;
-            var f = new BattleFrame { Round = x.Round, Actor = x.Actor, Tiles = (byte[])s.Tiles.Clone(), X = new int[n], Y = new int[n], Hp = new int[n], Side = new int[n], Status = new int[n], Id = new int[n] };
+            var f = new BattleFrame { Round = x.Round, Actor = x.Actor, Tiles = (byte[])s.Tiles.Clone(), X = new int[n], Y = new int[n], Hp = new int[n], Side = new int[n], Status = new int[n], Id = new int[n], Facing = new int[n], Size = new int[n] };
             for (int i = 0; i < n; i++)
             {
-                var sl = s.Slots[i]; f.X[i] = sl[0x12]; f.Y[i] = sl[0x13]; f.Hp[i] = sl[0xE]; f.Side[i] = sl[1] & 1; f.Status[i] = sl[0]; f.Id[i] = s.Records[sl[2]][0x42];
+                var sl = s.Slots[i]; f.X[i] = sl[0x12]; f.Y[i] = sl[0x13]; f.Hp[i] = sl[0xE]; f.Side[i] = sl[1] & 1; f.Status[i] = sl[0]; f.Id[i] = s.Records[sl[2]][0x42]; f.Facing[i] = sl[0x10] & 7; f.Size[i] = s.Records[sl[2]][0x23];
             }
             return f;
         }

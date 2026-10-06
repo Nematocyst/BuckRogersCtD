@@ -16,6 +16,8 @@ namespace BuckRogersGenesis
         public byte FledMask;                     // [0xD8DA]: party members that fled (bit per slot)
         public byte Flag9DBD;                     // [0x9DBD]: 0x80 = the player's solo creature was knocked out, 0xFF = the party was wiped out
         public byte Scripted9858, Scripted9930, Scripted9927, Scripted9924;   // scripted-fight flags: bonus experience table index [0x9924]
+        /// A solo fight (a single party member sent to fight alone, [0xBA5B]) that the member lost: the story script reads this, there is no game over because the others never took part.
+        public bool SoloMemberLost { get { return Flag9DBD == 0x80; } }
         public byte SavedMode;                    // [0xBA5E]: the game mode to return to
         public Action GameOver, Aftermath, LootScreen, ScriptedFightEnd;   // 0x7588, 0x16B96, 0x165A0, 0x16EF0: the host's
 

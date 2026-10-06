@@ -57,7 +57,8 @@ static class CombatTests
         int turns = args.Length > 3 ? TurnTests.Run(args[3], rom) : 0;
         int ai = args.Length > 4 ? AiTests.Run(args[4], rom) : 0;
         int act = args.Length > 5 ? ActionTests.Run(args[5], rom) : 0;
-        return (fails == 0 ? 0 : 1) | dmg | prog | tally | turns | ai | act;
+        int mon = args.Length > 6 ? MonsterTests.Run(args[6], rom) : 0;
+        return (fails == 0 ? 0 : 1) | dmg | prog | tally | turns | ai | act | mon;
     }
 }
 

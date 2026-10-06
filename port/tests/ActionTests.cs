@@ -3,6 +3,7 @@ using System.IO;
 using BuckRogersGenesis;
 
 [Serializable] public class WoundCase { public string[] slots; public int[] rectypes; public string tiles, tiles_after, after; public int v, dmg, mode, n; public int[] d8ca, d8ca_after; }
+[Serializable] public class EntryCase { public string[] slots, after; public int[] rectypes, lst, d8ca, d8ca_after; public string tiles, tiles_after; public int v, idx, count, flag48, vnull, mode, n, f40, b900, e606, cae; }
 [Serializable] public class LofCase { public string tiles, ft; public int x0, y0, x1, y1, rng, d504, d4ff, d504_after; public int[] @out, f; }
 [Serializable] public class StatCase { public string slot, rec, slot_after; public int ridx, d499, d49a, m97, flags2f; }
 [Serializable] public class PrepOut { public int d511, d518, d496, d512, d513; }
@@ -10,7 +11,7 @@ using BuckRogersGenesis;
 {
     public int n, att, tgt, m97, d4ff, d499, d49a, cx, cy, d496, d4fd; public string[] slots, recs, after_slots; public string tiles, ft; public PrepOut @out; public int[] flags2f;
 }
-[Serializable] public class ActionVectors { public WoundCase[] wound; public LofCase[] lof; public StatCase[] stats; public PrepCase[] prep; }
+[Serializable] public class ActionVectors { public WoundCase[] wound; public LofCase[] lof; public StatCase[] stats; public PrepCase[] prep; public EntryCase[] entry; }
 
 static class ActionTests
 {
@@ -35,6 +36,23 @@ static class ActionTests
             Check(st.LivingBySide[0] == c.d8ca_after[0] && st.LivingBySide[1] == c.d8ca_after[1], $"living counters ({ctx})");
             var ta = Hex(c.tiles_after); bool tsame = true; for (int i = 0; i < ta.Length; i++) if (st.Tiles[i] != ta[i]) tsame = false;
             Check(tsame, $"map markers ({ctx})");
+        }
+        foreach (var c in v.entry)
+        {
+            var st = new CombatState { SlotCount = c.n, Slots = new byte[c.n][], Tiles = Hex(c.tiles), CombatMode = c.mode };
+            for (int i = 0; i < c.n; i++) st.Slots[i] = Hex(c.slots[i]);
+            for (int i = 0; i < 11; i++) st.RecordSizeType[i] = c.rectypes[i];
+            st.LivingBySide[0] = c.d8ca[0]; st.LivingBySide[1] = c.d8ca[1];
+            st.ApplyDamageEntry(c.vnull != 0 ? -1 : c.v, B(c.lst), c.idx, c.count, c.flag48 != 0, out bool cue, out bool applied);
+            string ctx = $"entry {c.lst[c.idx]} count={c.count} melee={c.flag48} victim {c.v} null={c.vnull}";
+            bool same = true;
+            for (int k = 0; k < c.n; k++) { var a = Hex(c.after[k]); for (int i = 0; i < 26; i++) if (st.Slots[k][i] != a[i]) same = false; }
+            Check(same, $"slots differ from ROM ({ctx})");
+            Check(st.LivingBySide[0] == c.d8ca_after[0] && st.LivingBySide[1] == c.d8ca_after[1], $"living counters ({ctx})");
+            var ta = Hex(c.tiles_after); bool tsame = true; for (int i = 0; i < ta.Length; i++) if (st.Tiles[i] != ta[i]) tsame = false;
+            Check(tsame, $"map markers ({ctx})");
+            Check(cue == (c.b900 != 0), $"hit cue {cue} vs ROM {c.b900} ({ctx})");
+            Check(applied == (c.e606 != 0), $"applied {applied} vs ROM {c.e606} ({ctx})");
         }
         foreach (var c in v.lof)
         {

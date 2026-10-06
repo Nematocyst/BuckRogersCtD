@@ -147,5 +147,38 @@ for n in range(400):
                      after_slots=after_slots, flags2f=[m.ram_byte(0xBA68 + r * 0xD6 + 0x2F) for r in range(11)]))
 out['prep'] = prep
 
+# ---- E. damage entry application 0x10E3E (one entry of the damage list d48e[idx] against the victim, inside the attack-animation frame)
+entry = []
+for n in range(600):
+    m = Machine(rom)
+    stub_b900 = m.stub_rts(0x1B900); stub_e606 = m.stub_rts(0xE606); stub_cae = m.stub_rts(0xCAEA)
+    nslots = rnd.randrange(3, 20)
+    slots = []
+    for k in range(nslots):
+        sb = bytearray(rnd.randrange(256) for _ in range(26))
+        sb[0] = rnd.choice([0x01, 0x01, 0x01, 0x01, 0x81, 0x11, 0x05, 0x41, 0x00])
+        sb[1] = rnd.choice([0x00, 0x01, 0x10, 0x11, 0x04])
+        sb[2] = k if k < 8 else 8 + rnd.randrange(3)
+        sb[0x12] = rnd.randrange(21); sb[0x13] = rnd.randrange(21)
+        sb[0xE] = rnd.choice([1, 5, 12, 30, 60, rnd.randrange(256)])
+        m.write_ram(0xC470 + k * 26, bytes(sb)); slots.append(list(sb))
+    rectypes = [rnd.choice([0, 0, 1, 2, 3, 4]) for _ in range(11)]
+    for r in range(11): m.write_ram(0xBA68 + r * 0xD6 + 0x23, bytes([rectypes[r]]))
+    tiles = [rnd.randrange(256) for _ in range(441)]; m.write_ram(0xCACA, bytes(tiles))
+    v = rnd.randrange(nslots); hp = slots[v][0xE]
+    lst = [rnd.choice([0, 1, 7, 20, 60, 100, 127, 128, 129, 200, 255, hp, hp + 5, hp + 20, rnd.randrange(256)]) & 0xFF for _ in range(12)]
+    idx = rnd.randrange(12); count = rnd.choice([0, 1, 2, 5, 12]); flag48 = rnd.choice([0, 1]); vnull = rnd.random() < 0.05
+    mode = rnd.choice([0, 2, 2, 5]); d8ca = [rnd.randrange(256), rnd.randrange(256)]
+    m.write_ram(0x9BBC, bytes([mode])); m.write_ram(0xD8CA, bytes(d8ca)); m.write_ram(0xBA64, struct.pack('>H', nslots))
+    m.write_ram(0xD48E, bytes(lst))
+    a6 = RAM_BASE + 0xE000
+    m.write_ram(0xE000 - 0x1C, struct.pack('>H', count)); m.write_ram(0xE000 - 0x48, bytes([flag48])); m.write_ram(0xE000 - 0x40, b'\x00')
+    m.write_ram(0xE000 - 0x42, struct.pack('>H', idx)); m.write_ram(0xE000 - 0xC, struct.pack('>I', 0 if vnull else 0xFFFF0000 + 0xC470 + v * 26))
+    m.call(0x10E3E, a6=a6)
+    entry.append(dict(slots=[bytes(x).hex() for x in slots], rectypes=rectypes, tiles=bytes(tiles).hex(), v=v, lst=lst, idx=idx, count=count, flag48=flag48, vnull=int(vnull),
+                      mode=mode, d8ca=d8ca, n=nslots, after=[m.read_ram(0xC470 + k * 26, 26).hex() for k in range(nslots)], d8ca_after=list(m.read_ram(0xD8CA, 2)),
+                      tiles_after=bytes(m.read_ram(0xCACA, 441)).hex(), f40=m.ram_byte(0xE000 - 0x40), b900=len(stub_b900), e606=len(stub_e606), cae=len(stub_cae)))
+out['entry'] = entry
+
 json.dump(out, open(sys.argv[2], 'w'), separators=(',', ':'))
 print({k: len(v) for k, v in out.items()})

@@ -97,6 +97,10 @@ move choice, spells and abilities), the `ad5a`-style animations, the remaining u
 | `CombatState.ApplyDamage` | 0x760A | wound model: damage >= HP sets HP 0 and status 0x82 (down). |
 
 Slot field corrections: slot +0x0E = HP, +0x0F = movement, **+0x16 = movement points for the round** (= movement*2 at round start), not HP*2.
-Damage-list entries >= 128 (including the 0xFF "full damage" marker) are skipped by the HP-application loop at 0x10E3E; where they are resolved is still open.
+**Damage list, resolved (ROM 0x107E8 -> 0x10804 -> 0x10E3E).** Each attack stores one byte per attack into the list at 0xD48E (damage after the stage-5 effect hooks, which end with the clamp-to-HP effect 0x6742; the rocket-weakness special then overwrites it with 0xFF). `0x10E3E` applies an entry with `move.b (a1,d2.w),d2 / ble`, i.e. as a *signed* byte, so every entry of 0 or 128..255 is ignored for HP. Consequences, all verified against the ROM (`CombatState.ApplyDamageEntry`, 600 cases):
+* The 0xFF "full damage" result of the rocket special never kills or hurts anyone in the original; 0xFF is only checked by the projectile animation (0x10CBC, the missile homes in on its target). `ResolveAttack` still reports it because the RNG draws happen.
+* A normal hit of 128+ is also dropped (reachable only when the victim has 128+ HP, since the clamp hook limits damage to HP).
+* The victim must be alive (status byte non-zero, bits 6/7 clear); the hit sound (0x1B900) is requested for ranged attacks only.
+This is almost certainly a bug in the original game, not a design. The port reproduces it so recorded fights stay identical; if you want the intended behaviour in Unity, treat 0xFF as "damage = current HP" and entries as unsigned.
 
 Not yet ported: the monster turn controller 0xEF64 and callees (weapon choice 0xE89C, movement step/cost 0xF898/0xF842, opportunity attacks 0x11A44, animation). Known: attacking ends the turn (clears +0x14), "wait" is time=1, step cost = terrain flags & 0x1F compared with +0x16.

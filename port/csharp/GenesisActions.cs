@@ -79,6 +79,25 @@ namespace BuckRogersGenesis
                 ClearMarkers(victim);
             }
         }
+
+        /// <summary>
+        /// ROM 0x10E3E: applies one entry of the attack's damage list (0xD48E[idx]) to the victim while the attack animation plays.
+        /// The entry byte is tested as a SIGNED byte (move.b + ble): 0 and anything 128..255 do nothing to HP. That also covers the 0xFF "full damage"
+        /// marker the rocket weakness special stores: it only changes the projectile animation. Only a living victim (status byte non-zero, bits 6/7 clear) is hit.
+        /// <paramref name="cue"/> reports that the hit sound (0x1B900 with 1) was requested; <paramref name="applied"/> that HP was processed.
+        /// </summary>
+        public void ApplyDamageEntry(int victim, byte[] list, int idx, int count, bool melee, out bool cue, out bool applied)
+        {
+            cue = false; applied = false;
+            if (count == 0) return;
+            if (!melee) cue = true;
+            int e = (sbyte)list[idx];
+            if (e <= 0 || victim < 0) return;
+            int st = Slots[victim][0];
+            if (st == 0 || (st & 0xC0) != 0) return;
+            ApplyDamage(victim, e);
+            applied = true;
+        }
     }
 
     public static class GenesisLineOfFire

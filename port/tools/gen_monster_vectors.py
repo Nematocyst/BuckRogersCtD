@@ -565,6 +565,46 @@ for _fi in range(N('combat', 150)):
     sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2)); sn['polls'] = used
     cases.append(dict(fn='combat', pre=pr, a=0, range=0, menu=[x & 0xFFFF for x in menu if x != 2], pad=pad, post=sn))
 
+# ---- W. 0x15FDA: the end of a fight (the medical aftermath 0x16B96 and the loot screen 0x165A0 are replaced by empty routines)
+for _ in range(N('cleanup', 300)):
+    m = machine(rom, extra=(0xCAC0, 0x85D6, 0x8360, 0x982A, 0xA768, 0x16B96, 0x165A0, 0x16EF0, 0x40D0, 0xBEF4, 0x82EC, 0xAF00, 0x862A, 0xA71E, 0x8A76, 0x8A60, 0xB0DA, 0x8A90, 0x13376, 0x1368C, 0x11CA0, 0x13268, 0x6C54), retreat=0)
+    w = sane_world(rnd, nmin=4, nmax=14, effects=rnd.random() < 0.3); n = w['n']; npar = w['npar']
+    for k, sb in enumerate(w['slots']):
+        sb[1] |= rnd.choice([0, 0, 0x04, 0x10, 0x14])
+        sb[0] = rnd.choice([1, 1, 0x81, 0x82, 0x83, 0x84, 0x85, 0x45, 0x01, 0xC1, 0x86, 0x05]) if k < npar else rnd.choice([1, 0x81, 0x82, 0x86, 0x81, 0x81, 0x41])
+    for r in w['recs']:
+        r[0x40] = rnd.randrange(256); r[0x41] = rnd.randrange(256); r[0x52] = rnd.choice([0, 0, 1]); r[0x1A:0x1E] = bytes([0, 0, rnd.randrange(4), rnd.randrange(256)]); r[0x1E:0x22] = bytes([0, 0, rnd.randrange(256), rnd.randrange(256)])
+        for g in range(13):
+            o = 0x54 + 10 * g
+            if rnd.random() < 0.4: r[o:o + 10] = bytes(10)
+            else: r[o:o + 10] = bytes([rnd.randrange(1, 40), 0, 0, 0, rnd.choice([0, 1]), rnd.choice([0, 0x40, 0x80, 0xC0, 0x30, 0xF0]), 0, 0, rnd.choice([0, 0, 1, 5, 0x81]), rnd.choice([0, 1, 2])])
+    w['g'][0xD50E - G0] = rnd.choice([0, 0xFF]); w['g'][0xD50B - G0] = rnd.choice([0, 0xFF]); w['ca'][0] = 0
+    w['g'][0xD514 - G0:0xD518 - G0] = bytes(4); w['g'][0xD57E - G0:0xD582 - G0] = bytes([1, 2, 3, 4])
+    load(m, w)
+    shop = rnd.choice([0, 0, 0, 1]); demo = rnd.choice([0, 0, 0, 0, 1]); solo = rnd.choice([0, 0, 0, 1]); solom = rnd.randrange(npar)
+    m97 = rnd.choice([0, 0, 0, 1]); cnt = rnd.randrange(0, 6); loot = bytes(rnd.randrange(1, 40) for _ in range(16)); s58 = rnd.choice([0, 0, 1]); s30 = rnd.choice([0, 0, 0xFF]); s27 = rnd.choice([0, 1]); s24 = rnd.randrange(0, 8)
+    m.write_ram(0xBA60, bytes([shop])); m.write_ram(0xBA5A, bytes([demo])); m.write_ram(0xBA5B, bytes([solo])); m.write_ram(0x9DA7, bytes([solom])); m.write_ram(0x97AE, bytes([m97]))
+    m.write_ram(0xB9F3, bytes([cnt]) + loot); m.write_ram(0x6AF6, bytes(rnd.randrange(256) for _ in range(140))); m.write_ram(0xBA34, struct.pack('>I', rnd.choice([0, 0, rnd.randrange(1000)])))
+    m.write_ram(0x9BD0, struct.pack('>I', rnd.randrange(100000))); m.write_ram(0x9858, bytes([s58])); m.write_ram(0x9930, bytes([s30])); m.write_ram(0x9927, bytes([s27])); m.write_ram(0x9924, bytes([s24]))
+    m.write_ram(0xD8CC, bytes([rnd.randrange(16)])); m.write_ram(0xD8DA, bytes([rnd.randrange(256)])); m.write_ram(0x9BBD, bytes([rnd.randrange(8)])); m.write_ram(0x9BBC, b'\x02'); m.write_ram(0xD8CA, bytes([5, 5])); m.write_ram(0xD57E, bytes([1, 2, 3, 4]))
+    m.write_ram(0xEE00, bytes(0x200))
+    pr = pre(w); pr['m97'] = m97; pr['mode'] = 2; pr['d8ca'] = [5, 5]; pr['shop'] = shop | (demo << 1) | (solo << 2) | (solom << 4) | (s58 << 8) | ((1 if s30 else 0) << 9) | (s27 << 10) | (s24 << 11)
+    pr['money'] = cnt; pr['pool'] = loot.hex() + m.read_ram(0x6AF6, 140).hex() + m.read_ram(0xBA34, 4).hex() + m.read_ram(0x9BD0, 4).hex() + m.read_ram(0xD8CC, 1).hex() + m.read_ram(0xD8DA, 1).hex() + m.read_ram(0x9BBD, 1).hex()
+    if os.environ.get('DBG_WR'):
+        from unicorn import UC_HOOK_MEM_WRITE
+        m.uc.hook_add(UC_HOOK_MEM_WRITE, lambda uc, t, a, sz, v, u: print('write 992x at', hex(a), 'pc', hex(uc.reg_read(__import__('unicorn.m68k_const', fromlist=['x']).UC_M68K_REG_PC)), v), begin=0xFFFF9920, end=0xFFFF992F)
+    from unicorn import UC_HOOK_CODE as _HC2
+    from unicorn.m68k_const import UC_M68K_REG_PC as _PC2
+    m.uc.hook_add(_HC2, lambda uc, a, sz, u: uc.reg_write(_PC2, 0x00FFF000), begin=0x7588, end=0x7588)          # 0x7588 (game over) never returns: end the run there
+    if os.environ.get('DBG_WR'): print('pre9927', m.ram_byte(0x9927), 's27', s27, 's30', m.ram_byte(0x9930), 'demo', demo)
+    try: m.call(0x15FDA, max_insns=20_000_000)
+    except Exception as e: print('cleanup error', e); continue
+    if m.reg('pc') != 0x00FFF000: continue
+    sn = snap(m, w); sn['d8ca'] = list(m.read_ram(0xD8CA, 2))
+    sn['misc'] = [m.ram_byte(0xB9F3), struct.unpack('>I', m.read_ram(0xBA34, 4))[0], struct.unpack('>I', m.read_ram(0x9BD0, 4))[0], m.ram_byte(0xD8DA), m.ram_byte(0xD8CC), m.ram_byte(0x9DBD), m.ram_byte(0x9BBC), m.ram_byte(0xBA5E), m.ram_byte(0x9858), m.ram_byte(0x9930), m.ram_byte(0x9927)]
+    sn['pool'] = m.read_ram(0x6AF6, 140).hex()
+    cases.append(dict(fn='cleanup', pre=pr, a=0, range=0, post=sn))
+
 out['cases'] = cases
 json.dump(out, gzip.open(sys.argv[2], 'wt'), separators=(',', ':'))
 import collections; print(collections.Counter(c['fn'] for c in cases))

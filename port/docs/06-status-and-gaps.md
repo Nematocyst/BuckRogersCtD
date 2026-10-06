@@ -1,11 +1,11 @@
 # Status, gaps and how to run the tests
 
 ## Verified against the ROM (135,348 monster-turn checks in the repo vectors)
-enum 200, select 200, weapon 200, attack 300, move 300, nav 150, whole turns 1,200, explosive scoring 200 / execution 300 / blast 500, patch ticks 60, effect stages 800, begin-turn 500, rescue 383, manual turns 700, inventory 1,200, retreat prompt 400, whole fights 200, battlefield 150, deployment 200, fight setup 200. Earlier work (RNG, combat maths, progression, rewards, skills, initiative, pathfinding, actions) has its own vectors; see `port/README.md`.
+enum 200, select 200, weapon 200, attack 300, move 300, nav 150, whole turns 1,200, explosive scoring 200 / execution 300 / blast 500, patch ticks 60, effect stages 800, begin-turn 500, rescue 383, manual turns 700, inventory 1,200, retreat prompt 400, whole fights 200, battlefield 150, deployment 200, fight setup 200, fight clean-up 250. Earlier work (RNG, combat maths, progression, rewards, skills, initiative, pathfinding, actions) has its own vectors; see `port/README.md`.
 
 ## Not ported
 * **Dungeon-map arena** (screen mode 6, ROM 0xB100): the map around the party becomes the battlefield. `BuildDungeonArena` is a host hook.
-* **Post-fight cleanup** (0x15FDA): experience, treasure, statuses afterwards, victory screens.
+* **Post-fight cleanup**: ported (see 04), except its three screens/phases: the medical aftermath of the dying (0x16B96), the loot sharing screen (0x165A0) and the scripted-fight end (0x16EF0) - host hooks.
 * **Combat slot creation** from encounter data (the script engine).
 * **Graphics, sound, animation, text boxes**: assumed to have no effect on game state (checked wherever a UI routine turned out to carry state).
 * The "no room" hand-over path of the inventory and prompt messages other than 7 are implemented but untested.

@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using BuckRogersGenesis;
 
-[Serializable] public class MonPre { public string haz, script, nav; public int n, idx, m97, d97dc, d513, mode, shop; public long money; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
-[Serializable] public class MonPost { public int[] polls, cur, mvo; public long[] misc; public long money; public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
+[Serializable] public class MonPre { public string haz, script, nav, pool; public int n, idx, m97, d97dc, d513, mode, shop; public long money; public int[] d8ca; public string[] recs, slots; public string tiles, ft, g, ca; }
+[Serializable] public class MonPost { public int[] polls, cur, mvo; public long[] misc; public string pool; public long money; public int[] d2s; public string haz; public string[] trace; public int[] waves; public string nav; public string[] slots; public string tiles, g, ca; public int[] d8ca, mv; public int ret, ridx; public long rsum, recsum; }
 [Serializable] public class MonCase { public string fn; public int a, range; public int[] mv, menu, pad, qmax; public MonPre pre; public MonPost post; }
 [Serializable] public class MonVectors { public int[] boot_table; public MonCase[] cases; }
 
@@ -47,7 +47,8 @@ static class MonsterTests
             var mine = (byte[])x.G.Clone(); var theirs = Hex(q.g);
             mine[0xD51A - TurnContext.GBase] = theirs[0xD51A - TurnContext.GBase] = 0; mine[0xD51B - TurnContext.GBase] = theirs[0xD51B - TurnContext.GBase] = 0;
             mine[0xD5AC - TurnContext.GBase] = theirs[0xD5AC - TurnContext.GBase] = 0;       // [0xD5AC]: text colour of the rescue messages
-            if (ctx.StartsWith("retreat") || ctx.StartsWith("fight") || ctx.StartsWith("combat") || ctx.StartsWith("setup")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
+            if (ctx.StartsWith("retreat") || ctx.StartsWith("fight") || ctx.StartsWith("combat") || ctx.StartsWith("setup") || ctx.StartsWith("cleanup")) foreach (int a in new[] { 0xD5D6, 0xD5D7, 0xD5D8, 0xD5D9, 0xD5DA, 0xD5DB, 0xD5DC, 0xD5DD, 0xD5DE, 0xD5DF, 0xD5E0, 0xD5E1 }) mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;     // the text box's cursor
+            if (ctx.StartsWith("cleanup")) { int a = 0xD5AB; mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0; }
             foreach (int a in new[] { 0xD594, 0xD59C, 0xD59D, 0xD59E, 0xD59F, 0xD582, 0xD583, 0xD584, 0xD585, 0xD586, 0xD587, 0xD588, 0xD589, 0xD592, 0xD595 })      // the command menu's window layout
                 mine[a - TurnContext.GBase] = theirs[a - TurnContext.GBase] = 0;
             Check(Same(mine, theirs), $"globals differ [address: port/ROM]: {Diff(mine, theirs, TurnContext.GBase)} ({ctx})");
@@ -162,6 +163,21 @@ static class MonsterTests
                         var mine = NoLof(string.Join(" ", x.Trace0)); var rom0 = NoLof(string.Join(" ", c.post.trace));
                         Check(mine == rom0, $"event sequence differs: port [{mine}] vs ROM [{rom0}] ({ctx})");
                         if (mine != rom0 && x.TraceLof) File.WriteAllText("/tmp/port_trace_" + ordinal + ".txt", c.fn + " ordinal " + ordinal + "\n" + string.Join(" ", x.Trace0));
+                    }
+                    break;
+                case "cleanup":
+                    {
+                        var p = c.pre; x.S.CombatMode = p.mode; x.S.LivingBySide[0] = p.d8ca[0]; x.S.LivingBySide[1] = p.d8ca[1];
+                        long sh = p.shop; x.ShopFlag = (byte)(sh & 1); x.DemoFlag = (byte)((sh >> 1) & 1); x.SoloFlag = (byte)((sh >> 2) & 1); x.SoloMember = (byte)((sh >> 4) & 15);
+                        x.Scripted9858 = (byte)((sh >> 8) & 1); x.Scripted9930 = (byte)(((sh >> 9) & 1) != 0 ? 0xFF : 0); x.Scripted9927 = (byte)((sh >> 10) & 1); x.Scripted9924 = (byte)((sh >> 11) & 7);
+                        var pb = Hex(p.pool); x.PoolCount = (byte)p.money; Array.Copy(pb, 0, x.ScriptedLoot, 0, 16); Array.Copy(pb, 16, x.Pool, 0, 140);
+                        x.Credits = (uint)((pb[156] << 24) | (pb[157] << 16) | (pb[158] << 8) | pb[159]); x.Money = (uint)((pb[160] << 24) | (pb[161] << 16) | (pb[162] << 8) | pb[163]);
+                        x.GroupMask = pb[164]; x.FledMask = pb[165]; x.PrevMode = pb[166]; x.ContinuePrompt = () => 0;
+                        x.CombatCleanup();
+                        var m = c.post.misc;
+                        Check(x.PoolCount == m[0] && x.Credits == (uint)m[1] && x.Money == (uint)m[2] && x.FledMask == m[3] && x.GroupMask == m[4] && x.Flag9DBD == m[5] && x.S.CombatMode == m[6] && x.SavedMode == m[7] && x.Scripted9858 == m[8] && x.Scripted9930 == m[9] && x.Scripted9927 == m[10],
+                              $"end-of-fight variables port [{x.PoolCount} {x.Credits} {x.Money} {x.FledMask} {x.GroupMask} {x.Flag9DBD} {x.S.CombatMode} {x.SavedMode} {x.Scripted9858} {x.Scripted9930} {x.Scripted9927}] vs ROM [{string.Join(" ", m)}] ({ctx})");
+                        Check(Same(x.Pool, Hex(c.post.pool)), $"loot pool differs [offset: port/ROM]: {Diff(x.Pool, Hex(c.post.pool), 0)} ({ctx})");
                     }
                     break;
                 case "retreat":

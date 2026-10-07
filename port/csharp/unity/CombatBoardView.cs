@@ -9,7 +9,8 @@ namespace BuckRogersGenesis
 {
     public sealed class CombatBoardView : MonoBehaviour
     {
-        public int[] Party = { 0, 1, 2 };            // monster-file ids that fight for the party
+        public int[] Party = { 0, 1, 2 };            // monster-file ids that fight for the party (their records; the picture comes from PartyKeys)
+        public int[] PartyKeys = { 0x83, 0x85, 0x8A };   // token keys of the party members: 0x80 | party sheet (the game's default party: Flavius, Celeste, Pierre); null / short = use the monster id
         public int[] MonsterGroups = { 5, 11 };      // monster-file ids, one group each
         public int GroupSize = 2;
         public int Seed = 1;
@@ -49,7 +50,7 @@ namespace BuckRogersGenesis
         {
             Texture2D t;
             if (sheets.TryGetValue(id, out t)) return t;
-            t = Resources.Load<Texture2D>("BuckRogers/tokens/token_" + id.ToString("00"));
+            t = Resources.Load<Texture2D>((id & 0x80) != 0 ? "BuckRogers/tokens/party_" + (id & 0x7F).ToString("00") : "BuckRogers/tokens/token_" + id.ToString("00"));
             if (t != null) t.filterMode = FilterMode.Point;
             sheets[id] = t;
             return t;
@@ -66,7 +67,7 @@ namespace BuckRogersGenesis
 
         void Run(RomView rom, MonsterFile file)
         {
-            frames = AutoBattle.Run(rom, file, Party, MonsterGroups, GroupSize, Seed, AreaType, GroundMode, out int winner);
+            frames = AutoBattle.Run(rom, file, Party, PartyKeys != null && PartyKeys.Length >= Party.Length ? PartyKeys : null, MonsterGroups, GroupSize, Seed, AreaType, GroundMode, out int winner);
             Show(0); playing = true;
             result = frames.Count == 0 ? "no fight (a side had no room on the battlefield)" : (winner == 1 ? "the party wins" : "the monsters win");
         }

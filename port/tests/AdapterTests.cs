@@ -47,6 +47,11 @@ static class AdapterTests
             for (int f = 0; f < 8; f++) if (TokenFrames.Aim(f, out bool m) != aim[f] || m != (f >= 5)) { fails++; Console.WriteLine("FAIL: aim frame facing " + f); }
             if (TokenFrames.Death(2).Length != 4 || TokenFrames.Death(0).Length != 2 || TokenFrames.DeathTicks(1) != 20 || TokenFrames.DeathTicks(3) != 35) { fails++; Console.WriteLine("FAIL: death table"); }
         }
+        {   // party sheet keys: the default party fights with its own sprites
+            var pk = AutoBattle.Run(rom, file, new[] { 0, 1, 2 }, new[] { 0x83, 0x85, 0x8A }, new[] { 5, 11 }, 1, 3, 1, 4, out int wp);
+            if (pk.Count < 2 || pk[0].Id[0] != 0x83 || pk[0].Id[2] != 0x8A || pk[0].AnimSet[0] != 0) { fails++; Console.WriteLine("FAIL: party keys"); }
+            if (TokenFrames.PregenKeys.Length != 6) { fails++; Console.WriteLine("FAIL: pregen table"); }
+        }
         {   // frame pixel sizes
             TokenFrames.FramePixels(1, out int w1, out int h1); TokenFrames.FramePixels(2, out int w2, out int h2); TokenFrames.FramePixels(3, out int w3, out int h3);
             if (w1 != 24 || h1 != 24 || w2 != 24 || h2 != 48 || w3 != 48 || h3 != 24) { fails++; Console.WriteLine("FAIL: frame pixels"); }

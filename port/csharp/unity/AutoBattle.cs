@@ -26,13 +26,19 @@ namespace BuckRogersGenesis
         /// As above; `mode` = 4 outdoor ground (types 0..10), 5 indoor ground (types 0..12), 6 a dungeon arena built by the ported 0xB100 from a generated map (walls, rooms).
         public static List<BattleFrame> Run(RomView rom, MonsterFile file, int[] party, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
         {
+            return Run(rom, file, party, null, monsterIds, count, seed, areaType, mode, out winner);
+        }
+
+        /// As above with the party members' token keys (record byte +0x42): 0x80 | sheet for a party sheet (see TokenFrames.PregenKeys), or null = the monster id of the member.
+        public static List<BattleFrame> Run(RomView rom, MonsterFile file, int[] party, int[] partyKeys, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
+        {
             bool indoor = mode == 5;
             var s = new CombatState { SlotCount = party.Length, Slots = new byte[0][], Records = new byte[11][] };
             var words = new ushort[256]; var rnd = new Random(seed); for (int i = 0; i < 256; i++) words[i] = (ushort)rnd.Next(65536);
             var x = new TurnContext { S = s, Rom = rom, Monsters = file, Rng = GenesisRng.FromSeedWords(words) };
             for (int i = 0; i < party.Length; i++)
             {
-                x.LoadCombatant(party[i], 1, party[i], i);
+                x.LoadCombatant(party[i], 1, partyKeys != null ? partyKeys[i] : party[i], i);
                 s.Records[i][0x52] |= 1; s.Slots[i][1] |= 1;                       // party side
             }
             foreach (int id in monsterIds) x.AddMonsters(id, count);

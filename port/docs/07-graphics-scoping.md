@@ -16,7 +16,7 @@
 
 ## Animation frames and party tokens (traced by running the real draw code with a small video-chip model)
 Method: the ROM's own loaders (0x982A, 0x98E4, 0xCA7E) and the draw routine 0xCAEA were run in the emulator with a model of the VDP (video memory, colour memory) that records what is written; the 3x3 / 3x6 / 6x3 block the routine put on plane A was compared with every frame of the creature's sheet (exact pixel match, also mirrored).
-* **Party tokens: ROM table 0x998C, 12 sheets** (same 18-frame 3x3 layout, same palette). They are chosen by a record byte +0x42 with bit 7 set (`0x99BC` clears the bit and indexes the table by the rest); monsters have bit 7 clear and use the 0x9A14 table. Rendered: humans / desert people / others in coloured uniforms, firing poses with muzzle flashes, lying poses. `tools/export_tokens.py` writes them as `party_<n>.png`. (Which race / sex / career gives which index is not traced: it is set where party records are created.)
+* **Party tokens: ROM table 0x998C, 12 sheets** (same 18-frame 3x3 layout, same palette). They are chosen by a record byte +0x42 with bit 7 set (`0x99BC` clears the bit and indexes the table by the rest); monsters have bit 7 clear and use the 0x9A14 table. Rendered: humans / desert people / others in coloured uniforms, firing poses with muzzle flashes, lying poses. `tools/export_tokens.py` writes them as `party_<n>.png`. (The key is stored in the record; see "Party sheet keys" below.)
 * **Frames in the sheet** (id 0 and the party sheets): 0-2 facing the viewer / standing, 3-5 aiming and firing (5 with the flash), 6-8 side view / walking, 9-11 blank filler, 12-14 a second set of poses, 15 hurt / kneeling, 16 lying (dead), 17 ready.
 * **Which frames the fight animation module draws** (draw routine `0xCAEA(d0 = state)`; mirrored when the creature's facing byte `slot+0x10` is 5 or more; the sprite buffers are b58a, b582, b586 in RAM, each loading only a list of frames from the sheet, via 0x9BB6):
   * state 0 = frame 17 (the actor's ready pose), state 1 = frame 15, state 3 = frame 11 (only for animation sets 1 and 2, see below); b58a holds frames [11, 15, 17] (list at 0xCABC, loaded by 0xCA7E for the current actor `[0xD513]`).
@@ -37,11 +37,28 @@ Method: the ROM's own loaders (0x982A, 0x98E4, 0xCA7E) and the draw routine 0xCA
 * The art depends only on the screen mode (outdoor = [0x97DC] 0xA2, mode 4; indoor = 0xA8, mode 5): the screen builder produces identical plane / tile / colour memory for all 13 ground types of a mode (checked), the ground type only changes which ids the generator puts on the map. `tools/export_terrain.py` runs 0xFEF8 for every id 0-127 with a VDP model and writes one atlas per mode (16 x 8 ids of 24x24 px). Mode 4 is an alien jungle (plants, mushrooms, trees), mode 5 a rocky / desert set (checked by eye). **Mode 6 (dungeon / ship interior fights, any other [0x97DC]) is exported too** (`terrain_mode6.png`): red metal wall blocks of many shapes, grey floors, a starfield tile; 110 ids are used (the arena builder 0xB100 writes ids 2 and up). The art is the same whatever the dungeon (the screen builder gave identical output when varying 9BBE, BA5F, BA60, B525, 9AFB, 97AE, 97AD and 9BB6); which block goes where comes from the map's wall bits and class tables via the ported builder.
 * Not exported / not checked: area-dependent colour variants (none seen), animated tiles, and whether other dungeon maps load their own wall art through the map loader (0x40D0, tables 0x38CE2 / 0x42B0A) at exploration time; the fight screen itself always showed the set above. The demo's dungeon arena uses a generated map, so its wall layout is not a real level.
 
+## Party sheet keys (record byte +0x42 of a party member)
+* **The game's default party** (the 8-record blob at ROM 0x6BAAD, loaded by 0x1F32; the record fields +0x16 sex 0 male / 1 female, +0x17 race, +0x18 career 1 rocket jock / 2 medic / 3 warrior / 4 rogue) carries the key in the data:
+
+  | name | race | sex | career | key (+0x42) | sheet |
+  |---|---|---|---|---|---|
+  | FLAVIUS | 2 | M | warrior | 0x83 | 3 |
+  | CELESTE | 2 | F | warrior | 0x85 | 5 |
+  | PIERRE | 1 | M | rocket jock | 0x8A | 10 |
+  | NICHOLE | 1 | F | rogue | 0x87 | 7 |
+  | ROARKE | 3 | M | medic | 0x81 | 1 |
+  | JANELLE | 3 | F | medic | 0x80 | 0 |
+
+  There is **no formula** from race / sex / career to the sheet in the code: the six pairs do not fit one (for race 2 the male is 3 and the female 5, for race 3 the male is 1 and the female 0, for race 1 10 and 7). The sheet is an arbitrary data choice per character.
+* **The three NPC allies** that can join (`AddAlly`, ROM table 0x48DA: npc id -> key) reuse these sprites: 0x6A -> 0x8A (Pierre's sheet 10), 0x6B -> 0x83 (Flavius's sheet 3), 0x6C -> 0x87 (Nichole's sheet 7); the story NPCs 0x3B-0x3E use their own monster-token entries (ids 59-62).
+* **Characters made on the creation screen** keep key 0: the creation code clears the 214-byte record (ROM 0x57E) and then sets only race, sex, career, abilities and so on. A scan of the whole ROM finds no instruction that stores to +0x42 except the monster loader (0x4A1C), and running the race / sex / career routines (0x690, 0x698, 0x6E8, 0x714-0x750, with the drawing stubbed) wrote nothing to it. Key 0 has bit 7 clear, so the token lookup uses the monster table and draws **monster id 0's sheet (D.R. WARRIOR)**. This is derived from the code, not seen in the running game; it would be a quirk of the original (a created character looking like an enemy warrior), so check it in a real session before relying on it. Sheets 2, 4, 6, 8, 9 and 11 are not referenced by any record or table I found.
+* `TokenFrames.PregenKeys` holds the table, `AutoBattle.Run(..., partyKeys, ...)` and the viewer's `PartyKeys` field use it (default Flavius, Celeste, Pierre).
+
 ## Viewer
 `BattleSequence` (csharp/unity, tested under mono: 127 attack sequences over 12 fights, start / end poses consistent with the boards) turns two consecutive board snapshots into the animation above; `CombatBoardView` plays it. Not drawn: projectile flight, sounds, the ROM's exact on-screen timing (ticks assumed 1/60 s).
 
 ## What was NOT found
-* The projectile flight (0x108AA, icon frames and path), and the mapping from race / sex / career to the party sheet index. Frames 1-2, 4-5 (partly), 7-10, 13-14 of the sheets are used only by the aim / fire poses or not at all (not found in any routine).
+* The projectile flight (0x108AA, icon frames and path), and what sheets 2, 4, 6, 8, 9, 11 are for. Frames 1-2, 4-5 (partly), 7-10, 13-14 of the sheets are used only by the aim / fire poses or not at all (not found in any routine).
 * The link from a monster record to its encounter picture (probably a byte of the record or an index in the monster file; not checked).
 * The shared palettes of the icons and the interface.
 

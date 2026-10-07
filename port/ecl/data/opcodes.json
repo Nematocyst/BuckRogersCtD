@@ -1,0 +1,569 @@
+{
+ "note": "operandCount -1 = variable (first operand, count n, n operands); -2 = unknown (never used)",
+ "opcodes": [
+  {
+   "code": 0,
+   "name": "EXIT",
+   "operandCount": 0,
+   "uses": 897
+  },
+  {
+   "code": 1,
+   "name": "GOTO",
+   "operandCount": 1,
+   "uses": 1303
+  },
+  {
+   "code": 2,
+   "name": "GOSUB",
+   "operandCount": 1,
+   "uses": 243
+  },
+  {
+   "code": 3,
+   "name": "COMPARE",
+   "operandCount": 2,
+   "uses": 950
+  },
+  {
+   "code": 4,
+   "name": "ADD",
+   "operandCount": 3,
+   "uses": 138
+  },
+  {
+   "code": 5,
+   "name": "SUBTRACT",
+   "operandCount": 3,
+   "uses": 35
+  },
+  {
+   "code": 6,
+   "name": "DIVIDE",
+   "operandCount": 3,
+   "uses": 9
+  },
+  {
+   "code": 7,
+   "name": "MULTIPLY",
+   "operandCount": 3,
+   "uses": 11
+  },
+  {
+   "code": 8,
+   "name": "RANDOM",
+   "operandCount": 2,
+   "uses": 110
+  },
+  {
+   "code": 9,
+   "name": "SAVE",
+   "operandCount": 2,
+   "uses": 1136
+  },
+  {
+   "code": 10,
+   "name": "LOADCHARACTER",
+   "operandCount": 1,
+   "uses": 57
+  },
+  {
+   "code": 11,
+   "name": "LOADMONSTER",
+   "operandCount": 3,
+   "uses": 240
+  },
+  {
+   "code": 12,
+   "name": "SETUPMONSTERS",
+   "operandCount": 4,
+   "uses": 162
+  },
+  {
+   "code": 13,
+   "name": "APPROACH",
+   "operandCount": 0,
+   "uses": 5
+  },
+  {
+   "code": 14,
+   "name": "PICTURE",
+   "operandCount": 1,
+   "uses": 185
+  },
+  {
+   "code": 15,
+   "name": "INPUTNUMBER",
+   "operandCount": 2,
+   "uses": 25
+  },
+  {
+   "code": 16,
+   "name": "INPUTSTRING",
+   "operandCount": 2,
+   "uses": 0
+  },
+  {
+   "code": 17,
+   "name": "PRINT",
+   "operandCount": 1,
+   "uses": 263
+  },
+  {
+   "code": 18,
+   "name": "PRINTCLEAR",
+   "operandCount": 1,
+   "uses": 1635
+  },
+  {
+   "code": 19,
+   "name": "RETURN",
+   "operandCount": 0,
+   "uses": 207
+  },
+  {
+   "code": 20,
+   "name": "COMPAREAND",
+   "operandCount": 4,
+   "uses": 109
+  },
+  {
+   "code": 21,
+   "name": "MENU",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 22,
+   "name": "IFEQ",
+   "operandCount": 0,
+   "uses": 774
+  },
+  {
+   "code": 23,
+   "name": "IFNE",
+   "operandCount": 0,
+   "uses": 730
+  },
+  {
+   "code": 24,
+   "name": "IFLT",
+   "operandCount": 0,
+   "uses": 104
+  },
+  {
+   "code": 25,
+   "name": "IFGT",
+   "operandCount": 0,
+   "uses": 106
+  },
+  {
+   "code": 26,
+   "name": "IFLE",
+   "operandCount": 0,
+   "uses": 13
+  },
+  {
+   "code": 27,
+   "name": "IFGE",
+   "operandCount": 0,
+   "uses": 21
+  },
+  {
+   "code": 28,
+   "name": "CLEARMONSTERS",
+   "operandCount": 0,
+   "uses": 165
+  },
+  {
+   "code": 29,
+   "name": "SETTIMER",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 30,
+   "name": "CHECKPARTY",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 31,
+   "name": "SPACECOMBAT",
+   "operandCount": 4,
+   "uses": 3
+  },
+  {
+   "code": 32,
+   "name": "NEWECL",
+   "operandCount": 1,
+   "uses": 70
+  },
+  {
+   "code": 33,
+   "name": "LOADFILES",
+   "operandCount": 3,
+   "uses": 28
+  },
+  {
+   "code": 34,
+   "name": "SKILL",
+   "operandCount": 3,
+   "uses": 44
+  },
+  {
+   "code": 35,
+   "name": "PRINTSKILL",
+   "operandCount": 3,
+   "uses": 1
+  },
+  {
+   "code": 36,
+   "name": "COMBAT",
+   "operandCount": 0,
+   "uses": 174
+  },
+  {
+   "code": 37,
+   "name": "ONGOTO",
+   "operandCount": -1,
+   "uses": 182
+  },
+  {
+   "code": 38,
+   "name": "ONGOSUB",
+   "operandCount": -1,
+   "uses": 11
+  },
+  {
+   "code": 39,
+   "name": "TREASURE",
+   "operandCount": -1,
+   "uses": 28
+  },
+  {
+   "code": 40,
+   "name": "ROB",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 41,
+   "name": "CONTINUE",
+   "operandCount": 0,
+   "uses": 1091
+  },
+  {
+   "code": 42,
+   "name": "GETABLE",
+   "operandCount": 3,
+   "uses": 64
+  },
+  {
+   "code": 43,
+   "name": "HMENU",
+   "operandCount": -1,
+   "uses": 125
+  },
+  {
+   "code": 44,
+   "name": "GETYN",
+   "operandCount": 0,
+   "uses": 111
+  },
+  {
+   "code": 45,
+   "name": "DRAWINDOW",
+   "operandCount": 0,
+   "uses": 4
+  },
+  {
+   "code": 46,
+   "name": "DAMAGE",
+   "operandCount": 5,
+   "uses": 42
+  },
+  {
+   "code": 47,
+   "name": "AND",
+   "operandCount": 3,
+   "uses": 409
+  },
+  {
+   "code": 48,
+   "name": "OR",
+   "operandCount": 3,
+   "uses": 298
+  },
+  {
+   "code": 49,
+   "name": "WHMENU",
+   "operandCount": -1,
+   "uses": 16
+  },
+  {
+   "code": 50,
+   "name": "FINDITEM",
+   "operandCount": 1,
+   "uses": 5
+  },
+  {
+   "code": 51,
+   "name": "PRINTRETURN",
+   "operandCount": 0,
+   "uses": 79
+  },
+  {
+   "code": 52,
+   "name": "CLOCK",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 53,
+   "name": "SAVETABLE",
+   "operandCount": 3,
+   "uses": 1
+  },
+  {
+   "code": 54,
+   "name": "ADDNPC",
+   "operandCount": 2,
+   "uses": 12
+  },
+  {
+   "code": 55,
+   "name": "LOADPIECES",
+   "operandCount": 1,
+   "uses": 30
+  },
+  {
+   "code": 56,
+   "name": "PROGRAM",
+   "operandCount": 1,
+   "uses": 9
+  },
+  {
+   "code": 57,
+   "name": "WHO",
+   "operandCount": 1,
+   "uses": 26
+  },
+  {
+   "code": 58,
+   "name": "DELAY",
+   "operandCount": 0,
+   "uses": 156
+  },
+  {
+   "code": 59,
+   "name": "SPELLS",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 60,
+   "name": "PROTECT",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 61,
+   "name": "CLEARBOX",
+   "operandCount": 0,
+   "uses": 2
+  },
+  {
+   "code": 62,
+   "name": "DUMP",
+   "operandCount": 0,
+   "uses": 11
+  },
+  {
+   "code": 63,
+   "name": "JOURNAL",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 64,
+   "name": "DESTROY",
+   "operandCount": 2,
+   "uses": 4
+  },
+  {
+   "code": 65,
+   "name": "ADDEP",
+   "operandCount": 2,
+   "uses": 51
+  },
+  {
+   "code": 66,
+   "name": "ENCEXIT",
+   "operandCount": 0,
+   "uses": 434
+  },
+  {
+   "code": 67,
+   "name": "SOUND",
+   "operandCount": 1,
+   "uses": 271
+  },
+  {
+   "code": 68,
+   "name": "SAVECHARACTER",
+   "operandCount": 0,
+   "uses": 13
+  },
+  {
+   "code": 69,
+   "name": "HOWFAR",
+   "operandCount": 2,
+   "uses": 1
+  },
+  {
+   "code": 70,
+   "name": "FOR",
+   "operandCount": 2,
+   "uses": 12
+  },
+  {
+   "code": 71,
+   "name": "ENDFOR",
+   "operandCount": 0,
+   "uses": 12
+  },
+  {
+   "code": 72,
+   "name": "HIDEITEMS",
+   "operandCount": 1,
+   "uses": 1
+  },
+  {
+   "code": 73,
+   "name": "SKILLDAMAGE",
+   "operandCount": 7,
+   "uses": 1
+  },
+  {
+   "code": 74,
+   "name": "DUEL",
+   "operandCount": 0,
+   "uses": 2
+  },
+  {
+   "code": 75,
+   "name": "STORE",
+   "operandCount": 1,
+   "uses": 11
+  },
+  {
+   "code": 76,
+   "name": "VIEW",
+   "operandCount": 2,
+   "uses": 46
+  },
+  {
+   "code": 77,
+   "name": "ANIMATE",
+   "operandCount": -2,
+   "uses": 0
+  },
+  {
+   "code": 78,
+   "name": "STAIRCASE",
+   "operandCount": 0,
+   "uses": 12
+  },
+  {
+   "code": 79,
+   "name": "HALFSTEP",
+   "operandCount": 0,
+   "uses": 4
+  },
+  {
+   "code": 80,
+   "name": "STEPFORWARD",
+   "operandCount": 0,
+   "uses": 53
+  },
+  {
+   "code": 81,
+   "name": "PALETTE",
+   "operandCount": 1,
+   "uses": 2
+  },
+  {
+   "code": 82,
+   "name": "UNLOCKDOOR",
+   "operandCount": 0,
+   "uses": 3
+  },
+  {
+   "code": 83,
+   "name": "ADDFIGURE",
+   "operandCount": 4,
+   "uses": 79
+  },
+  {
+   "code": 84,
+   "name": "ADDCORPSE",
+   "operandCount": 3,
+   "uses": 26
+  },
+  {
+   "code": 85,
+   "name": "ADDFIGURE2",
+   "operandCount": 4,
+   "uses": 7
+  },
+  {
+   "code": 86,
+   "name": "ADDCORPSE2",
+   "operandCount": 3,
+   "uses": 4
+  },
+  {
+   "code": 87,
+   "name": "UPDATEFRAME",
+   "operandCount": 1,
+   "uses": 10
+  },
+  {
+   "code": 88,
+   "name": "REMOVEFIGURE",
+   "operandCount": 0,
+   "uses": 76
+  },
+  {
+   "code": 89,
+   "name": "EXPLOSION",
+   "operandCount": 1,
+   "uses": 43
+  },
+  {
+   "code": 90,
+   "name": "STEPBACK",
+   "operandCount": 0,
+   "uses": 35
+  },
+  {
+   "code": 91,
+   "name": "HALFBACK",
+   "operandCount": 0,
+   "uses": 1
+  },
+  {
+   "code": 92,
+   "name": "NEWREGION",
+   "operandCount": 6,
+   "uses": 57
+  },
+  {
+   "code": 93,
+   "name": "ICONMENU",
+   "operandCount": -2,
+   "uses": 0
+  }
+ ]
+}

@@ -7,7 +7,7 @@ static class AdapterTests
     public static int Run(string monsterFile, byte[] romBytes)
     {
         var rom = RomView.FromRom(romBytes);
-        var file = MonsterFile.Parse(File.ReadAllBytes(monsterFile));
+        var file = MonsterBinFile.Parse(File.ReadAllBytes(monsterFile));
         int fails = 0, fights = 0, frames = 0, party = 0, totalAttacks = 0, dungeons = 0;
         var setups = new[] { new[] { 0, 1, 2 }, new[] { 4, 5 }, new[] { 1 } };
         for (int seed = 1; seed <= 12; seed++)

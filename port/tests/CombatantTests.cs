@@ -18,7 +18,7 @@ static class CombatantTests
             var f = line.Split(' '); n++;
             string kind = f[0]; int id = int.Parse(f[1]), arg = int.Parse(f[2]);
             var fileBytes = Hex(f[8].Split('/')[0]); int nf = f[8].Split('/')[1].Split(',').Length;
-            var mf = new MonsterFile { Ids = new byte[nf], Records = new byte[nf][] };
+            var mf = new MonsterBinFile { Ids = new byte[nf], Records = new byte[nf][] };
             for (int i = 0; i < nf; i++) { mf.Ids[i] = fileBytes[215 * i]; mf.Records[i] = Part(fileBytes, 215 * i + 1, 214); }
             var recsB = Hex(f[9]); var slotsB = Hex(f[10]);
             var s = new CombatState { SlotCount = int.Parse(f[3]), Slots = new byte[56][], Records = new byte[11][] };

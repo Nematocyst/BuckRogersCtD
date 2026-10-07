@@ -62,10 +62,10 @@ namespace BuckRogersGenesis
             var rom = GenesisRomTables.Load();
             var asset = Resources.Load<TextAsset>("BuckRogers/monster_file");
             if (rom == null || asset == null) { result = "missing Resources/BuckRogers/rom_tables.json or monster_file.bytes"; return; }
-            Run(rom, MonsterFile.Parse(asset.bytes));
+            Run(rom, MonsterBinFile.Parse(asset.bytes));
         }
 
-        void Run(RomView rom, MonsterFile file)
+        void Run(RomView rom, MonsterBinFile file)
         {
             frames = AutoBattle.Run(rom, file, Party, PartyKeys != null && PartyKeys.Length >= Party.Length ? PartyKeys : null, MonsterGroups, GroupSize, Seed, AreaType, GroundMode, out int winner);
             Show(0); playing = true;

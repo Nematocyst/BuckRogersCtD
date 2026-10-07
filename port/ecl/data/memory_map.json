@@ -1,0 +1,1571 @@
+{
+ "note": "ECL address = Genesis work RAM 0xFF0000 + addr",
+ "variables": [
+  {
+   "addr": 29456,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 29464,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 29954,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 29959,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 29964,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30178,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30204,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30230,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30256,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30282,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30308,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30323,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30338,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30353,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30368,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30379,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30390,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30401,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30412,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30423,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30434,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30466,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30498,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30502,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30506,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30511,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30516,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30522,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30529,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30537,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30547,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30555,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30560,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30566,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30574,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30579,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30584,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30598,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30626,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30633,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30640,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30647,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30654,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 30661,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 31300,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 31306,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 31312,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 31319,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 31326,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 31333,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 31340,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 31347,
+   "category": "in-module table (GETABLE)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38646,
+   "category": "engine state (position/area)",
+   "label": "base of the party/game-state block",
+   "confidence": "debug label"
+  },
+  {
+   "addr": 38783,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38784,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38811,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38816,
+   "category": "story event flag",
+   "label": "story event flag:  ATTACKS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38817,
+   "category": "other / open",
+   "label": "module-start setting",
+   "confidence": "live: no combat effect"
+  },
+  {
+   "addr": 38829,
+   "category": "combat setup",
+   "label": "combat land type",
+   "confidence": "debug label"
+  },
+  {
+   "addr": 38836,
+   "category": "story event flag",
+   "label": "story event flag: YOU TAKE THE CONTROLS AND MANEUVER AS FAR AWAY FROM THE MARI",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38837,
+   "category": "story event flag",
+   "label": "story event flag: YOU TAKE THE CONTROLS AND MANEUVER AS FAR AWAY FROM THE MARI",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38841,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38842,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38876,
+   "category": "combat setup",
+   "label": "area/combat setting (affects targeting in combat)",
+   "confidence": "live (1 run)"
+  },
+  {
+   "addr": 38888,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38902,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38903,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38904,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38905,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38906,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38907,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38908,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38909,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38910,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38911,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38912,
+   "category": "module-local temp / menu choice",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38913,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38914,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38915,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38916,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38917,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38918,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38919,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38920,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38921,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38922,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38923,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38924,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38925,
+   "category": "story event flag",
+   "label": "story event flag: THE PIRATE CAPTAIN STEPS FORWARD. 'LET'S SETTLE THIS AMICABL",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38926,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38928,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38930,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38932,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38940,
+   "category": "story event flag",
+   "label": "story event flag: 'YOU ARE CLEARED FOR LAUNCH.'",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38946,
+   "category": "story event flag",
+   "label": "story event flag: WHAT WILL THE VARIABLE BE SET TO?",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38947,
+   "category": "story event flag",
+   "label": "story event flag: WHAT WILL THE VARIABLE BE SET TO?",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38948,
+   "category": "story event flag",
+   "label": "story event flag: BEYOND THIS HATCHWAY LIES SALVATION'S HEADQUARTERS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38949,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38950,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38951,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38952,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: CREW MEMBERS COME BY AND CONGRATULATE YOU.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38957,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38958,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THE MOST DANGEROUS GENNIE CREATED BY RAM IS THE EXPERIMENTAL",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38959,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: A BARFLY CLAIMS THAT BUCK ROGERS AND WILMA DEERING ARE SECRE",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38964,
+   "category": "story event flag",
+   "label": "story event flag: THE MOST DANGEROUS GENNIE CREATED BY RAM IS THE EXPERIMENTAL",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38966,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: YOU FIND ANOTHER WEAK PRISONER HERE. HE THANKS YOU PROFUSELY",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38967,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: YOU STARTLE THE BASE COMMANDER. HE RETREATS THROUGH THE FAR ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38968,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: 'TAKE MR. ROBENO TO THE PAVONIS LIBRARY AND COLLECT HIS DEVI",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38976,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38977,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THE AIRLOCK IS SEALED. THE EXTERIOR DAMAGE WARNING IS FLASHI",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38978,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags:  YOUR SHIP IS NOWHERE TO BE SEEN.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38979,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THIS IS THE ENGINEERING DECK. THE ENGINES ARE SILENT.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38980,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags:  YOUR SHIP IS NOWHERE TO BE SEEN.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38981,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: NEAR THE CORPSE IS A RECORDER AND A HOLOGRAPHIC PROJECTOR. B",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38982,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38983,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags:  YOUR SHIP IS NOWHERE TO BE SEEN.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38984,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: ITS MANIPULATING THE CONTROLS, LEARNING TO PILOT.'",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38985,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38986,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38988,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38990,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: ECGS ATTEMPT TO SEIZE YOUR SHIP.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38991,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: ECGS GUARD THIS DOORWAY. BEYOND YOU SEE CRUDE CORRIDORS WITH",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38992,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38993,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THE COMMANDER SAYS, 'GETTING WARMER, BUT WRONG.' ANOTHER MIN",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38994,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: COMMUNICATIONS",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38995,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: A ROBOT INTONES, 'THIS IS A RESTRICTED AREA. I WILL USE DEAD",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38996,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38997,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 38998,
+   "category": "story event flag",
+   "label": "story event flag: THE AUTODOC QUICKLY HEALS THE TEAM.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 38999,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39000,
+   "category": "story event flag",
+   "label": "story event flag:  CRUISER APPROACHING.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39001,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39002,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: 'TAKE MR. ROBENO TO THE PAVONIS LIBRARY AND COLLECT HIS DEVI",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39003,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: 'YOU GUYS HAVE THE GUTS AND DETERMINATION I ADMIRE. EARTH WI",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39004,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: 'I AM CARLTON TURABIAN. WELCOME TO SALVATION III. WHEN YOU A",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39005,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39007,
+   "category": "story event flag",
+   "label": "story event flag: A TENSE WARRIOR SALUTES. 'YOU MUST BE THE SPECIALISTS. AS SO",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39008,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39009,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THE KIDS FILE OUT OF THE AIRLOCK.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39010,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THE KIDS THANK YOU. ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39011,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THIS WAS THE NERVE CENTER FOR THE EVACUATION. A MAP SHOWS RE",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39012,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: AN ESCAPE SHIP IS HERE. A PILOT STATES, 'THIS IS A RELIEF SH",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39013,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THE ROPE ALLOWS YOU TO CLIMB THE SHAFT. DO YOU?",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39014,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: JIM'S GRANDFATHER WAVES GOODBYE. ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39015,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THIS ROOM IS CLEAN AND NOT RECENTLY USED. A NAME PLATE READS",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39022,
+   "category": "story event flag",
+   "label": "story event flag: 'I FOUND RECORDS OF A 'GARRITY' THAT JUMPED SHIP ON PALLAS, ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39023,
+   "category": "story event flag",
+   "label": "story event flag: TALON IS HERE, WITH THE LAST OF HIS PIRATES.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39024,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39029,
+   "category": "story event flag",
+   "label": "story event flag: YOU ARE IDENTIFIED AND GUIDED INTO ONE OF THE DOCKING BAYS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39030,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39031,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39034,
+   "category": "story event flag",
+   "label": "story event flag: THE ROBOTS' POWER HAS BEEN CUT OFF.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39035,
+   "category": "story event flag",
+   "label": "story event flag: BASE LOCATED...",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39036,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39037,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39038,
+   "category": "story event flag",
+   "label": "story event flag: 'MEET US AT THE BLUE ROCK TO THE NORTH. WE SHALL CREATE A RU",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39039,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: THIS ROCK HAS A MYSTERIOUS BLUE HUE, UNIQUE IN THE AREA.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39059,
+   "category": "story event flag",
+   "label": "story event flag: THE ELEVATOR IS STILL OPERATIONAL. GO DOWN?",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39060,
+   "category": "story event flag",
+   "label": "story event flag: APES RUSH TO THE LOCKED CAGES, TRYING TO FREE THE OTHERS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39061,
+   "category": "story event flag",
+   "label": "story event flag: APES RUSH TO THE LOCKED CAGES, TRYING TO FREE THE OTHERS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39062,
+   "category": "story event flag",
+   "label": "story event flag:  YOU FIND STUN GRENADES ONCE INTENDED FOR USE AGAINST THE DE",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39063,
+   "category": "story event flag",
+   "label": "story event flag: APES APPROACH, BUT TUSKON SOOTHES THEM AND THEY WANDER AWAY.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39064,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39065,
+   "category": "story bitfield flags (OR/AND)",
+   "label": "story bitfield flags: CAGE 1.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39066,
+   "category": "story event flag",
+   "label": "story event flag:  ZANE FOLLOWS HIM.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39067,
+   "category": "story event flag",
+   "label": "story event flag: LEAVE THE TOWN?",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39068,
+   "category": "story event flag",
+   "label": "story event flag: RAM WARRIORS SPOT YOU AND ATTACK!",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39069,
+   "category": "story event flag",
+   "label": "story event flag: YOU SLOWLY BACK AWAY.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39070,
+   "category": "story event flag",
+   "label": "story event flag: THIS IS A SUPPLY SHED. ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39071,
+   "category": "story event flag",
+   "label": "story event flag: YOU FIND STAINED BONES AND SHEDDED SNAKESKINS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39072,
+   "category": "story event flag",
+   "label": "story event flag: YOU FIND A DETONATOR KEYCARD, BUT YOU NEED THE CORRESPONDING",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39073,
+   "category": "story event flag",
+   "label": "story event flag: YOU FIND A SECURITY CARD IN A DRAWER.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39074,
+   "category": "story event flag",
+   "label": "story event flag: ACCORDING TO SCOT.DOS, A LOWLANDER VILLAGE LIES BEYOND THE A",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39075,
+   "category": "story event flag",
+   "label": "story event flag: YOU DISCOVER THE ENTRANCE TO AN UNDERGROUND TUNNEL. WILL YOU",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39076,
+   "category": "story event flag",
+   "label": "story event flag: YOU DISCOVER THE ENTRANCE TO AN UNDERGROUND TUNNEL. WILL YOU",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39077,
+   "category": "story event flag",
+   "label": "story event flag: THE LOWLANDER RUNS AWAY.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39078,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39079,
+   "category": "story event flag",
+   "label": "story event flag: YOU'RE AT THE MAIN GATE. ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39080,
+   "category": "story event flag",
+   "label": "story event flag: THE DOOR TO THIS STOREROOM HAS BEEN TRAMPLED TO THE GROUND.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39081,
+   "category": "story event flag",
+   "label": "story event flag: YOU FIND NOTHING NEW IN THE STOREROOM.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39082,
+   "category": "story event flag",
+   "label": "story event flag: DESPITE YOUR WISHES, THE BABY TAGS ALONG AFTER YOU. IT WILL ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39083,
+   "category": "story event flag",
+   "label": "story event flag: 'NOW LEAVE, BEFORE YOU ATTRACT ATTENTION,' HE ESCORTS YOU OU",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39084,
+   "category": "story event flag",
+   "label": "story event flag: THE RUINS ARE HERE. RE-ENTER THE RUINS?",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39085,
+   "category": "story event flag",
+   "label": "story event flag: 'PLEASSE HHELP,' THE LEADER SAYS. 'MY MEDICAL KIT CAN SSAVE ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39086,
+   "category": "story event flag",
+   "label": "story event flag: THE TUNNEL ENDS IN A SMALL BARRACK. ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39087,
+   "category": "story event flag",
+   "label": "story event flag: BEYOND THIS DOOR LIES A DARK TUNNEL DRIPPING WITH ACID. ENTE",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39088,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39089,
+   "category": "story event flag",
+   "label": "story event flag: 'GET THE RETINAL LOCKPICK. THHEN WE'LL FIND THE SSECRET TUNN",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39090,
+   "category": "story event flag",
+   "label": "story event flag: 'THE BASSE ISS IN A MOUNTAIN FAR TO THE SSOUTHWESST. GOOD LU",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39091,
+   "category": "story event flag",
+   "label": "story event flag: A FEW RAM ASSASSINS DRAW THEIR WEAPONS AND CHARGE YOU. ",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39092,
+   "category": "story event flag",
+   "label": "story event flag: YOU BIND AND GAG THE WARRIORS AND LOCK THEM IN THE CLOSET.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39093,
+   "category": "story event flag",
+   "label": "story event flag: ALLOW LEANDER TO JOIN?",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39094,
+   "category": "story event flag",
+   "label": "story event flag: A RAM HIT TEAM SPOTS YOU AND ATTACKS!",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39095,
+   "category": "story event flag",
+   "label": "story event flag: BEHIND AN ASSORTMENT OF PRIMITIVE ARTIFACTS YOU FIND SCIENTI",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39097,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39106,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39107,
+   "category": "story event flag",
+   "label": "story event flag: 'I AM CARLTON TURABIAN. WELCOME TO SALVATION III. WHEN YOU A",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39108,
+   "category": "story event flag",
+   "label": "story event flag: ICI ON PARLE FRANCAIS",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39109,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39110,
+   "category": "story event flag",
+   "label": "story event flag: YOU ARE USHERED OUT OF THE AUDIENCE CHAMBER.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39111,
+   "category": "story event flag",
+   "label": "story event flag: 8 IS PAINTED ON THE SIDE OF THE CORE.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39112,
+   "category": "story event flag",
+   "label": "story event flag: ICI ON PARLE FRANCAIS",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39113,
+   "category": "story event flag",
+   "label": "story event flag: 'STATION ON EMERGENCY STATUS. DESTRUCTION OF WEAPON IN TWO M",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39114,
+   "category": "story event flag",
+   "label": "story event flag: YOU DESCEND THE STAIRS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39127,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39132,
+   "category": "story event flag",
+   "label": "credits found after a battle",
+   "confidence": "inferred"
+  },
+  {
+   "addr": 39144,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39148,
+   "category": "engine state (read-only to ECL)",
+   "label": "selected / current character index",
+   "confidence": "inferred"
+  },
+  {
+   "addr": 39177,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39178,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39179,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39182,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39183,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39184,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39187,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39194,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39196,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39200,
+   "category": "ship state (repair/reload scenes)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39204,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39207,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39208,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39209,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39210,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39211,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39670,
+   "category": "engine state (position/area)",
+   "label": "party Y position",
+   "confidence": "verified live"
+  },
+  {
+   "addr": 39671,
+   "category": "engine state (position/area)",
+   "label": "party X position",
+   "confidence": "debug label"
+  },
+  {
+   "addr": 39673,
+   "category": "engine state (position/area)",
+   "label": "current-square attribute byte",
+   "confidence": "verified live (partly)"
+  },
+  {
+   "addr": 39674,
+   "category": "engine state (position/area)",
+   "label": "party facing (0-3)",
+   "confidence": "verified live"
+  },
+  {
+   "addr": 39698,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39722,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39752,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39759,
+   "category": "story event flag",
+   "label": "story event flag: 'S LEG ITCHES FOR A MOMENT.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39838,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39871,
+   "category": "story event flag",
+   "label": "story event flag: BUCK LEAVES BEFORE YOU REACH SALVATION.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 39883,
+   "category": "other / open",
+   "label": "module-start setting (0/32/96)",
+   "confidence": "live: no combat effect"
+  },
+  {
+   "addr": 39926,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39927,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 39940,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40350,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40359,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40374,
+   "category": "story event flag",
+   "label": "story event flag:  ATTACKS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 40376,
+   "category": "story event flag",
+   "label": "story event flag:  ATTACKS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 40377,
+   "category": "story event flag",
+   "label": "story event flag:  ATTACKS.",
+   "confidence": "context only"
+  },
+  {
+   "addr": 40380,
+   "category": "other / open",
+   "label": "per-step value 0-100 (encounter chance?)",
+   "confidence": "live: no combat effect"
+  },
+  {
+   "addr": 40381,
+   "category": "engine state (read-only to ECL)",
+   "label": "combat result / state (128 tested)",
+   "confidence": "inferred"
+  },
+  {
+   "addr": 40383,
+   "category": "other / open",
+   "label": "push-back / blocked-move flag?",
+   "confidence": "live: no combat effect"
+  },
+  {
+   "addr": 40385,
+   "category": "combat setup",
+   "label": "SURPRISE: 1 = party surprised, 2 = enemies surprised",
+   "confidence": "verified live"
+  },
+  {
+   "addr": 40456,
+   "category": "engine state (position/area)",
+   "label": "CURDISK (current disk/region)",
+   "confidence": "debug label"
+  },
+  {
+   "addr": 40501,
+   "category": "engine state (read-only to ECL)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40547,
+   "category": "other / open",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40559,
+   "category": "scratch register (all modules)",
+   "label": "scratch",
+   "confidence": "verified live"
+  },
+  {
+   "addr": 40560,
+   "category": "scratch register (all modules)",
+   "label": "scratch",
+   "confidence": "verified live"
+  },
+  {
+   "addr": 40561,
+   "category": "scratch register (all modules)",
+   "label": "scratch",
+   "confidence": "static"
+  },
+  {
+   "addr": 40562,
+   "category": "scratch register (all modules)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40563,
+   "category": "scratch register (all modules)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40564,
+   "category": "scratch register (all modules)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40565,
+   "category": "scratch register (all modules)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40566,
+   "category": "scratch register (all modules)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40567,
+   "category": "scratch register (all modules)",
+   "label": "",
+   "confidence": ""
+  },
+  {
+   "addr": 40568,
+   "category": "combat setup",
+   "label": "combat option 0-15 (0 = normal)",
+   "confidence": "debug label"
+  },
+  {
+   "addr": 40684,
+   "category": "story event flag",
+   "label": "story event flag: WHAT WILL THE VARIABLE BE SET TO?",
+   "confidence": "context only"
+  }
+ ]
+}

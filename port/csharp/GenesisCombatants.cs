@@ -8,15 +8,15 @@ using System;
 namespace BuckRogersGenesis
 {
     /// The decompressed monster file: [count word][count ids, padded to even][count records of 214 bytes].
-    public sealed class MonsterFile
+    public sealed class MonsterBinFile
     {
         public byte[] Ids;
         public byte[][] Records;
 
-        public static MonsterFile Parse(byte[] b)
+        public static MonsterBinFile Parse(byte[] b)
         {
             int n = (b[0] << 8) | b[1];
-            var f = new MonsterFile { Ids = new byte[n], Records = new byte[n][] };
+            var f = new MonsterBinFile { Ids = new byte[n], Records = new byte[n][] };
             Array.Copy(b, 2, f.Ids, 0, n);
             int p = 2 + ((n + 1) & ~1);
             for (int i = 0; i < n; i++) { f.Records[i] = new byte[214]; Array.Copy(b, p + 214 * i, f.Records[i], 0, 214); }
@@ -26,7 +26,7 @@ namespace BuckRogersGenesis
 
     public sealed partial class TurnContext
     {
-        public MonsterFile Monsters;                      // the monster file (see MonsterFile)
+        public MonsterBinFile Monsters;                      // the monster file (see MonsterBinFile)
 
         /// 0x3544: the script adds `count` monsters of type `id` to the fight: they use the next monster record index (8 + [0xD49B], at most 3 types per fight).
         public void AddMonsters(int id, int count)

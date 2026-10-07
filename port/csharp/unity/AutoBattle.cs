@@ -18,19 +18,19 @@ namespace BuckRogersGenesis
     {
         /// Runs a fight: `party` ids fight `monsterIds` (one group per entry, `count` creatures each) on outdoor ground of `areaType` (0..10). Party members are monster-file records too (there are
         /// no stored player characters in the data). Returns the frames; `winner` is 0 = the monsters, 1 = the party.
-        public static List<BattleFrame> Run(RomView rom, MonsterFile file, int[] party, int[] monsterIds, int count, int seed, int areaType, out int winner)
+        public static List<BattleFrame> Run(RomView rom, MonsterBinFile file, int[] party, int[] monsterIds, int count, int seed, int areaType, out int winner)
         {
             return Run(rom, file, party, monsterIds, count, seed, areaType, 4, out winner);
         }
 
         /// As above; `mode` = 4 outdoor ground (types 0..10), 5 indoor ground (types 0..12), 6 a dungeon arena built by the ported 0xB100 from a generated map (walls, rooms).
-        public static List<BattleFrame> Run(RomView rom, MonsterFile file, int[] party, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
+        public static List<BattleFrame> Run(RomView rom, MonsterBinFile file, int[] party, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
         {
             return Run(rom, file, party, null, monsterIds, count, seed, areaType, mode, out winner);
         }
 
         /// As above with the party members' token keys (record byte +0x42): 0x80 | sheet for a party sheet (see TokenFrames.PregenKeys), or null = the monster id of the member.
-        public static List<BattleFrame> Run(RomView rom, MonsterFile file, int[] party, int[] partyKeys, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
+        public static List<BattleFrame> Run(RomView rom, MonsterBinFile file, int[] party, int[] partyKeys, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
         {
             bool indoor = mode == 5;
             var s = new CombatState { SlotCount = party.Length, Slots = new byte[0][], Records = new byte[11][] };

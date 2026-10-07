@@ -49,6 +49,29 @@ namespace BuckRogersGenesis
             S.Records[free][0x30] = (byte)d5;
         }
 
+        /// How many monster record types the current fight has loaded so far ([0xD49B], at most 3).
+        public int MonsterTypeCount { get { return Gb(0xD49B); } }
+
+        /// 0x3766 (CLEARMONSTERS): the slot list is cut back to the 8 party slots, the monster record counter [0xD49B] and the scripted rewards are cleared.
+        public void ClearMonsters()
+        {
+            S.SlotCount = 8; Gs(0xD49B, 0); Credits = 0; PoolCount = 0;
+        }
+
+        /// 0x392C (TREASURE): credits, then the scripted item ids; an id of 0, above 0x5D or in the table at 0x3978 is dropped (and not counted).
+        public void SetScriptedTreasure(uint credits, int[] items)
+        {
+            Credits = credits; int n = 0;
+            Array.Clear(ScriptedLoot, 0, ScriptedLoot.Length);
+            foreach (int id0 in items)
+            {
+                int id = id0 & 0xFF; bool bad = id == 0 || id > 0x5D;
+                for (int k = 0; k < 34 && !bad; k++) if (Rom.Byte(0x3978 + k) == id) bad = true;
+                if (!bad && n < ScriptedLoot.Length) ScriptedLoot[n++] = (byte)id;
+            }
+            PoolCount = (byte)n;
+        }
+
         void EnsureSlot(int i)
         {
             if (S.Slots.Length <= i) Array.Resize(ref S.Slots, i + 1);

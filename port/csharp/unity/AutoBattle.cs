@@ -88,7 +88,7 @@ namespace BuckRogersGenesis
             x.MapX = 8; x.MapY = 8;
         }
 
-        static BattleFrame Snap(TurnContext x)
+        public static BattleFrame Snap(TurnContext x)
         {
             var s = x.S; int n = s.SlotCount;
             var f = new BattleFrame { Mode = x.ScreenModeOfFight, Round = x.Round, Actor = x.Actor, Tiles = (byte[])s.Tiles.Clone(), X = new int[n], Y = new int[n], Hp = new int[n], Side = new int[n], Status = new int[n], Id = new int[n], Facing = new int[n], Size = new int[n], AnimSet = new int[n] };

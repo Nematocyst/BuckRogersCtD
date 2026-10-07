@@ -1,7 +1,7 @@
 """Export the battlefield terrain art: the ROM's own map painter (0xFEF8) is run for every tile id with a model of the VDP. The fight screen builder 0x14D60 loads the tile piece of
 the screen mode; the painter draws each cell (tile id & 0x7F) as the 3x3-tile block id*9 of that piece's tilemap (24x24 px), with palette lines 0-2 from colour memory.
 Mode 4 = outdoor ground ([0x97DC] = 0xA2), mode 5 = indoor ([0x97DC] = 0xA8); the art is the same for every ground type of a mode (the screen builder loads it the same way for 13
-types). Writes terrain_mode4.png and terrain_mode5.png: 16 x 8 ids, 24 px cells, id = row * 16 + column.  usage: python export_terrain.py ROM OUTDIR"""
+types). Writes terrain_mode4.png, terrain_mode5.png and terrain_mode6.png: 16 x 8 ids, 24 px cells, id = row * 16 + column.  usage: python export_terrain.py ROM OUTDIR"""
 import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 from emu68k import Machine
@@ -9,7 +9,7 @@ from vdp_model import VDP
 from PIL import Image
 rom = open(sys.argv[1], 'rb').read(); out = sys.argv[2]; os.makedirs(out, exist_ok=True)
 def rgb(w): return (((w >> 1) & 7) * 36, ((w >> 5) & 7) * 36, ((w >> 9) & 7) * 36)
-for mode, d97 in ((4, 0xA2), (5, 0xA8)):
+for mode, d97 in ((4, 0xA2), (5, 0xA8), (6, 0x00)):
     m = Machine(rom); v = VDP(m)
     m.write_ram(0x97DC, bytes([d97])); m.write_ram(0x97AD, bytes([1])); m.write_ram(0x9BBC, bytes([2]))
     kw = dict(max_insns=8_000_000, a4=0xC00004, a5=0xC00000)

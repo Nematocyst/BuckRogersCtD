@@ -1,5 +1,5 @@
 // CombatBoardView.cs -- Unity front end for AutoBattle: add it to an empty GameObject; it runs one computer-played fight on Start and replays it turn by turn on the screen
-// (IMGUI): the 21x21 ground as the ROM's terrain art (Resources/BuckRogers/terrain/terrain_mode4.png / mode5.png, made by tools/export_terrain.py; coloured cells without it) and the creatures as their ROM sprites (Resources/BuckRogers/tokens/token_<monster id>.png, made by tools/export_tokens.py; the frame
+// (IMGUI): the 21x21 ground as the ROM's terrain art (Resources/BuckRogers/terrain/terrain_mode4 / 5 / 6.png, made by tools/export_terrain.py; coloured cells without it) and the creatures as their ROM sprites (Resources/BuckRogers/tokens/token_<monster id>.png, made by tools/export_tokens.py; the frame
 // follows the facing / down rules of ROM 0xAD5A, see TokenFrames; attacks play as in the ROM: the attacker aims, victims show the hit pose or the death sequence, see BattleSequence) with hit points and a side marker (blue = party, red = monsters). Without the PNGs it falls back to coloured boxes.
 // Needs Assets/Resources/BuckRogers/rom_tables.json and monster_file.bytes (see port/README.md). Not covered by the ROM tests (the logic it shows is; this view is checked by looking).
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace BuckRogersGenesis
         public int GroupSize = 2;
         public int Seed = 1;
         [Range(0, 10)] public int AreaType = 1;      // ground type (outdoor 0..10, indoor 0..12)
-        public bool Indoors;                         // indoor ground (terrain art mode 5)
+        [Range(4, 6)] public int GroundMode = 4;     // 4 outdoor, 5 indoor, 6 dungeon arena (terrain art atlas and ground generator)
         public float SecondsPerTurn = 0.4f;
         public int CellPixels = 24;
 
@@ -26,20 +26,21 @@ namespace BuckRogersGenesis
         bool playing = true;
         string result = "";
         Texture2D white;
-        Texture2D[] terrain = new Texture2D[2];
+        Texture2D[] terrain = new Texture2D[3];
         bool terrainLoaded;
 
         /// The terrain atlas of a ground set (16 x 8 cells of 24 px, id = row * 16 + column, made by tools/export_terrain.py), or null.
-        Texture2D Terrain(bool indoor)
+        Texture2D Terrain(int mode)
         {
             if (!terrainLoaded)
             {
                 terrainLoaded = true;
                 terrain[0] = Resources.Load<Texture2D>("BuckRogers/terrain/terrain_mode4");
                 terrain[1] = Resources.Load<Texture2D>("BuckRogers/terrain/terrain_mode5");
+                terrain[2] = Resources.Load<Texture2D>("BuckRogers/terrain/terrain_mode6");
                 foreach (var t in terrain) if (t != null) t.filterMode = FilterMode.Point;
             }
-            return terrain[indoor ? 1 : 0];
+            return terrain[Mathf.Clamp(mode - 4, 0, 2)];
         }
         readonly Dictionary<int, Texture2D> sheets = new Dictionary<int, Texture2D>();
 
@@ -65,7 +66,7 @@ namespace BuckRogersGenesis
 
         void Run(RomView rom, MonsterFile file)
         {
-            frames = AutoBattle.Run(rom, file, Party, MonsterGroups, GroupSize, Seed, AreaType, Indoors, out int winner);
+            frames = AutoBattle.Run(rom, file, Party, MonsterGroups, GroupSize, Seed, AreaType, GroundMode, out int winner);
             Show(0); playing = true;
             result = frames.Count == 0 ? "no fight (a side had no room on the battlefield)" : (winner == 1 ? "the party wins" : "the monsters win");
         }
@@ -101,7 +102,7 @@ namespace BuckRogersGenesis
             var f = frames[shown];
             int px = CellPixels, ox = 10, oy = 40;
             GUI.Label(new Rect(10, 8, 900, 24), $"round {f.Round}   turn {shown + 1}/{frames.Count}   {(shown == frames.Count - 1 ? result : "")}");
-            var atlas = Terrain(f.Indoor);
+            var atlas = Terrain(f.Mode);
             for (int y = 0; y < 21; y++)
                 for (int x = 0; x < 21; x++)
                 {

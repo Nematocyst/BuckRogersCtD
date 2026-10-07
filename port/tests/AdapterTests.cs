@@ -8,14 +8,15 @@ static class AdapterTests
     {
         var rom = RomView.FromRom(romBytes);
         var file = MonsterFile.Parse(File.ReadAllBytes(monsterFile));
-        int fails = 0, fights = 0, frames = 0, party = 0, totalAttacks = 0;
+        int fails = 0, fights = 0, frames = 0, party = 0, totalAttacks = 0, dungeons = 0;
         var setups = new[] { new[] { 0, 1, 2 }, new[] { 4, 5 }, new[] { 1 } };
         for (int seed = 1; seed <= 12; seed++)
         {
             var pids = setups[seed % 3]; var mids = new[] { 4 + seed % 5, 10 + seed % 3 };
             var a = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed % 11, out int w1);
             var b = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed % 11, out int w2);
-            if (seed <= 4) { var ind = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed, true, out int w3); if (ind.Count < 2 || !ind[0].Indoor || a[0].Indoor) { fails++; Console.WriteLine("FAIL: indoor fight seed " + seed); } }
+            if (seed <= 4) { var ind = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed, 5, out int w3); if (ind.Count < 2 || ind[0].Mode != 5 || a[0].Mode != 4) { fails++; Console.WriteLine("FAIL: indoor fight seed " + seed); } }
+            if (seed <= 6) { var dg = AutoBattle.Run(rom, file, pids, mids, 1 + seed % 3, seed, seed, 6, out int w4); if (dg.Count > 0 && dg[0].Mode != 6) { fails++; Console.WriteLine("FAIL: dungeon fight mode"); } dungeons += dg.Count > 1 ? 1 : 0; }
             fights++; frames += a.Count; if (w1 == 1) party++;
             int attacks = 0;
             for (int k = 0; k + 1 < a.Count; k++)
@@ -58,6 +59,7 @@ static class AdapterTests
                 if (fr != want[f] || m != (f >= 5) || TokenFrames.Idle(f, true, out m) != 16) { fails++; Console.WriteLine("FAIL: token frame facing " + f); }
             }
         }
+        if (dungeons == 0) { fails++; Console.WriteLine("FAIL: no dungeon fight ran"); }
         if (totalAttacks == 0) { fails++; Console.WriteLine("FAIL: no attack found in any fight"); }
         Console.WriteLine($"adapter: {fights} fights, {frames} frames ({totalAttacks} attack sequences), party won {party}, {fails} failing");
         return fails;

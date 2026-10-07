@@ -13,6 +13,7 @@ namespace BuckRogersGenesis
         public byte Ambush;                // [0x9DB6]: monsters come from all sides (not only the one opposite the party)? (see Deploy) - stored in [0xD4FE]
         public byte GroupMask;             // [0xD8CC]: bit k set = a group of monsters enters from direction k+2 (0 = one group opposite the party)
         public byte AreaType;              // [0x97AD]: the kind of ground (0..10 outdoors, 11.. indoors) - selects the terrain generator and its feature list
+        public int ScreenModeOfFight { get; private set; }   // the screen mode the last CombatSetup chose (4 outdoor, 5 indoor, 6 dungeon); ScreenMode itself is reset to 0 when the setup ends
         public int ScreenMode;             // [0xB52A]: 6 = a fixed map (skips the generator), 4 = outdoors tables, anything else indoor tables
         public byte SoloFlag;              // [0xBA5B]: only the creature [0x9DA7] fights for the party
         public byte SoloMember;            // [0x9DA7]
@@ -333,7 +334,7 @@ namespace BuckRogersGenesis
             if (Gb(0xD4FE) != 0 && GroupMask == 0) { OriginX = Rom.Byte(0x146F6 + (Facing & 0xFF)); OriginY = Rom.Byte(0x146F6 + (Facing & 0xFF) + 5); }
             else { OriginX = Rom.Byte(0x146FA); OriginY = Rom.Byte(0x146FF); }
             int kind = D97DC == 0xA2 ? 1 : D97DC == 0xA8 ? 2 : 3;                                   // 0x82AC: the kind of area (the screen mode)
-            ScreenMode = kind + 3;
+            ScreenMode = kind + 3; ScreenModeOfFight = ScreenMode;
             if (ScreenMode == 6) { TerrainTable = 0x3297; ScriptTable = 0; BuildDungeonArena(); }
             else if (ScreenMode == 4) { GenerateBattlefield(AreaType); TerrainTable = 0x31F5; ScriptTable = 0x325A; }
             else { GenerateBattlefield(AreaType + 0xB); TerrainTable = 0x31CB; ScriptTable = 0x3231; }

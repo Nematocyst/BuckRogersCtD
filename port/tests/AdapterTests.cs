@@ -6,6 +6,7 @@ static class AdapterTests
 {
     public static int Run(string monsterFile, byte[] romBytes)
     {
+        string partyFile = Path.Combine(Path.GetDirectoryName(monsterFile), "default_party.bytes");
         var rom = RomView.FromRom(romBytes);
         var file = MonsterBinFile.Parse(File.ReadAllBytes(monsterFile));
         int fails = 0, fights = 0, frames = 0, party = 0, totalAttacks = 0, dungeons = 0;
@@ -66,6 +67,38 @@ static class AdapterTests
         }
         if (dungeons == 0) { fails++; Console.WriteLine("FAIL: no dungeon fight ran"); }
         if (totalAttacks == 0) { fails++; Console.WriteLine("FAIL: no attack found in any fight"); }
+        {   // the default party: real records, gear, keys; the slots stored in the blob agree with the derived stats
+            var dp = DefaultParty.Parse(File.ReadAllBytes(partyFile));
+            string[] names = { "FLAVIUS", "CELESTE", "PIERRE", "NICHOLE", "ROARKE", "JANELLE" };
+            for (int i = 0; i < 8; i++)
+            {
+                if (i >= 6) { if (dp.Present(i)) { fails++; Console.WriteLine("FAIL: default party record " + i + " should be empty"); } continue; }
+                var row = TokenFrames.PregenKeys[i];
+                if (dp.NameOf(i) != names[i] || dp.NameOf(i) != (string)row[0] || dp.Race(i) != (int)row[1] || dp.Sex(i) != (int)row[2] || dp.Career(i) != (int)row[3] || dp.Key(i) != (int)row[4] || dp.Level(i) != 2
+                    || dp.ItemIds(i).Count != 2) { fails++; Console.WriteLine("FAIL: default party member " + i + " " + dp.NameOf(i)); }
+            }
+            if (dp.Experience(0) != 2000 || dp.HitPoints(0) != 25 || dp.HitPoints(5) != 11) { fails++; Console.WriteLine("FAIL: default party xp / hp"); }
+            // RecomputeSlot (ROM 0x6D1E) on each stored record reproduces the combat stats stored in the blob's slot (bytes 3..13)
+            var s0 = new CombatState { SlotCount = 6, Slots = new byte[0][], Records = new byte[11][] };
+            var x0 = new TurnContext { S = s0, Rom = rom };
+            for (int i = 0; i < 6; i++)
+            {
+                x0.LoadPartyMember(dp.Records[i], dp.Slots[i], i);
+                var calc = (byte[])dp.Slots[i].Clone(); var rec = (byte[])dp.Records[i].Clone();
+                GenesisStats.RecomputeSlot(rom, calc, rec, 0, 0, false);
+                for (int b = 3; b < 14; b++) if (calc[b] != dp.Slots[i][b]) { fails++; Console.WriteLine($"FAIL: {dp.NameOf(i)} slot byte {b}: recomputed {calc[b]} vs stored {dp.Slots[i][b]}"); }
+            }
+            int won = 0, ran = 0;
+            for (int seed = 1; seed <= 6; seed++)
+            {
+                var fr = AutoBattle.RunDefaultParty(rom, file, dp, 3 + seed % 4, new[] { 4 + seed % 5, 10 + seed % 3 }, 1 + seed % 2, seed, seed % 11, seed % 2 == 0 ? 4 : 5, out int wd);
+                if (fr.Count < 2) { fails++; Console.WriteLine("FAIL: default party fight seed " + seed); continue; }
+                ran++; if (wd == 1) won++;
+                bool keys = fr[0].Id[0] == 0x83 && fr[0].Side[0] == 1 && fr[0].AnimSet[0] == 0;
+                if (!keys) { fails++; Console.WriteLine("FAIL: default party tokens in the frames"); }
+            }
+            Console.WriteLine($"adapter: default party fights {ran}, party won {won}");
+        }
         Console.WriteLine($"adapter: {fights} fights, {frames} frames ({totalAttacks} attack sequences), party won {party}, {fails} failing");
         return fails;
     }

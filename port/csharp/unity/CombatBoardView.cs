@@ -16,6 +16,8 @@ namespace BuckRogersGenesis
         public int Seed = 1;
         [Range(0, 10)] public int AreaType = 1;      // ground type (outdoor 0..10, indoor 0..12)
         [Range(4, 6)] public int GroundMode = 4;     // 4 outdoor, 5 indoor, 6 dungeon arena (terrain art atlas and ground generator)
+        public bool UseDefaultParty = true;          // fight with the game's own default party (Flavius, Celeste, Pierre ... from default_party.bytes) instead of monster records
+        [Range(1, 6)] public int PartyMembers = 3;
         public float SecondsPerTurn = 0.4f;
         public int CellPixels = 24;
 
@@ -62,12 +64,15 @@ namespace BuckRogersGenesis
             var rom = GenesisRomTables.Load();
             var asset = Resources.Load<TextAsset>("BuckRogers/monster_file");
             if (rom == null || asset == null) { result = "missing Resources/BuckRogers/rom_tables.json or monster_file.bytes"; return; }
-            Run(rom, MonsterBinFile.Parse(asset.bytes));
+            var pbytes = Resources.Load<TextAsset>("BuckRogers/default_party");
+            Run(rom, MonsterBinFile.Parse(asset.bytes), pbytes != null ? DefaultParty.Parse(pbytes.bytes) : null);
         }
 
-        void Run(RomView rom, MonsterBinFile file)
+        void Run(RomView rom, MonsterBinFile file, DefaultParty party)
         {
-            frames = AutoBattle.Run(rom, file, Party, PartyKeys != null && PartyKeys.Length >= Party.Length ? PartyKeys : null, MonsterGroups, GroupSize, Seed, AreaType, GroundMode, out int winner);
+            int winner;
+            if (UseDefaultParty && party != null) frames = AutoBattle.RunDefaultParty(rom, file, party, PartyMembers, MonsterGroups, GroupSize, Seed, AreaType, GroundMode, out winner);
+            else frames = AutoBattle.Run(rom, file, Party, PartyKeys != null && PartyKeys.Length >= Party.Length ? PartyKeys : null, MonsterGroups, GroupSize, Seed, AreaType, GroundMode, out winner);
             Show(0); playing = true;
             result = frames.Count == 0 ? "no fight (a side had no room on the battlefield)" : (winner == 1 ? "the party wins" : "the monsters win");
         }

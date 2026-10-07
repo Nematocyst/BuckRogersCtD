@@ -32,15 +32,31 @@ namespace BuckRogersGenesis
         /// As above with the party members' token keys (record byte +0x42): 0x80 | sheet for a party sheet (see TokenFrames.PregenKeys), or null = the monster id of the member.
         public static List<BattleFrame> Run(RomView rom, MonsterBinFile file, int[] party, int[] partyKeys, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
         {
+            return Run(rom, file, party.Length, (x, s) =>
+            {
+                for (int i = 0; i < party.Length; i++)
+                {
+                    x.LoadCombatant(party[i], 1, partyKeys != null ? partyKeys[i] : party[i], i);
+                    s.Records[i][0x52] |= 1; s.Slots[i][1] |= 1;                       // party side
+                }
+            }, monsterIds, count, seed, areaType, mode, out winner);
+        }
+
+        /// A fight of the game's default party (the first `members` characters of `party`, with their own records, gear and sprites) against `monsterIds` groups.
+        public static List<BattleFrame> RunDefaultParty(RomView rom, MonsterBinFile file, DefaultParty party, int members, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
+        {
+            var present = new List<int>(); for (int i = 0; i < DefaultParty.Count && present.Count < members; i++) if (party.Present(i)) present.Add(i);
+            return Run(rom, file, present.Count, (x, s) => { for (int k = 0; k < present.Count; k++) x.LoadPartyMember(party.Records[present[k]], party.Slots[present[k]], k); },
+                monsterIds, count, seed, areaType, mode, out winner);
+        }
+
+        static List<BattleFrame> Run(RomView rom, MonsterBinFile file, int partySize, Action<TurnContext, CombatState> loadParty, int[] monsterIds, int count, int seed, int areaType, int mode, out int winner)
+        {
             bool indoor = mode == 5;
-            var s = new CombatState { SlotCount = party.Length, Slots = new byte[0][], Records = new byte[11][] };
+            var s = new CombatState { SlotCount = partySize, Slots = new byte[0][], Records = new byte[11][] };
             var words = new ushort[256]; var rnd = new Random(seed); for (int i = 0; i < 256; i++) words[i] = (ushort)rnd.Next(65536);
             var x = new TurnContext { S = s, Rom = rom, Monsters = file, Rng = GenesisRng.FromSeedWords(words) };
-            for (int i = 0; i < party.Length; i++)
-            {
-                x.LoadCombatant(party[i], 1, partyKeys != null ? partyKeys[i] : party[i], i);
-                s.Records[i][0x52] |= 1; s.Slots[i][1] |= 1;                       // party side
-            }
+            loadParty(x, s);
             foreach (int id in monsterIds) x.AddMonsters(id, count);
             for (int r = 0; r < 11; r++) if (s.Records[r] == null) s.Records[r] = new byte[214];
             x.D97DC = (byte)(mode == 6 ? 0xA0 : indoor ? 0xA8 : 0xA2); if (mode == 6) DungeonMap(x, rnd); x.AreaType = (byte)(areaType % (indoor ? 13 : 11)); x.Facing = (byte)rnd.Next(4);

@@ -19,6 +19,7 @@ Last updated at the end of the session that built the adapter, graphics export a
 | Fight end: tally, XP, loot sharing, medical aftermath, scripted-fight end (starship repair) | `GenesisCombatEnd.cs`, `GenesisLootScreen.cs`, `GenesisShipRepair.cs` | verified |
 | Dungeon-map arena (ROM 0xB100) | `GenesisDungeonArena.cs` | verified (400 random maps) |
 | Combatant creation (ROM 0x3544 add monsters, 0x488C add NPC, 0x48E8 loader) | `GenesisCombatants.cs` | verified (600 cases) |
+| Default party | `csharp/GenesisParty.cs`, `csharp/unity/Resources/BuckRogers/default_party.bytes` (from ROM 0x6BAAD, `tools/export_default_party.py`) | records, slots and tokens agree with the engine (RecomputeSlot reproduces the stored slot stats) |
 | Unity adapter | `csharp/unity/AutoBattle.cs`, `BattleSequence.cs`, `TokenFrames.cs`, `CombatBoardView.cs`, `GenesisRomTablesLoader.cs` | logic tested under mono; the `MonoBehaviour` view is **not compiled or run in Unity** |
 | Script (ECL) interpreter | `ecl/EclInterpreter.cs`, `ecl/EclTests.cs`, `ecl/data/` (oracle + vectors), `ecl/README.md` | verified: decoder vs 13,936 oracle instructions, 1,500 random scripts vs the ROM's own engine |
 | Tools | `tools/*.py` (vector generators, `emu68k.py`, `vdp_model.py`, exporters) | working |
@@ -39,7 +40,7 @@ Run the ROM routine in Unicorn on random worlds (`tools/monster_world.py`, `sane
 * **Unity:** `CombatBoardView` never ran in Unity (compiled only against a hand-written stub of the used UnityEngine calls). No player input UI (everything is computer-played), no sound, no projectile flight, no text/menus, no sprites for the ROM UI.
 * **Script engine:** the interpreter is in `ecl/` (see its README); the host side (menus, store, shops, combat start glue, screens) is not written, and `AddMonsters` / `AddAlly` are not yet called from `IEclHost.LoadMonster` / `SetupMonsters`. Still not ported: the LZW decompressor (replaced by the exported `monster_file.bytes`), the "monster not found" error box, starship combat (0x17816 engine, separate subsystem), overland/dungeon exploration, character creation screen, save/load.
 * **Combat details not traced:** projectile flight (0x108AA), what party sheets 2, 4, 6, 8, 9, 11 are for, the tick = 1/60 s assumption of the animation timings, sound.
-* **Demo limits:** party members in `AutoBattle` are monster-file records with party keys (the data has no stored player characters beyond the 6 default ones in the compressed blob, which are not decoded into the C# data); dungeon arenas use a generated map (no real map layers in the builder's format); outdoor types 0-10, indoor 0-12.
+* **Demo limits:** party members in `AutoBattle` are monster-file records with party keys (the viewer can now use the six default characters from `default_party.bytes` instead: `DefaultParty`, `AutoBattle.RunDefaultParty`); dungeon arenas use a generated map (no real map layers in the builder's format); outdoor types 0-10, indoor 0-12.
 * **Never run in a real emulator session by me:** claims marked "derived from the code" in the docs (created characters drawing as monster id 0; the animation tick length).
 
 ## 5. Conventions and constraints (keep following)
@@ -51,7 +52,7 @@ Run the ROM routine in Unicorn on random worlds (`tools/monster_world.py`, `sane
 
 ## 6. Suggested next steps (in order of value / cost)
 1. Open the viewer in Unity: copy `rom_tables.json`, `monster_file.bytes`, the three exported art folders and the `csharp/` files; fix whatever the editor reports.
-2. Decode the six default characters from the blob into C# data so the demo uses real party records (names, stats, gear) instead of monster records.
+2. (done) The six default characters are decoded (`csharp/GenesisParty.cs`, `Resources/BuckRogers/default_party.bytes`) and the viewer fights with them.
 3. Real player input UI (map picking, command menu) on the existing callbacks.
 4. Projectile flight and sounds; the unused party sheets; the script engine / encounter data path (`AddMonsters` already takes parsed operands).
 5. Starship combat as a separate port (large).

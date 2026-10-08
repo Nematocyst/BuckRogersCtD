@@ -19,6 +19,7 @@ def machine(rom):
     m.shots = []
     def flush(): 
         buf = m.read_ram(0xD5AE, 48); s = buf[:buf.index(0)].decode('latin1')
+        assert m.reg('a4') == 0xC00004 and m.reg('a5') == 0xC00000, 'VDP port registers clobbered at a text flush'
         m.shots.append((s, m.ram_word(0xD5D6), m.ram_word(0xD5D8), m.ram_word(0xD5AC))); return 0
     m.stub_fn(0x11CA4, flush)
     return m
@@ -67,7 +68,7 @@ for case in range(N):
     ra, rb = bytearray(mo.read_ram(0, 0x10000)), bytearray(mp.read_ram(0, 0x10000))
     for r_ in (ra, rb): r_[0xD5A0:0xD600] = bytes(0x60); r_[0xEE00:0xF000] = bytes(0x200)     # text scratch differs by design; dead stack below sp
     ram_same = ra == rb
-    regs_same = all(mo.reg(x) == mp.reg(x) for x in ('a7', 'a6', 'd2', 'a2', 'a3'))
+    regs_same = all(mo.reg(x) == mp.reg(x) for x in ('a7', 'a6', 'a5', 'a4', 'd2', 'a2', 'a3'))
     row = rom0[0x779E + 8 * iid: 0x779E + 8 * iid + 8]
     # oracle
     expect_line = None

@@ -109,6 +109,8 @@ a_calc: move.b  4(a0),d6                | slot +4; the sheet shows 0x3C - that
 show:   clr.b   (a1)
         move.w  #0xC000,(0xFFFFD5AC).l
         move.l  #0x00130018,(0xFFFFD5D6).l      | column 0x13, row 0x18: under the name (0x16) and the price (0x17)
+        movea.l 48(sp),a4               | a4/a5 are the VDP control/data ports for the text routine: take the caller's values back
+        movea.l 52(sp),a5
         jsr     (0x11C4C).l
 done:   movem.l (sp)+,d0-d7/a0-a5
         jmp     (0x16AC8).l

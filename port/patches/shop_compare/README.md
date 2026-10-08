@@ -6,7 +6,7 @@ One extra text line in the shop's buy screen. With the cursor on an item:
 * armor:  `AC 0  NOW 4` (armor class the character would have, then the current one; lower is better, as on the character sheet)
 * anything else, explosives included: no extra line
 
-Files: `shop_compare.s` (source, GNU `as`, `m68k-linux-gnu-as -m68000 --register-prefix-optional`), `shop_compare.bin` (496 bytes),
+Files: `shop_compare.s` (source, GNU `as`, `m68k-linux-gnu-as -m68000 --register-prefix-optional`), `shop_compare.bin` (504 bytes),
 `shop_compare.ips` (against the original USA/Europe ROM), `patch_bytes.txt` (address and bytes), `build_patch.py` (assembles, applies, writes the IPS),
 `test_shop_compare.py` (differential test).
 
@@ -15,9 +15,9 @@ Files: `shop_compare.s` (source, GNU `as`, `m68k-linux-gnu-as -m68000 --register
 | address | bytes | what |
 |---|---|---|
 | 0x016ABE (6 bytes) | `4E F9 00 0F 50 00` | `jmp 0xF5000` over `bsr 0x11C4C ; bra.b 0x16AC8` (the end of the shop branch of the item description, 0x169C6) |
-| 0x0F5000 (496 bytes) | see `patch_bytes.txt` | the routine |
+| 0x0F5000 (504 bytes) | see `patch_bytes.txt` | the routine |
 
-Free space used: 0xF5000-0xF51EF. It does not overlap the v8 IPS (0x18E, 0x3D46, 0xF19B8, 0xF1A2F, 0xF2000-0xF212F, 0xFFFCC); the test also passes on the v8-patched ROM.
+Free space used: 0xF5000-0xF51F7. It does not overlap the v8 IPS (0x18E, 0x3D46, 0xF19B8, 0xF1A2F, 0xF2000-0xF212F, 0xFFFCC); the test also passes on the v8-patched ROM.
 The routine runs the instruction the hook replaced (`jsr 0x11C4C`, the price line) first, and ends with `jmp 0x16AC8` (the original destination), so everything else is untouched.
 The hook is only reached in shop mode ([0xBA60] set): the loot screen's branch of the description never gets there, so the loot screen has no extra line (see below).
 
@@ -34,6 +34,12 @@ Weapon numbers follow the stat routine 0x6D1E exactly (byte arithmetic, negative
 bonus = table +5 + (melee: strength damage bonus) + specialisations + item +4; min = dice + bonus; max = dice x sides + bonus; attacks = table +2 / 2.
 "NOW" is read from the slot bytes the sheet prints (+6, +8, +0xA, +0xC), so it includes everything the sheet includes (unarmed, effects).
 Armor: bonus = table +1 - 0x32 + item +4, as 0x6D1E adds it to slot +4; the sheet shows AC = 0x3C - slot +4.
+
+## Fix after the first in-emulator run
+The first version used a4 and a5 as scratch pointers and called the text flush (0x11C4C) with them still set; the flush writes through a4/a5 as the VDP control/data ports,
+so the third line was computed (buffer and cursor were right) but its tiles went to RAM instead of the screen. The routine now takes the caller's a4/a5 back from its saved
+registers before the flush, and the test asserts a4 = 0xC00004 and a5 = 0xC00000 at every flush and compares a4/a5 after the call. (The old version fails that test.)
+A VDP-model run of the whole description now writes the third line to row 0x18, columns 8-29, with the same tile attribute (0xC0xx) as the price line.
 
 ## Screen position
 The box is rows 0x16-0x19 (columns 2-0x25), all four interior (clearing it writes 36 cells on each of the four rows; checked by running 0x169A4 with the VDP model).

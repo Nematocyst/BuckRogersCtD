@@ -13,3 +13,4 @@ Start with the method page; the rest are by topic.
 | [06-status-and-gaps.md](06-status-and-gaps.md) | What is verified, what is not ported, how to run the tests |
 
 The older, per-routine reference tables are in `port/README.md`.
+| [findings.md](findings.md) | Effect ids 0x0A, 0x0B, 0x10, 0x12, 0x13: on the stage lists, but their handlers are empty |

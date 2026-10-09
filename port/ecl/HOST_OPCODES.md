@@ -62,7 +62,7 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 35 | SAVETABLE | 3 | 1 | 03AD0 | A2: character (done) |
 | 36 | ADDNPC | 2 | 12 | 03AD4 | A: character (done) |
 | 37 | LOADPIECES | 1 | 30 | 03AD8 | D: graphics (no game state) |
-| 38 | PROGRAM | 1 | 9 | 03AEC | A2: character / item state (next) |
+| 38 | PROGRAM | 1 | 9 | 03AEC | E: programs (screens) |
 | 39 | WHO | 1 | 26 | 03B6A | A2: character (done) |
 | 3A | DELAY | 0 | 156 | 03B74 | UI event (host) |
 | 3B | SPELLS | -2 | 0 | 03B78 | unused |
@@ -81,7 +81,7 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 48 | HIDEITEMS | 1 | 1 | 03D0C | A2: character (done) |
 | 49 | SKILLDAMAGE | 6 (the oracle says 7) | 1 | 03D38 | A2: character (done) |
 | 4A | DUEL | 0 | 2 | 038B4 | C: starship / duel |
-| 4B | STORE | 1 | 11 | 03D3C | A2: character / item state (next) |
+| 4B | STORE | 1 | 11 | 03D3C | E: shops (screen mode of the combat engine) |
 | 4C | VIEW | 2 | 46 | 03DD8 | B: exploration (map) |
 | 4D | ANIMATE | -2 | 0 | 03E28 | unused |
 | 4E | STAIRCASE | 0 | 12 | 03E2E | B: exploration (map) |
@@ -103,6 +103,12 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 
 ## Order of work
 1. **A (done):** LOADCHARACTER, SAVECHARACTER, SKILL, PRINTSKILL, ADDNPC. SKILL's party search reproduces a ROM quirk: the skill-value routine 0x4FB0 overwrites the slot pointer, so after the first eligible member the following members' "slot flags" are ROM bytes at 0x4FFC + 0x1A k.
-2. **A2 (in progress):** DAMAGE and SKILLDAMAGE are done (`GenesisScriptDamage.cs`, 1,500 and 1,200 ROM vectors; wired into `EclCombatHost`, which reports `PartyDown`). Notes: DAMAGE's "one random victim with a save" branch never tests the save (a missing TST in the ROM; the Z flag comes from the restored D2) -- `ScriptLeftoverD2`, unused by any script; the legacy shot mode (flags bit 7 clear) makes `flags` shots, not flags + 1 (the loop is entered at its DBRA). SKILLDAMAGE has **six** operands in the ROM (skip table 0x482E and the handler), not seven as in `scripts.json`: the seventh is the EXIT behind it in module 0x53, and the decoder test adjusts the oracle for that one instruction (13,937 instructions). FINDITEM, DESTROY and HIDEITEMS are done (`GenesisScriptItems.cs`, 600 ROM vectors incl. the [0x97AE] rules: the search finds nothing while it is set; id 0 matches an empty entry). WHO is a host callback (`WhoHandler`: the ROM opens a member menu and stores the pick in [0x9DA7]); SAVETABLE is a debug command that only prints "command not supported". Remaining: HOWFAR (needs the map: 0x4DAA / 0x14CCE, moves to group B), STORE (0x3D3C), PROGRAM (0x3AEC).
-3. **B:** NEWREGION (0x3FB4) and the step opcodes (0x3EA4-0x3FA0): the square/facing/area state that scripts and the map share ([9AF6], [9AF7], [9AFA], [9E08]); then the module driver (NEWECL -> load the next module).
-4. **C / D:** SPACECOMBAT is the separate starship port; graphics opcodes change no game state and stay host callbacks.
+2. **A2 (in progress):** DAMAGE and SKILLDAMAGE are done (`GenesisScriptDamage.cs`, 1,500 and 1,200 ROM vectors; wired into `EclCombatHost`, which reports `PartyDown`). Notes: DAMAGE's "one random victim with a save" branch never tests the save (a missing TST in the ROM; the Z flag comes from the restored D2) -- `ScriptLeftoverD2`, unused by any script; the legacy shot mode (flags bit 7 clear) makes `flags` shots, not flags + 1 (the loop is entered at its DBRA). SKILLDAMAGE has **six** operands in the ROM (skip table 0x482E and the handler), not seven as in `scripts.json`: the seventh is the EXIT behind it in module 0x53, and the decoder test adjusts the oracle for that one instruction (13,937 instructions). FINDITEM, DESTROY and HIDEITEMS are done (`GenesisScriptItems.cs`, 600 ROM vectors incl. the [0x97AE] rules: the search finds nothing while it is set; id 0 matches an empty entry). WHO is a host callback (`WhoHandler`: the ROM opens a member menu and stores the pick in [0x9DA7]); SAVETABLE is a debug command that only prints "command not supported". Remaining: HOWFAR (needs the map: 0x4DAA / 0x14CCE, moves to group B).
+3. **E: STORE and PROGRAM (read, not ported -- they open screens).**
+   * STORE n (0x3D3C) is not a plain shop call: it clears the monsters (0x3766), takes list n from the table at 0x3D76 (one length byte, then that many bytes, copied to [0xB9F3] / [0xB9F4..]),
+     sets [0xBA60] and runs the combat entry 0x38BA, i.e. the shop is a screen mode of the combat/loot engine; the purchases change gold and gear there. A faithful port needs that screen (0x38BA with [0xBA60]) first.
+   * PROGRAM n (0x3AEC) jumps through the word table at 0x3B5E: 0 = the training screen (stores the script pointer in [0x9BCC], copies [0xB9F0] to [0x97E8], [0x9BBC] to [0x9BBD], then 0x569E);
+     1 = `jmp 0xD77C`; 2 = [0xBA53] = [0xBA59] = 0xFF (end of the game; [0xBA59] also stops the script loop at 0x3300); 3 = 0x5C3C; 4 = 0x60E0; 5 = clear the save area ($FE000 or $200001 in steps) and call 0x225C three times.
+     The host keeps recording the number (`ProgramCalled`).
+4. **B:** NEWREGION (0x3FB4) and the step opcodes (0x3EA4-0x3FA0): the square/facing/area state that scripts and the map share ([9AF6], [9AF7], [9AFA], [9E08]); then the module driver (NEWECL -> load the next module).
+5. **C / D:** SPACECOMBAT is the separate starship port; graphics opcodes change no game state and stay host callbacks.

@@ -131,6 +131,19 @@ namespace BuckRogersGenesis
                 case 0x0A: Mem.WriteByte(GenesisScriptChar.CurrentCharacter, it.Value(o[0]) & 0xFF); break;        // LOADCHARACTER (ROM 0x353A)
                 case 0x44: break;                                                                                   // SAVECHARACTER: a bare RTS (ROM 0x3CC4)
                 case 0x36: X.AddAlly(it.Value(o[0]), it.Value(o[1])); break;                                        // ADDNPC (ROM 0x3AD4 -> 0x488C)
+                case 0x5C:                                                                                          // NEWREGION id, n, 4n rectangle operands (ROM 0x3FB4), then the map load (0x574E)
+                    {
+                        var vals = new int[o.Length - 2]; for (int k = 2; k < o.Length; k++) vals[k - 2] = it.Value(o[k]);
+                        GenesisExplore.NewRegion(Mem, it.Value(o[0]), it.Value(o[1]), vals);
+                        if (MapLoader != null) MapLoader(Mem.ReadByte(0x9BD4));                                       // the host fills the layers 0xB5A4..0xB9A3 for region [0x9BD4]
+                        break;
+                    }
+                case 0x50: GenesisExplore.StepForward(Mem); break;                                                   // STEPFORWARD (ROM 0x53B6)
+                case 0x5A: GenesisExplore.StepBack(Mem); break;                                                      // STEPBACK (ROM 0x3EA4)
+                case 0x4F: GenesisExplore.HalfStep(Mem); break;                                                      // HALFSTEP
+                case 0x5B: GenesisExplore.HalfBack(Mem); break;                                                      // HALFBACK
+                case 0x52: GenesisExplore.UnlockDoor(Mem); break;                                                    // UNLOCKDOOR
+                case 0x45: it.Store(o[0], GenesisExplore.HowFar(Mem, it.Value(o[1]))); break;                        // HOWFAR dest, direction
                 case 0x40: X.ScriptDestroyItem(it.Value(o[1])); break;                                               // DESTROY x, item (ROM 0x3A60): removes one; the first operand is ignored
                 case 0x48: X.ScriptHideItems(it.Value(o[0])); break;                                                 // HIDEITEMS n (ROM 0x3D0C)
                 case 0x39: Mem.WriteByte(GenesisScriptChar.CurrentCharacter, WhoHandler() & 0xFF); break;           // WHO (ROM 0x53A6): the member menu picks the current character
@@ -159,6 +172,7 @@ namespace BuckRogersGenesis
         }
         public int LastSkillResult = -1, LastSkillIndex = -1;
         public Func<int> WhoHandler = () => 0;                                                                 // WHO: the party member the player picks (0-7); a UI plugs in here
+        public Action<int> MapLoader;                                                                          // NEWREGION: load the map of this region id into the four layers at 0xB5A4
         public bool PartyDown;                                                                                 // DAMAGE left nobody standing (the game restarts)
     }
 }

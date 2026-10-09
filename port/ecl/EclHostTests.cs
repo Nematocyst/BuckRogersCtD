@@ -162,6 +162,13 @@ static class EclHostTests
                 new EclInterpreter(asm2.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm2.Entry);
                 Check(q > 1 ? host.S.Records[0][0x54 + 8] == q - 1 : host.S.Records[0][0x54] != id || host.S.Records[1][0x54] == id, "DESTROY removes one item");
             }
+            {
+                var mem = new GenesisEclMemory(); var host = NewHost(rom, mf, dp, 14, mem);
+                mem.Ram[GenesisExplore.X] = 5; mem.Ram[GenesisExplore.Y] = 5; mem.Ram[GenesisExplore.Facing] = 1;             // open ground, facing east
+                var asm = new HAsm(); asm.Start(); asm.Emit(0x50); asm.Emit(0x45, HAsm.M(0x9E70), HAsm.B(1)); asm.Emit(0x00);
+                new EclInterpreter(asm.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm.Entry);
+                Check(mem.Ram[GenesisExplore.X] == 6 && mem.Ram[GenesisExplore.Y] == 5 && mem.Ram[0x97E6] == 5 && mem.Ram[0x9E70] == 2, "STEPFORWARD moves east; HOWFAR sees open squares");
+            }
             Console.WriteLine("6. character opcodes through the host");
         }
 

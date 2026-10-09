@@ -115,6 +115,15 @@ namespace BuckRogersGenesis.Ecl
                 ops.Add(a); ops.Add(n);
                 for (int i = 0; i < n.Value; i++) ops.Add(Operand(d, ref q));
             }
+            else if (op == 0x5C)
+            {
+                // NEWREGION id, n, then n rectangles of four operands (ROM 0x3FB4: the loop is entered at its DBRA). The decoded data and the ROM's skip table fix the count at 6 (n = 1),
+                // but 25 of the 57 uses in the game have n = 2..8, whose extra operands the oracle shows as stray EXIT / data.
+                var a = Operand(d, ref q); var n = Operand(d, ref q);
+                if (n.Type != EclOperand.Byte) throw new EclFormatException("NEWREGION count is not an immediate byte");
+                ops.Add(a); ops.Add(n);
+                for (int i = 0; i < 4 * n.Value; i++) ops.Add(Operand(d, ref q));
+            }
             else for (int i = 0; i < cnt; i++) ops.Add(Operand(d, ref q));
             return new EclInstruction { Addr = addr, Opcode = op, Ops = ops.ToArray(), Length = q - p };
         }

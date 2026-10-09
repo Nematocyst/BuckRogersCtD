@@ -75,7 +75,7 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 42 | ENCEXIT | 0 | 434 | 03C9E | engine |
 | 43 | SOUND | 1 | 271 | 03CBA | UI event (host) |
 | 44 | SAVECHARACTER | 0 | 13 | 03CC4 | A: character (done) |
-| 45 | HOWFAR | 2 | 1 | 03CC6 | B: exploration (map) |
+| 45 | HOWFAR | 2 | 1 | 03CC6 | B: exploration (done) |
 | 46 | FOR | 2 | 12 | 03CE2 | engine |
 | 47 | ENDFOR | 0 | 12 | 03CF8 | engine |
 | 48 | HIDEITEMS | 1 | 1 | 03D0C | A2: character (done) |
@@ -85,10 +85,10 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 4C | VIEW | 2 | 46 | 03DD8 | B: exploration (map) |
 | 4D | ANIMATE | -2 | 0 | 03E28 | unused |
 | 4E | STAIRCASE | 0 | 12 | 03E2E | B: exploration (map) |
-| 4F | HALFSTEP | 0 | 4 | 03FA0 | B: exploration (map) |
-| 50 | STEPFORWARD | 0 | 53 | 03EB2 | B: exploration (map) |
+| 4F | HALFSTEP | 0 | 4 | 03FA0 | B: exploration (done) |
+| 50 | STEPFORWARD | 0 | 53 | 03EB2 | B: exploration (done) |
 | 51 | PALETTE | 1 | 2 | 03EB8 | D: graphics (no game state) |
-| 52 | UNLOCKDOOR | 0 | 3 | 03EC4 | B: exploration (map) |
+| 52 | UNLOCKDOOR | 0 | 3 | 03EC4 | B: exploration (done) |
 | 53 | ADDFIGURE | 4 | 79 | 03ED0 | D: graphics (no game state) |
 | 54 | ADDCORPSE | 3 | 26 | 03F00 | D: graphics (no game state) |
 | 55 | ADDFIGURE2 | 4 | 7 | 03F1A | D: graphics (no game state) |
@@ -96,9 +96,9 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 57 | UPDATEFRAME | 1 | 10 | 03F70 | D: graphics (no game state) |
 | 58 | REMOVEFIGURE | 0 | 76 | 03F7A | D: graphics (no game state) |
 | 59 | EXPLOSION | 1 | 43 | 03F80 | D: graphics (no game state) |
-| 5A | STEPBACK | 0 | 35 | 03EA4 | B: exploration (map) |
-| 5B | HALFBACK | 0 | 1 | 03F88 | B: exploration (map) |
-| 5C | NEWREGION | 6 | 57 | 03FB4 | B: exploration (map) |
+| 5A | STEPBACK | 0 | 35 | 03EA4 | B: exploration (done) |
+| 5B | HALFBACK | 0 | 1 | 03F88 | B: exploration (done) |
+| 5C | NEWREGION | 6 | 57 | 03FB4 | B: exploration (done) |
 | 5D | ICONMENU | -2 | 0 | 03FF4 | unused |
 
 ## Order of work
@@ -110,5 +110,5 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
    * PROGRAM n (0x3AEC) jumps through the word table at 0x3B5E: 0 = the training screen (stores the script pointer in [0x9BCC], copies [0xB9F0] to [0x97E8], [0x9BBC] to [0x9BBD], then 0x569E);
      1 = `jmp 0xD77C`; 2 = [0xBA53] = [0xBA59] = 0xFF (end of the game; [0xBA59] also stops the script loop at 0x3300); 3 = 0x5C3C; 4 = 0x60E0; 5 = clear the save area ($FE000 or $200001 in steps) and call 0x225C three times.
      The host keeps recording the number (`ProgramCalled`).
-4. **B:** NEWREGION (0x3FB4) and the step opcodes (0x3EA4-0x3FA0): the square/facing/area state that scripts and the map share ([9AF6], [9AF7], [9AFA], [9E08]); then the module driver (NEWECL -> load the next module).
+4. **B (mostly done):** `GenesisExplore.cs` (1,500 ROM vectors): STEPFORWARD, STEPBACK, HALFSTEP, HALFBACK, UNLOCKDOOR, HOWFAR and the state part of NEWREGION (the host loads the map: `MapLoader`). Findings: a step against a wall (side state 1) or off the map turns the party round (+2 facing) instead of moving; a door (3) is passed; NEWREGION reads `n` rectangles of four operands -- the oracle and the ROM's skip table count 6 (n = 1) but 25 of its 57 uses have n = 2..8, whose operands the oracle showed as stray EXIT / data (the decoder now reads 2 + 4n operands; the test skips the 27 stray oracle decodes). Still open: STAIRCASE, VIEW, APPROACH, DUMP (drawing), the map loader itself (LZW from the table at 0x8FA8D; the maps are exported by `genesis_maps`), and the module driver. Original plan: NEWREGION (0x3FB4) and the step opcodes (0x3EA4-0x3FA0): the square/facing/area state that scripts and the map share ([9AF6], [9AF7], [9AFA], [9E08]); then the module driver (NEWECL -> load the next module).
 5. **C / D:** SPACECOMBAT is the separate starship port; graphics opcodes change no game state and stay host callbacks.

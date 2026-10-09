@@ -172,6 +172,46 @@ static class EclHostTests
             Console.WriteLine("6. character opcodes through the host");
         }
 
+        // 7. the session driver: Boot, NEWECL between modules (variables cleared, the new module's init runs), Tick runs the "run" entry
+        {
+            Func<int, byte[], byte[], EclModule> Build = (id, init, run) =>
+            {
+                var b = new List<byte>(); int baseA = EclFormat.Base;
+                int runAt = baseA + 21, initAt = runAt + run.Length;
+                int[] targets = { runAt, baseA + 20, baseA + 20, baseA + 20, initAt };
+                foreach (var t in targets) { b.Add(1); b.AddRange(HAsm.M(t)); }
+                b.Add(0); b.AddRange(run); b.AddRange(init); b.AddRange(new byte[] { 0, 0, 0, 0 });
+                return EclModule.FromBytes(id, b.ToArray(), null);
+            };
+            Func<int, int, byte[]> Save = (v, a) => { var l = new List<byte> { 9, 0, (byte)v }; l.AddRange(HAsm.M(a)); return l.ToArray(); };
+            var initA = new List<byte>(); initA.AddRange(Save(5, 0x9E70)); initA.AddRange(Save(9, 0x97F6)); initA.AddRange(new byte[] { 0x20, 0, 2, 0 });         // module 1: set variables, NEWECL 2
+            var initB = new List<byte>(); initB.AddRange(Save(7, 0x9E71)); initB.Add(0);                                                                     // module 2: [9E71] = 7
+            var runB = new List<byte> { 4 }; runB.AddRange(HAsm.M(0x9E72)); runB.AddRange(HAsm.B(1)); runB.AddRange(HAsm.M(0x9E72)); runB.Add(0);                  // ADD [9E72], 1, [9E72]
+            var m1 = Build(1, initA.ToArray(), new byte[] { 0 }); var m2 = Build(2, initB.ToArray(), runB.ToArray());
+            var mem = new GenesisEclMemory(); var host = NewHost(rom, mf, dp, 15, mem);
+            var sess = new EclSession(new[] { m1, m2 }, mem, host, host.X.Rng.ScriptRandom, () => host.NewEclModule, () => host.NewEclModule = -1);
+            mem.Ram[0x97E8] = 1;
+            int booted = sess.Boot();
+            Check(booted == 1 && sess.Current.Id == 2 && mem.Ram[0xB9F0] == 2, "Boot starts module 1; its NEWECL 2 switches to module 2");
+            Check(mem.Ram[0x9E70] == 0 && mem.Ram[0x97F6] == 0 && mem.Ram[0x9E71] == 7, "NEWECL cleared the scratch registers and module variables; module 2's init ran");
+            Check(mem.Ram[0x97E8] == 2 && mem.Ram[0xB9F1] == 0, "after the init pass [97E8] = the current module and the changed flag is clear");
+            sess.Tick(); sess.Tick();
+            Check(mem.Ram[0x9E72] == 2, "each Tick runs the run entry once: " + mem.Ram[0x9E72]);
+            Console.WriteLine("7. session driver");
+        }
+
+        // 8. the real game from its start: the session boots like the ROM does ([0xCA21] set: module 0x10, the first fight), runs for a while and stays consistent
+        {
+            var mem = new GenesisEclMemory(); mem.Ram[0xCA21] = 1; mem.Ram[0x97DC] = 0xA2; mem.Ram[0x97AD] = 2;
+            var host = NewHost(rom, mf, dp, 16, mem);
+            var sess = new EclSession(mods.Values, mem, host, host.X.Rng.ScriptRandom, () => host.NewEclModule, () => host.NewEclModule = -1);
+            int first = -1; int ticks = 0; bool ok = true;
+            try { first = sess.Boot(); for (; ticks < 60 && sess.Tick(); ) ticks++; }
+            catch (Exception ex) { ok = false; Console.WriteLine("   session exception: " + ex.GetType().Name + " " + ex.Message); }
+            Check(ok && first == 0x10, $"the real game boots into module 0x10: {first:X}");
+            Console.WriteLine($"8. real game: boot module {first:X2}, {ticks} ticks, {host.Fights} fights, modules {string.Join(",", sess.Log)}");
+        }
+
         Console.WriteLine($"ecl host: {checks - fails}/{checks} checks passed");
         return fails == 0 ? 0 : 1;
     }

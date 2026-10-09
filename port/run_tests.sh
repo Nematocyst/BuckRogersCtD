@@ -35,7 +35,7 @@ mcs -out:ecl/ecltests.exe csharp/GenesisRng.cs ecl/EclInterpreter.cs $STUB ecl/E
 mono ecl/ecltests.exe ecl/data/scripts.json "$ROM" ecl/data/ecl_vectors.txt.gz
 # scripts that fight: the interpreter + the combat host (EclCombatHost) on module 0x10, TREASURE / ADDEP, every entry point of every module
 CORE=$(grep '^mcs -out:tests/combattests.exe' "$0" | sed 's/^mcs -out:tests\/combattests.exe //; s/\$STUB.*//')
-mcs -out:ecl/eclhosttests.exe $CORE csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/EclCombatHost.cs csharp/GenesisExplore.cs ecl/EclInterpreter.cs $STUB ecl/EclHostTests.cs
+mcs -out:ecl/eclhosttests.exe $CORE csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/EclCombatHost.cs csharp/GenesisExplore.cs ecl/EclInterpreter.cs ecl/EclSession.cs $STUB ecl/EclHostTests.cs
 mono ecl/eclhosttests.exe ecl/data/scripts.json csharp/unity/Resources/BuckRogers/monster_file.bytes csharp/unity/Resources/BuckRogers/default_party.bytes "$ROM"
 # race table, starship crew hazard (0x1956E), disarmed-fighter example (0x6D1E)
 mcs -out:tests/hazardtests.exe csharp/GenesisRng.cs csharp/GenesisRaces.cs csharp/GenesisCombat.cs csharp/GenesisProgression.cs csharp/GenesisActions.cs $STUB tests/HazardTests.cs

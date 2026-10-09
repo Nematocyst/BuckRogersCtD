@@ -34,13 +34,17 @@ namespace BuckRogersGenesis
 
         /// The default party of the game (ROM blob 0x6BAAD, loaded by 0x1F32) and the party-sheet key (record byte +0x42 = 0x80 | sheet) each member carries:
         /// name, record race (+0x17), sex (+0x16: 0 male, 1 female), career (+0x18: 1 rocket jock, 2 medic, 3 warrior, 4 rogue), key. The three NPC allies that reuse these sprites are
-        /// the entries 0x6A -> 0x8A, 0x6B -> 0x83, 0x6C -> 0x87 of the ally table (ROM 0x48DA). No ROM code writes +0x42 for a character made on the creation screen (its record is
-        /// cleared first), so such a character keeps key 0 and is drawn with the token of monster id 0.
+        /// the entries 0x6A -> 0x8A, 0x6B -> 0x83, 0x6C -> 0x87 of the ally table (ROM 0x48DA). A character made on the creation screen gets its key from the figure screen
+        /// (ROM 0x8F0..0x9A4, see CreationKey); it does NOT keep key 0.
         public static readonly object[][] PregenKeys =
         {
             new object[] { "FLAVIUS", 2, 0, 3, 0x83 }, new object[] { "CELESTE", 2, 1, 3, 0x85 }, new object[] { "PIERRE", 1, 0, 1, 0x8A },
             new object[] { "NICHOLE", 1, 1, 4, 0x87 }, new object[] { "ROARKE", 3, 0, 2, 0x81 }, new object[] { "JANELLE", 3, 1, 2, 0x80 },
         };
+
+        /// The key the creation screen stores in +0x42 (ROM 0x99E: `move.b -$20(a6),$42(a1)` after the figure screen at 0x8F0): the screen is a 2 x 6 grid of party sheets,
+        /// the chosen cell index (row * 6 + column, 0..11; the default is 0) with bit 7 set by `bset #7,-$20(a6)` at 0x970. All twelve party sheets are therefore creation choices.
+        public static int CreationKey(int row, int column) { return 0x80 | (row * 6 + column); }
 
         public const int Vanish = -1;                       // "remove the creature": the block is blanked and the slot is marked hidden (slot+1 bit 2)
 

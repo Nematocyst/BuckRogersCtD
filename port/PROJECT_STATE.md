@@ -34,7 +34,7 @@ Run the ROM routine in Unicorn on random worlds (`tools/monster_world.py`, `sane
 * Pictures are LZW "pieces" (decoder 0x9ED8, init 0x9E76): header (tile count, tilemap bytes, palette mask), tilemap, palettes, 4bpp 8x8 tiles. Art is **not committed** (game copyright); `.gitignore` lists `csharp/unity/Resources/BuckRogers/{pictures,tokens,terrain}`. Regenerate with `tools/export_pictures.py`, `export_tokens.py`, `export_terrain.py`.
 * Encounter pictures: table 0x51360 (57, 11x11 tiles). Icons: table 0xF14F2 (185).
 * Creature tokens: table 0x9A14 (52 entries by monster id), 18 frames each, 3x3 tiles (tall 3x6 / wide 6x3 for size types 2 / 3), palette = system palette at ROM 0x9710. Standing frame by facing and death state: ROM 0xAD5A (`TokenFrames.Idle`). Attack animation order: aim 3/4/5, hit 17, death 15 -> 16 -> (11) -> vanish by animation set (`TokenFrames`, `BattleSequence`).
-* Party tokens: table 0x998C (12 sheets), chosen by record byte +0x42 (0x80 | sheet). Default party keys live in the compressed blob at ROM 0x6BAAD (8 records; offset `record*214 + 0x42`). No formula from race/sex/career; created characters keep key 0 (derived from the code, not seen in the game).
+* Party tokens: table 0x998C (12 sheets), chosen by record byte +0x42 (0x80 | sheet). Default party keys live in the compressed blob at ROM 0x6BAAD (8 records; offset `record*214 + 0x42`). No formula from race/sex/career; created characters get `0x80 | (row*6+col)` from the figure screen (store at ROM 0x99E; verified in a live session).
 * Terrain: ROM painter 0xFEF8, 3x3-tile block per tile id, atlases for screen modes 4 (outdoor), 5 (indoor), 6 (dungeon / ship interior).
 
 ## 4. Known gaps / open items
@@ -42,7 +42,7 @@ Run the ROM routine in Unicorn on random worlds (`tools/monster_world.py`, `sane
 * **Script engine:** the interpreter is in `ecl/` (see its README) and `EclCombatHost` runs scripted fights; not written: shops, the training screen, NEWECL module loading, item search, the character / skill opcodes, and a driver that moves between modules and maps. Still not ported: the LZW decompressor (replaced by the exported `monster_file.bytes`), the "monster not found" error box, starship combat (0x17816 engine, separate subsystem), overland/dungeon exploration, character creation screen, save/load.
 * **Combat details not traced:** projectile flight (0x108AA), what party sheets 2, 4, 6, 8, 9, 11 are for, the tick = 1/60 s assumption of the animation timings, sound.
 * **Demo limits:** party members in `AutoBattle` are monster-file records with party keys (the viewer can now use the six default characters from `default_party.bytes` instead: `DefaultParty`, `AutoBattle.RunDefaultParty`); dungeon arenas use a generated map (no real map layers in the builder's format); outdoor types 0-10, indoor 0-12.
-* **Never run in a real emulator session by me:** claims marked "derived from the code" in the docs (created characters drawing as monster id 0; the animation tick length).
+* **Never run in a real emulator session by me:** claims marked "derived from the code" in the docs (the animation tick length).
 
 ## 5. Conventions and constraints (keep following)
 * Work only on branch `claude/eloquent-newton-1nwtph`; commit and push there; **never open a PR unless asked**.

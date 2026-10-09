@@ -14,3 +14,4 @@ Start with the method page; the rest are by topic.
 
 The older, per-routine reference tables are in `port/README.md`.
 | [findings.md](findings.md) | Effect ids 0x0A, 0x0B, 0x10, 0x12, 0x13: on the stage lists, but their handlers are empty |
+| [findings-record-fields.md](findings-record-fields.md) | Record fields +0x17 (race), +0x26..+0x2D (natural attacks), +0x42 (figure key); the creation bug at 0x6A8; the starship crew hazard 0x1956E |

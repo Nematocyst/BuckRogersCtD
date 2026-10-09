@@ -1,6 +1,6 @@
 // GenesisParty.cs -- the game's default party: the compressed blob at ROM 0x6BAAD (loaded by 0x1F32) holds eight 214-byte party records (six characters, two empty) and eight 26-byte
 // combat slots. The export tool (tools/export_default_party.py) writes the decompressed 1,920 bytes; this class reads them.
-// Record fields (the ones used): +0x00 name (NUL padded, up to 15 chars), +0x10..0x15 the six abilities, +0x16 sex (0 male, 1 female), +0x17 race, +0x18 career (1 rocket jock, 2 medic,
+// Record fields (the ones used): +0x00 name (NUL padded, up to 15 chars), +0x10..0x15 the six abilities, +0x16 sex (0 male, 1 female), +0x17 race (GenesisRace), +0x18 career (1 rocket jock, 2 medic,
 // 3 warrior, 4 rogue), +0x19 level, +0x1E experience (big-endian long), +0x2E hit points, +0x42 token key (0x80 | party sheet), +0x54 + 10 * k the 13 item slots (id first).
 using System;
 using System.Collections.Generic;

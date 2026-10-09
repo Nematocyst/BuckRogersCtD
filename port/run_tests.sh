@@ -13,6 +13,7 @@ if [ "$2" = "--regen" ]; then
   python3 tools/gen_monster_vectors.py "$ROM" tests/monster_vectors.json.gz
   python3 tools/gen_arena_vectors.py "$ROM" tests/arena_vectors.txt
   python3 tools/gen_combatant_vectors.py "$ROM" tests/combatant_vectors.txt
+  python3 tools/gen_hazard_vectors.py "$ROM" tests/hazard_vectors.txt
   python3 tools/export_monster_file.py "$ROM" csharp/unity/Resources/BuckRogers/monster_file.bytes
   # whole fights only (the other families are in monster_vectors.json.gz): about 30 s
   env $(for n in $(grep -o "N('[a-z0-9_]*'" tools/gen_monster_vectors.py | sed "s/N('//;s/'//" | sort -u); do [ $n != combat ] && echo N_$n=0; done) N_combat=37 python3 tools/gen_monster_vectors.py "$ROM" tests/combat_whole_vectors.json.gz csharp/unity/Resources/BuckRogers/monster_file.bytes
@@ -31,3 +32,6 @@ mono ecl/ecltests.exe ecl/data/scripts.json "$ROM" ecl/data/ecl_vectors.txt.gz
 CORE=$(grep '^mcs -out:tests/combattests.exe' "$0" | sed 's/^mcs -out:tests\/combattests.exe //; s/\$STUB.*//')
 mcs -out:ecl/eclhosttests.exe $CORE csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/EclCombatHost.cs ecl/EclInterpreter.cs $STUB ecl/EclHostTests.cs
 mono ecl/eclhosttests.exe ecl/data/scripts.json csharp/unity/Resources/BuckRogers/monster_file.bytes csharp/unity/Resources/BuckRogers/default_party.bytes "$ROM"
+# race table, starship crew hazard (0x1956E), disarmed-fighter example (0x6D1E)
+mcs -out:tests/hazardtests.exe csharp/GenesisRng.cs csharp/GenesisRaces.cs csharp/GenesisCombat.cs csharp/GenesisProgression.cs csharp/GenesisActions.cs $STUB tests/HazardTests.cs
+mono tests/hazardtests.exe tests/hazard_vectors.txt "$ROM" csharp/unity/Resources/BuckRogers/default_party.bytes

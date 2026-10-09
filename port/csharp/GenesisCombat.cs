@@ -134,9 +134,9 @@ namespace BuckRogersGenesis
         // ------------------------------------------------------------------------- attacks per round 0x107E8
         /// Attacks a combat slot makes in this round: the slot stores "attacks x 2" (+6 primary, +7 secondary, slot index d4 = 0/1);
         /// the round parity at [0xD50C] makes odd values alternate (5 -> 2,3,2,3 ...; the second slot starts on the other phase).
-        public static int AttacksThisRound(int attacksX2, int slotIndex, int roundParity)
+        public static int AttacksThisRound(int attacksX2, int attackNo, int roundParity)
         {
-            int d7 = ((roundParity & 1) ^ (slotIndex & 0xFF)) & 0xFF;
+            int d7 = ((roundParity & 1) ^ (attackNo & 0xFF)) & 0xFF;
             d7 = (d7 + attacksX2) & 0xFF;
             return d7 >> 1;
         }

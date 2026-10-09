@@ -82,6 +82,23 @@ static class EclTests
             mods[om.id] = m; oracle[om.id] = om;
         }
 
+        // The oracle decodes the one SKILLDAMAGE of the game (module 0x53, the script's last instruction) with 7 operands; the ROM's skip table (0x482E) and its handler (0x5B44) read 6, so the
+        // module's final bytes are SKILLDAMAGE (6 operands), EXIT and the byte the game overwrites. Adjust the oracle accordingly (one more instruction).
+        foreach (var om in data.modules)
+        {
+            var fixedList = new List<OInstr>();
+            foreach (var oi in om.instructions)
+            {
+                if (oi.opcode == 0x49 && oi.operands.Length == 7)
+                {
+                    int addr = oi.addr; var six = new OOperand[6]; Array.Copy(oi.operands, six, 6); oi.operands = six; fixedList.Add(oi);
+                    fixedList.Add(new OInstr { addr = addr + 13, opcode = 0, name = "EXIT", operands = new OOperand[0] });
+                }
+                else fixedList.Add(oi);
+            }
+            om.instructions = fixedList.ToArray();
+        }
+
         // a. the decoder against the oracle
         int total = 0, texts = 0, textOk = 0;
         foreach (var om in data.modules)
@@ -101,7 +118,7 @@ static class EclTests
                     if (i.Ops[k].Type == 0x80) { texts++; if (m.Text(i.Ops[k].Value) == oi.operands[k].text && oi.operands[k].text != null) textOk++; }
             }
         }
-        Check(total == 13936, "13,936 instructions: " + total);
+        Check(total == 13937, "13,936 oracle instructions + the EXIT behind SKILLDAMAGE: " + total);
         Check(texts == 2261 && textOk == 2261, $"2,261 text operands resolve: {textOk} / {texts}");
         Console.WriteLine($"a. decoder: {total} instructions, {textOk}/{texts} text operands");
 

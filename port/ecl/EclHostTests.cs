@@ -139,6 +139,17 @@ static class EclHostTests
                 Check(stop == EclStop.Exit && mem.Ram[0x9DA7] == 2, "LOADCHARACTER sets [9DA7]");
                 Check(mem.Ram[0x9E71] == expResult && mem.Ram[0x9E70] == expIndex && host.X.Rng.Index == rng2.Index, $"SKILL who={who}: result {mem.Ram[0x9E71]}/{expResult} index {mem.Ram[0x9E70]}/{expIndex}");
             }
+            {
+                var mem = new GenesisEclMemory(); var host = NewHost(rom, mf, dp, 12, mem);
+                var asm = new HAsm(); asm.Start();
+                asm.Emit(0x2E, HAsm.B(0xE0), HAsm.B(1), HAsm.B(4), HAsm.B(2), HAsm.B(0)); asm.Emit(0x00);                      // every member takes 1d4+2, no save
+                int hp0 = host.S.Slots[0][0xE];
+                var stop = new EclInterpreter(asm.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm.Entry);
+                Check(stop == EclStop.Exit && host.S.Slots[0][0xE] < hp0 && host.S.Slots[0][0xE] >= hp0 - 6 && !host.PartyDown, "DAMAGE hurts the party through the host");
+                var asm2 = new HAsm(); asm2.Start(); asm2.Emit(0x2E, HAsm.B(0xE0), HAsm.B(10), HAsm.B(100), HAsm.B(255), HAsm.B(0)); asm2.Emit(0x00);   // overwhelming: party down
+                new EclInterpreter(asm2.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm2.Entry);
+                Check(host.PartyDown && mem.Ram[0xBA53] == 1, "DAMAGE that leaves nobody standing reports the game over");
+            }
             Console.WriteLine("6. character opcodes through the host");
         }
 

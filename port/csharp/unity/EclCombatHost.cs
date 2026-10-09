@@ -131,6 +131,15 @@ namespace BuckRogersGenesis
                 case 0x0A: Mem.WriteByte(GenesisScriptChar.CurrentCharacter, it.Value(o[0]) & 0xFF); break;        // LOADCHARACTER (ROM 0x353A)
                 case 0x44: break;                                                                                   // SAVECHARACTER: a bare RTS (ROM 0x3CC4)
                 case 0x36: X.AddAlly(it.Value(o[0]), it.Value(o[1])); break;                                        // ADDNPC (ROM 0x3AD4 -> 0x488C)
+                case 0x2E:                                                                                          // DAMAGE flags, count, sides, bonus, target (ROM 0x500A)
+                    {
+                        bool down; X.ScriptDamage(it.Value(o[0]), it.Value(o[1]), it.Value(o[2]), it.Value(o[3]), it.Value(o[4]), Mem.ReadByte(GenesisScriptChar.CurrentCharacter), out down);
+                        if (down) { PartyDown = true; Mem.WriteByte(0xBA53, 1); Log.Add("GAMEOVER"); }                    // the ROM sets [0xBA53] and restarts through 0x7588
+                        break;
+                    }
+                case 0x49:                                                                                          // SKILLDAMAGE skill, who, shift, count, sides, bonus (ROM 0x5B44)
+                    X.ScriptSkillDamage(it.Value(o[0]), it.Value(o[1]), it.Value(o[2]), it.Value(o[3]), it.Value(o[4]), it.Value(o[5]), Mem.ReadByte(GenesisScriptChar.CurrentCharacter));
+                    break;
                 case 0x22: case 0x23:                                                                               // SKILL / PRINTSKILL skill, who, shift (ROM 0x38A2 / 0x38A8)
                     {
                         if (i.Opcode == 0x23) Mem.WriteByte(GenesisScriptChar.PrintSkillFlag, 3);
@@ -145,5 +154,6 @@ namespace BuckRogersGenesis
             }
         }
         public int LastSkillResult = -1, LastSkillIndex = -1;
+        public bool PartyDown;                                                                                 // DAMAGE left nobody standing (the game restarts)
     }
 }

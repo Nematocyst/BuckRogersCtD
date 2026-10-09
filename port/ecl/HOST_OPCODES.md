@@ -52,7 +52,7 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 2B | HMENU | -1 | 125 | 039CC | UI event (host) |
 | 2C | GETYN | 0 | 111 | 039D0 | UI event (host) |
 | 2D | DRAWINDOW | 0 | 4 | 03A0A | D: graphics (no game state) |
-| 2E | DAMAGE | 5 | 42 | 03A0C | A2: character / item state (next) |
+| 2E | DAMAGE | 5 | 42 | 03A0C | A2: character (done) |
 | 2F | AND | 3 | 409 | 03A10 | engine |
 | 30 | OR | 3 | 298 | 03A22 | engine |
 | 31 | WHMENU | -1 | 16 | 03A34 | UI event (host) |
@@ -79,7 +79,7 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 46 | FOR | 2 | 12 | 03CE2 | engine |
 | 47 | ENDFOR | 0 | 12 | 03CF8 | engine |
 | 48 | HIDEITEMS | 1 | 1 | 03D0C | A2: character / item state (next) |
-| 49 | SKILLDAMAGE | 7 | 1 | 03D38 | A2: character / item state (next) |
+| 49 | SKILLDAMAGE | 7 | 1 | 03D38 | A2: character (done) |
 | 4A | DUEL | 0 | 2 | 038B4 | C: starship / duel |
 | 4B | STORE | 1 | 11 | 03D3C | A2: character / item state (next) |
 | 4C | VIEW | 2 | 46 | 03DD8 | B: exploration (map) |
@@ -103,6 +103,6 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 
 ## Order of work
 1. **A (done):** LOADCHARACTER, SAVECHARACTER, SKILL, PRINTSKILL, ADDNPC. SKILL's party search reproduces a ROM quirk: the skill-value routine 0x4FB0 overwrites the slot pointer, so after the first eligible member the following members' "slot flags" are ROM bytes at 0x4FFC + 0x1A k.
-2. **A2:** WHO (0x53A6, opens a member menu through 0x5308), DAMAGE (0x500A) and SKILLDAMAGE (0x5B44), SAVETABLE (0x4022), HOWFAR (0x3CC6), DESTROY (0x3A60, removes an item through 0x76C4), HIDEITEMS, FINDITEM (0x3A8E), STORE (0x3D3C), PROGRAM (0x3AEC).
+2. **A2 (in progress):** DAMAGE and SKILLDAMAGE are done (`GenesisScriptDamage.cs`, 1,500 and 1,200 ROM vectors; wired into `EclCombatHost`, which reports `PartyDown`). Notes: DAMAGE's "one random victim with a save" branch never tests the save (a missing TST in the ROM; the Z flag comes from the restored D2) -- `ScriptLeftoverD2`, unused by any script; the legacy shot mode (flags bit 7 clear) makes `flags` shots, not flags + 1 (the loop is entered at its DBRA). SKILLDAMAGE has **six** operands in the ROM (skip table 0x482E and the handler), not seven as in `scripts.json`: the seventh is the EXIT behind it in module 0x53, and the decoder test adjusts the oracle for that one instruction (13,937 instructions). Remaining: WHO (0x53A6, opens a member menu through 0x5308), SAVETABLE (0x4022), HOWFAR (0x3CC6), DESTROY (0x3A60, removes an item through 0x76C4), HIDEITEMS, FINDITEM (0x3A8E), STORE (0x3D3C), PROGRAM (0x3AEC).
 3. **B:** NEWREGION (0x3FB4) and the step opcodes (0x3EA4-0x3FA0): the square/facing/area state that scripts and the map share ([9AF6], [9AF7], [9AFA], [9E08]); then the module driver (NEWECL -> load the next module).
 4. **C / D:** SPACECOMBAT is the separate starship port; graphics opcodes change no game state and stay host callbacks.

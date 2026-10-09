@@ -33,7 +33,7 @@ The desert runner and tinker handlers end by jumping into a career handler (0x73
 * **Patch: ROM 0x6AB: 0x0C -> 0x2C** (`42 2A 00 0C` becomes `42 2A 00 2C`, i.e. `clr.b $2C(a2)`). Nothing relies on +0x0C being cleared: the finish handler (0x7C8) copies only **11 name bytes** (+0x00..+0x0A) from the name buffer
   into the already-cleared record, and +0x0C is not read by any creation code.
 * The patch fixes the claws bonus only. **+0x2A (dice sides) stays 3** after desert runner -> human (and -> tinker), because no handler resets it to 2; the finish handler (0x810..0x81E) only ever sets it to 3 (`career == 3 or race == 2`).
-  A non-warrior human made by switching away from desert runner therefore keeps 1d3 fists. A full fix needs a `move.b #2,$2A(a2)` in the human and tinker handlers (6 bytes; not a one-byte patch, free space needed). Not built.
+  A non-warrior human made by switching away from desert runner therefore keeps 1d3 fists. The full fix is built: `patches/creation_fix/` (both handlers call a 14-byte routine at 0xF6000 that clears +0x2C and sets +0x2A = 2; tested in the emulator on seven race-switch sequences).
 * Also visible in the run: switching race first subtracts the old race's ability modifiers (0x650 with d1 = 1), then adds the new ones. The table at 0x63B holds 5 signed bytes per race for races 1..3 only
   (human 00 00 01 00 00, desert runner 02 02 01 FF 00, tinker FE 03 FE 00 03); the entries for races 0 and 4 overlap code and are never used (a new record starts as race 1).
 

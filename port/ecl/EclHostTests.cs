@@ -150,6 +150,18 @@ static class EclHostTests
                 new EclInterpreter(asm2.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm2.Entry);
                 Check(host.PartyDown && mem.Ram[0xBA53] == 1, "DAMAGE that leaves nobody standing reports the game over");
             }
+            {
+                var mem = new GenesisEclMemory(); var host = NewHost(rom, mf, dp, 13, mem); host.WhoHandler = () => 4;
+                var asm = new HAsm(); asm.Start();
+                asm.Emit(0x39, HAsm.B(0)); asm.Emit(0x32, HAsm.B(host.S.Records[0][0x54])); asm.Emit(0x00);                    // WHO -> member 4; FINDITEM of the first member's first item
+                var it = new EclInterpreter(asm.Module(), mem, host, host.X.Rng.ScriptRandom);
+                var stop = it.RunFrom(asm.Entry);
+                Check(stop == EclStop.Exit && mem.Ram[0x9DA7] == 4 && (it.Flags & EclInterpreter.FlagEq) != 0, "WHO sets the current character; FINDITEM finds a carried item");
+                int id = host.S.Records[0][0x54], q = host.S.Records[0][0x54 + 8];
+                var asm2 = new HAsm(); asm2.Start(); asm2.Emit(0x40, HAsm.B(0), HAsm.B(id)); asm2.Emit(0x00);
+                new EclInterpreter(asm2.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm2.Entry);
+                Check(q > 1 ? host.S.Records[0][0x54 + 8] == q - 1 : host.S.Records[0][0x54] != id || host.S.Records[1][0x54] == id, "DESTROY removes one item");
+            }
             Console.WriteLine("6. character opcodes through the host");
         }
 

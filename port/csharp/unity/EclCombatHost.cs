@@ -121,7 +121,7 @@ namespace BuckRogersGenesis
         public int Menu(bool wide, string[] texts) { Log.Add("MENU " + texts.Length); return MenuHandler(wide, texts); }
         public int InputNumber(int digits) { Log.Add("INPUTNUMBER " + digits); return NumberHandler(digits); }
         public bool GetYesNo() { Log.Add("GETYN"); return YesNoHandler(); }
-        public bool FindItem(int item) { Log.Add("FINDITEM " + item); return false; }
+        public bool FindItem(int item) { Log.Add("FINDITEM " + item); return X.ScriptFindItem(item); }
         public void Other(EclInterpreter it, EclInstruction i)
         {
             Log.Add(i.Name);
@@ -131,6 +131,10 @@ namespace BuckRogersGenesis
                 case 0x0A: Mem.WriteByte(GenesisScriptChar.CurrentCharacter, it.Value(o[0]) & 0xFF); break;        // LOADCHARACTER (ROM 0x353A)
                 case 0x44: break;                                                                                   // SAVECHARACTER: a bare RTS (ROM 0x3CC4)
                 case 0x36: X.AddAlly(it.Value(o[0]), it.Value(o[1])); break;                                        // ADDNPC (ROM 0x3AD4 -> 0x488C)
+                case 0x40: X.ScriptDestroyItem(it.Value(o[1])); break;                                               // DESTROY x, item (ROM 0x3A60): removes one; the first operand is ignored
+                case 0x48: X.ScriptHideItems(it.Value(o[0])); break;                                                 // HIDEITEMS n (ROM 0x3D0C)
+                case 0x39: Mem.WriteByte(GenesisScriptChar.CurrentCharacter, WhoHandler() & 0xFF); break;           // WHO (ROM 0x53A6): the member menu picks the current character
+                case 0x35: break;                                                                                   // SAVETABLE: a debug command; the ROM only prints "command not supported"
                 case 0x2E:                                                                                          // DAMAGE flags, count, sides, bonus, target (ROM 0x500A)
                     {
                         bool down; X.ScriptDamage(it.Value(o[0]), it.Value(o[1]), it.Value(o[2]), it.Value(o[3]), it.Value(o[4]), Mem.ReadByte(GenesisScriptChar.CurrentCharacter), out down);
@@ -154,6 +158,7 @@ namespace BuckRogersGenesis
             }
         }
         public int LastSkillResult = -1, LastSkillIndex = -1;
+        public Func<int> WhoHandler = () => 0;                                                                 // WHO: the party member the player picks (0-7); a UI plugs in here
         public bool PartyDown;                                                                                 // DAMAGE left nobody standing (the game restarts)
     }
 }

@@ -62,7 +62,7 @@ static class CombatTests
         int comb = args.Length > 8 ? CombatantTests.Run(args[8], rom) : 0;
         int whole = args.Length > 9 ? MonsterTests.Run(args[9], rom) : 0;
         int adapter = args.Length > 10 ? AdapterTests.Run(args[10], rom) : 0;
-        int sdmg = (args.Length > 11 ? ScriptDamageTests.Run(args[11], rom) : 0) | (args.Length > 12 ? ScriptDamageTests.RunSkill(args[12], rom) : 0);
+        int sdmg = (args.Length > 11 ? ScriptDamageTests.Run(args[11], rom) : 0) | (args.Length > 12 ? ScriptDamageTests.RunSkill(args[12], rom) : 0) | (args.Length > 13 ? ScriptItemsTests.Run(args[13], rom) : 0);
         return (fails == 0 ? 0 : 1) | dmg | prog | tally | turns | ai | act | mon | arena | comb | whole | adapter | sdmg;
     }
 }

@@ -56,29 +56,29 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 2F | AND | 3 | 409 | 03A10 | engine |
 | 30 | OR | 3 | 298 | 03A22 | engine |
 | 31 | WHMENU | -1 | 16 | 03A34 | UI event (host) |
-| 32 | FINDITEM | 1 | 5 | 03A8E | A2: character / item state (next) |
+| 32 | FINDITEM | 1 | 5 | 03A8E | A2: character (done) |
 | 33 | PRINTRETURN | 0 | 79 | 03AAA | UI event (host) |
 | 34 | CLOCK | -2 | 0 | 03ACC | unused |
-| 35 | SAVETABLE | 3 | 1 | 03AD0 | A2: character / item state (next) |
+| 35 | SAVETABLE | 3 | 1 | 03AD0 | A2: character (done) |
 | 36 | ADDNPC | 2 | 12 | 03AD4 | A: character (done) |
 | 37 | LOADPIECES | 1 | 30 | 03AD8 | D: graphics (no game state) |
 | 38 | PROGRAM | 1 | 9 | 03AEC | A2: character / item state (next) |
-| 39 | WHO | 1 | 26 | 03B6A | A2: character / item state (next) |
+| 39 | WHO | 1 | 26 | 03B6A | A2: character (done) |
 | 3A | DELAY | 0 | 156 | 03B74 | UI event (host) |
 | 3B | SPELLS | -2 | 0 | 03B78 | unused |
 | 3C | PROTECT | -2 | 0 | 03B7C | unused |
 | 3D | CLEARBOX | 0 | 2 | 03B80 | D: graphics (no game state) |
 | 3E | DUMP | 0 | 11 | 03B86 | B: exploration (map) |
 | 3F | JOURNAL | -2 | 0 | 03B90 | unused |
-| 40 | DESTROY | 2 | 4 | 03A60 | A2: character / item state (next) |
+| 40 | DESTROY | 2 | 4 | 03A60 | A2: character (done) |
 | 41 | ADDEP | 2 | 51 | 03BCE | combat host (done) |
 | 42 | ENCEXIT | 0 | 434 | 03C9E | engine |
 | 43 | SOUND | 1 | 271 | 03CBA | UI event (host) |
 | 44 | SAVECHARACTER | 0 | 13 | 03CC4 | A: character (done) |
-| 45 | HOWFAR | 2 | 1 | 03CC6 | A2: character / item state (next) |
+| 45 | HOWFAR | 2 | 1 | 03CC6 | B: exploration (map) |
 | 46 | FOR | 2 | 12 | 03CE2 | engine |
 | 47 | ENDFOR | 0 | 12 | 03CF8 | engine |
-| 48 | HIDEITEMS | 1 | 1 | 03D0C | A2: character / item state (next) |
+| 48 | HIDEITEMS | 1 | 1 | 03D0C | A2: character (done) |
 | 49 | SKILLDAMAGE | 6 (the oracle says 7) | 1 | 03D38 | A2: character (done) |
 | 4A | DUEL | 0 | 2 | 038B4 | C: starship / duel |
 | 4B | STORE | 1 | 11 | 03D3C | A2: character / item state (next) |
@@ -103,6 +103,6 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 
 ## Order of work
 1. **A (done):** LOADCHARACTER, SAVECHARACTER, SKILL, PRINTSKILL, ADDNPC. SKILL's party search reproduces a ROM quirk: the skill-value routine 0x4FB0 overwrites the slot pointer, so after the first eligible member the following members' "slot flags" are ROM bytes at 0x4FFC + 0x1A k.
-2. **A2 (in progress):** DAMAGE and SKILLDAMAGE are done (`GenesisScriptDamage.cs`, 1,500 and 1,200 ROM vectors; wired into `EclCombatHost`, which reports `PartyDown`). Notes: DAMAGE's "one random victim with a save" branch never tests the save (a missing TST in the ROM; the Z flag comes from the restored D2) -- `ScriptLeftoverD2`, unused by any script; the legacy shot mode (flags bit 7 clear) makes `flags` shots, not flags + 1 (the loop is entered at its DBRA). SKILLDAMAGE has **six** operands in the ROM (skip table 0x482E and the handler), not seven as in `scripts.json`: the seventh is the EXIT behind it in module 0x53, and the decoder test adjusts the oracle for that one instruction (13,937 instructions). Remaining: WHO (0x53A6, opens a member menu through 0x5308), SAVETABLE (0x4022), HOWFAR (0x3CC6), DESTROY (0x3A60, removes an item through 0x76C4), HIDEITEMS, FINDITEM (0x3A8E), STORE (0x3D3C), PROGRAM (0x3AEC).
+2. **A2 (in progress):** DAMAGE and SKILLDAMAGE are done (`GenesisScriptDamage.cs`, 1,500 and 1,200 ROM vectors; wired into `EclCombatHost`, which reports `PartyDown`). Notes: DAMAGE's "one random victim with a save" branch never tests the save (a missing TST in the ROM; the Z flag comes from the restored D2) -- `ScriptLeftoverD2`, unused by any script; the legacy shot mode (flags bit 7 clear) makes `flags` shots, not flags + 1 (the loop is entered at its DBRA). SKILLDAMAGE has **six** operands in the ROM (skip table 0x482E and the handler), not seven as in `scripts.json`: the seventh is the EXIT behind it in module 0x53, and the decoder test adjusts the oracle for that one instruction (13,937 instructions). FINDITEM, DESTROY and HIDEITEMS are done (`GenesisScriptItems.cs`, 600 ROM vectors incl. the [0x97AE] rules: the search finds nothing while it is set; id 0 matches an empty entry). WHO is a host callback (`WhoHandler`: the ROM opens a member menu and stores the pick in [0x9DA7]); SAVETABLE is a debug command that only prints "command not supported". Remaining: HOWFAR (needs the map: 0x4DAA / 0x14CCE, moves to group B), STORE (0x3D3C), PROGRAM (0x3AEC).
 3. **B:** NEWREGION (0x3FB4) and the step opcodes (0x3EA4-0x3FA0): the square/facing/area state that scripts and the map share ([9AF6], [9AF7], [9AFA], [9E08]); then the module driver (NEWECL -> load the next module).
 4. **C / D:** SPACECOMBAT is the separate starship port; graphics opcodes change no game state and stay host callbacks.

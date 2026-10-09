@@ -14,6 +14,7 @@ if [ "$2" = "--regen" ]; then
   python3 tools/gen_arena_vectors.py "$ROM" tests/arena_vectors.txt
   python3 tools/gen_combatant_vectors.py "$ROM" tests/combatant_vectors.txt
   python3 tools/gen_hazard_vectors.py "$ROM" tests/hazard_vectors.txt
+  python3 tools/gen_scriptchar_vectors.py "$ROM" tests/scriptchar_vectors.txt
   python3 tools/export_monster_file.py "$ROM" csharp/unity/Resources/BuckRogers/monster_file.bytes
   # whole fights only (the other families are in monster_vectors.json.gz): about 30 s
   env $(for n in $(grep -o "N('[a-z0-9_]*'" tools/gen_monster_vectors.py | sed "s/N('//;s/'//" | sort -u); do [ $n != combat ] && echo N_$n=0; done) N_combat=37 python3 tools/gen_monster_vectors.py "$ROM" tests/combat_whole_vectors.json.gz csharp/unity/Resources/BuckRogers/monster_file.bytes
@@ -22,7 +23,7 @@ if [ "$2" = "--regen" ]; then
 fi
 STUB=../genesis_maps/unity/tests/UnityStub.cs
 mcs -out:tests/rngtests.exe csharp/GenesisRng.cs $STUB tests/RngTests.cs
-mcs -out:tests/combattests.exe csharp/GenesisRng.cs csharp/GenesisCombat.cs csharp/GenesisProgression.cs csharp/GenesisRewards.cs csharp/GenesisAi.cs csharp/GenesisSkills.cs csharp/GenesisTurns.cs csharp/GenesisActions.cs csharp/GenesisMonsterAi.cs csharp/GenesisMonsterWeapons.cs csharp/GenesisMonsterTurn.cs csharp/GenesisPlayerTurn.cs csharp/GenesisInventory.cs csharp/GenesisCombatLoop.cs csharp/GenesisCombatSetup.cs csharp/GenesisCombatEnd.cs csharp/GenesisLootScreen.cs csharp/GenesisShipRepair.cs csharp/GenesisAreaWeapons.cs csharp/GenesisAreaAttack.cs csharp/GenesisAreaChoice.cs csharp/GenesisEffects.cs csharp/GenesisDungeonArena.cs csharp/GenesisCombatants.cs csharp/GenesisParty.cs $STUB tests/CombatTests.cs tests/ProgressTests.cs tests/AiTests.cs tests/ActionTests.cs tests/MonsterTests.cs tests/ArenaTests.cs tests/CombatantTests.cs tests/AdapterTests.cs csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/BattleSequence.cs tests/RomTablesShapes.cs
+mcs -out:tests/combattests.exe csharp/GenesisRng.cs csharp/GenesisCombat.cs csharp/GenesisProgression.cs csharp/GenesisRewards.cs csharp/GenesisAi.cs csharp/GenesisSkills.cs csharp/GenesisTurns.cs csharp/GenesisActions.cs csharp/GenesisMonsterAi.cs csharp/GenesisMonsterWeapons.cs csharp/GenesisMonsterTurn.cs csharp/GenesisPlayerTurn.cs csharp/GenesisInventory.cs csharp/GenesisCombatLoop.cs csharp/GenesisCombatSetup.cs csharp/GenesisCombatEnd.cs csharp/GenesisLootScreen.cs csharp/GenesisShipRepair.cs csharp/GenesisAreaWeapons.cs csharp/GenesisAreaAttack.cs csharp/GenesisAreaChoice.cs csharp/GenesisEffects.cs csharp/GenesisDungeonArena.cs csharp/GenesisCombatants.cs csharp/GenesisParty.cs csharp/GenesisScriptChar.cs $STUB tests/CombatTests.cs tests/ProgressTests.cs tests/AiTests.cs tests/ActionTests.cs tests/MonsterTests.cs tests/ArenaTests.cs tests/CombatantTests.cs tests/AdapterTests.cs csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/BattleSequence.cs tests/RomTablesShapes.cs
 mono tests/rngtests.exe tests/rng_vectors.json "$ROM"
 mono tests/combattests.exe tests/combat_vectors.json "$ROM" tests/damage_vectors.json tests/progress_vectors.json tests/ai_vectors.json tests/action_vectors.json tests/monster_vectors.json.gz tests/arena_vectors.txt tests/combatant_vectors.txt tests/combat_whole_vectors.json.gz csharp/unity/Resources/BuckRogers/monster_file.bytes
 # the script (ECL) interpreter: decoder against the 13,936 decoded instructions of data/scripts.json, flow tests, and 1,500 random scripts run by the ROM's own engine
@@ -35,3 +36,6 @@ mono ecl/eclhosttests.exe ecl/data/scripts.json csharp/unity/Resources/BuckRoger
 # race table, starship crew hazard (0x1956E), disarmed-fighter example (0x6D1E)
 mcs -out:tests/hazardtests.exe csharp/GenesisRng.cs csharp/GenesisRaces.cs csharp/GenesisCombat.cs csharp/GenesisProgression.cs csharp/GenesisActions.cs $STUB tests/HazardTests.cs
 mono tests/hazardtests.exe tests/hazard_vectors.txt "$ROM" csharp/unity/Resources/BuckRogers/default_party.bytes
+# character script opcodes (SKILL / PRINTSKILL against the ROM handlers)
+mcs -out:tests/scriptchartests.exe csharp/GenesisRng.cs csharp/GenesisSkills.cs csharp/GenesisScriptChar.cs csharp/GenesisProgression.cs $STUB tests/ScriptCharTests.cs
+mono tests/scriptchartests.exe tests/scriptchar_vectors.txt "$ROM"

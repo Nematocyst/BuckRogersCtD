@@ -124,6 +124,24 @@ static class EclHostTests
             Console.WriteLine($"5. {runs} entry runs through the combat host, {fights} fights, {sw.ElapsedMilliseconds} ms");
         }
 
+        // 6. character opcodes: LOADCHARACTER, SKILL (best of the party and the current character), ADDNPC
+        {
+            for (int who = 0; who < 2; who++)
+            {
+                var mem = new GenesisEclMemory(); mem.Ram[0x9E70] = (byte)who; mem.Ram[0x9E71] = 2;
+                var host = NewHost(rom, mf, dp, 11, mem);
+                var asm = new HAsm(); asm.Start();
+                asm.Emit(0x0A, HAsm.B(2)); asm.Emit(0x22, HAsm.B(5), HAsm.M(0x9E70), HAsm.M(0x9E71)); asm.Emit(0x44); asm.Emit(0x00);
+                var recs = new byte[8][]; var slots = new byte[8][]; for (int k = 0; k < 8; k++) { recs[k] = (byte[])host.S.Records[k].Clone(); slots[k] = (byte[])host.S.Slots[k].Clone(); }
+                var rng2 = GenesisRng.FromState(host.X.Rng.TableCopy(), host.X.Rng.Index); int expIndex;
+                int expResult = GenesisScriptChar.Skill(rom, rng2, recs, slots, 2, 5, who, 2, out expIndex);
+                var stop = new EclInterpreter(asm.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm.Entry);
+                Check(stop == EclStop.Exit && mem.Ram[0x9DA7] == 2, "LOADCHARACTER sets [9DA7]");
+                Check(mem.Ram[0x9E71] == expResult && mem.Ram[0x9E70] == expIndex && host.X.Rng.Index == rng2.Index, $"SKILL who={who}: result {mem.Ram[0x9E71]}/{expResult} index {mem.Ram[0x9E70]}/{expIndex}");
+            }
+            Console.WriteLine("6. character opcodes through the host");
+        }
+
         Console.WriteLine($"ecl host: {checks - fails}/{checks} checks passed");
         return fails == 0 ? 0 : 1;
     }

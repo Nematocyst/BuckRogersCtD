@@ -122,6 +122,28 @@ namespace BuckRogersGenesis
         public int InputNumber(int digits) { Log.Add("INPUTNUMBER " + digits); return NumberHandler(digits); }
         public bool GetYesNo() { Log.Add("GETYN"); return YesNoHandler(); }
         public bool FindItem(int item) { Log.Add("FINDITEM " + item); return false; }
-        public void Other(EclInterpreter it, EclInstruction i) { Log.Add(i.Name); }
+        public void Other(EclInterpreter it, EclInstruction i)
+        {
+            Log.Add(i.Name);
+            var o = i.Ops;
+            switch (i.Opcode)
+            {
+                case 0x0A: Mem.WriteByte(GenesisScriptChar.CurrentCharacter, it.Value(o[0]) & 0xFF); break;        // LOADCHARACTER (ROM 0x353A)
+                case 0x44: break;                                                                                   // SAVECHARACTER: a bare RTS (ROM 0x3CC4)
+                case 0x36: X.AddAlly(it.Value(o[0]), it.Value(o[1])); break;                                        // ADDNPC (ROM 0x3AD4 -> 0x488C)
+                case 0x22: case 0x23:                                                                               // SKILL / PRINTSKILL skill, who, shift (ROM 0x38A2 / 0x38A8)
+                    {
+                        if (i.Opcode == 0x23) Mem.WriteByte(GenesisScriptChar.PrintSkillFlag, 3);
+                        var recs = new byte[8][]; var slots = new byte[8][];
+                        for (int k = 0; k < 8; k++) { recs[k] = S.Records[k]; slots[k] = S.Slots[k]; }
+                        int index;
+                        int result = GenesisScriptChar.Skill(X.Rom, X.Rng, recs, slots, Mem.ReadByte(GenesisScriptChar.CurrentCharacter), it.Value(o[0]), it.Value(o[1]), it.Value(o[2]), out index);
+                        it.Store(o[2], result); it.Store(o[1], index);                                                // operands 1 and 2 are also the destinations (stored in this order)
+                        LastSkillResult = result; LastSkillIndex = index;
+                        break;
+                    }
+            }
+        }
+        public int LastSkillResult = -1, LastSkillIndex = -1;
     }
 }

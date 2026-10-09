@@ -79,7 +79,7 @@ Classes: **engine** (in `EclInterpreter`), **UI event** (a host callback; the ho
 | 46 | FOR | 2 | 12 | 03CE2 | engine |
 | 47 | ENDFOR | 0 | 12 | 03CF8 | engine |
 | 48 | HIDEITEMS | 1 | 1 | 03D0C | A2: character / item state (next) |
-| 49 | SKILLDAMAGE | 7 | 1 | 03D38 | A2: character (done) |
+| 49 | SKILLDAMAGE | 6 (the oracle says 7) | 1 | 03D38 | A2: character (done) |
 | 4A | DUEL | 0 | 2 | 038B4 | C: starship / duel |
 | 4B | STORE | 1 | 11 | 03D3C | A2: character / item state (next) |
 | 4C | VIEW | 2 | 46 | 03DD8 | B: exploration (map) |

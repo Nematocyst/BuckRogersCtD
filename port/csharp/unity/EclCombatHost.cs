@@ -135,9 +135,11 @@ namespace BuckRogersGenesis
                     {
                         var vals = new int[o.Length - 2]; for (int k = 2; k < o.Length; k++) vals[k - 2] = it.Value(o[k]);
                         GenesisExplore.NewRegion(Mem, it.Value(o[0]), it.Value(o[1]), vals);
-                        if (MapLoader != null) MapLoader(Mem.ReadByte(0x9BD4));                                       // the host fills the layers 0xB5A4..0xB9A3 for region [0x9BD4]
+                        if (Maps != null) Maps.Reload(Mem);                                                            // 0x574E: decode map [0x9BD4] again and cut it to the rectangles
+                        if (MapLoader != null) MapLoader(Mem.ReadByte(0x9BD4));
                         break;
                     }
+                case 0x21: { int mapId = it.Value(o[0]); if (mapId < 0x7F && Maps != null) Maps.Load(Mem, mapId); break; }   // LOADFILES map, ., . (ROM 0x3886 -> 0x5734): the map's four layers
                 case 0x50: GenesisExplore.StepForward(Mem); break;                                                   // STEPFORWARD (ROM 0x53B6)
                 case 0x5A: GenesisExplore.StepBack(Mem); break;                                                      // STEPBACK (ROM 0x3EA4)
                 case 0x4F: GenesisExplore.HalfStep(Mem); break;                                                      // HALFSTEP
@@ -173,6 +175,7 @@ namespace BuckRogersGenesis
         public int LastSkillResult = -1, LastSkillIndex = -1;
         public Func<int> WhoHandler = () => 0;                                                                 // WHO: the party member the player picks (0-7); a UI plugs in here
         public Action<int> MapLoader;                                                                          // NEWREGION: load the map of this region id into the four layers at 0xB5A4
+        public GenesisMaps Maps;                                                                               // the game's maps (ecl/data/map_layers.txt); null = the host loads maps itself (MapLoader)
         public bool PartyDown;                                                                                 // DAMAGE left nobody standing (the game restarts)
     }
 }

@@ -203,12 +203,14 @@ static class EclHostTests
         // 8. the real game from its start: the session boots like the ROM does ([0xCA21] set: module 0x10, the first fight), runs for a while and stays consistent
         {
             var mem = new GenesisEclMemory(); mem.Ram[0xCA21] = 1; mem.Ram[0x97DC] = 0xA2; mem.Ram[0x97AD] = 2;
-            var host = NewHost(rom, mf, dp, 16, mem);
+            var host = NewHost(rom, mf, dp, 16, mem); host.Maps = GenesisMaps.FromFile("ecl/data/map_layers.txt"); host.Maps.SetArea(a => rom.Byte(a), 0);
             var sess = new EclSession(mods.Values, mem, host, host.X.Rng.ScriptRandom, () => host.NewEclModule, () => host.NewEclModule = -1);
             int first = -1; int ticks = 0; bool ok = true;
             try { first = sess.Boot(); for (; ticks < 60 && sess.Tick(); ) ticks++; }
             catch (Exception ex) { ok = false; Console.WriteLine("   session exception: " + ex.GetType().Name + " " + ex.Message); }
             Check(ok && first == 0x10, $"the real game boots into module 0x10: {first:X}");
+            int mapBytes = 0; for (int i = 0; i < 1024; i++) if (mem.Ram[0xB5A4 + i] != 0) mapBytes++;
+            Check(mapBytes > 0 && mem.Ram[0x9BD4] == 0x10, $"LOADFILES put map 0x10 into memory: {mapBytes} non-zero layer bytes, [9BD4] = {mem.Ram[0x9BD4]:X}");
             Console.WriteLine($"8. real game: boot module {first:X2}, {ticks} ticks, {host.Fights} fights, modules {string.Join(",", sess.Log)}");
         }
 

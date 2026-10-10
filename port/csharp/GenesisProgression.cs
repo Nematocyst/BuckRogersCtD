@@ -39,6 +39,7 @@ namespace BuckRogersGenesis
             new[] { 0x9A14, 0x9BC0 },                // the creature token table (id -> sheet, animation set)                // the party NPC table (npc id -> record id)                // the dungeon arena: view offsets and the cell pattern table
             new[] { 0x0000, 0x0010 },                // the vector table: the inventory's weapon-readying test reads ROM[6] when the picked item is not there
             new[] { 0x7D78, 0x7D7C },                // item class each equipment slot of the inventory accepts (hand, armour, shield, ammunition)
+            new[] { 0x51836, 0x51960 },              // the map class tables per area (GenesisMaps.SetArea)
             new[] { 0x10F69, 0x10F69 + 13 * 5 },     // explosive item types 0..12: effect, radius, hazard tile?, damage mode, animation
         };
 

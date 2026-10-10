@@ -19,6 +19,8 @@ if [ "$2" = "--regen" ]; then
   python3 tools/gen_scriptskilldmg_vectors.py "$ROM" tests/scriptskilldmg_vectors.txt
   python3 tools/gen_scriptitems_vectors.py "$ROM" tests/scriptitems_vectors.txt.gz
   python3 tools/gen_explore_vectors.py "$ROM" tests/explore_vectors.txt
+  python3 tools/export_map_layers.py "$ROM" ecl/data/map_layers.txt
+  python3 tools/gen_maps_vectors.py "$ROM" tests/maps_vectors.txt
   python3 tools/export_monster_file.py "$ROM" csharp/unity/Resources/BuckRogers/monster_file.bytes
   # whole fights only (the other families are in monster_vectors.json.gz): about 30 s
   env $(for n in $(grep -o "N('[a-z0-9_]*'" tools/gen_monster_vectors.py | sed "s/N('//;s/'//" | sort -u); do [ $n != combat ] && echo N_$n=0; done) N_combat=37 python3 tools/gen_monster_vectors.py "$ROM" tests/combat_whole_vectors.json.gz csharp/unity/Resources/BuckRogers/monster_file.bytes tests/scriptdamage_vectors.txt tests/scriptskilldmg_vectors.txt
@@ -35,7 +37,7 @@ mcs -out:ecl/ecltests.exe csharp/GenesisRng.cs ecl/EclInterpreter.cs $STUB ecl/E
 mono ecl/ecltests.exe ecl/data/scripts.json "$ROM" ecl/data/ecl_vectors.txt.gz
 # scripts that fight: the interpreter + the combat host (EclCombatHost) on module 0x10, TREASURE / ADDEP, every entry point of every module
 CORE=$(grep '^mcs -out:tests/combattests.exe' "$0" | sed 's/^mcs -out:tests\/combattests.exe //; s/\$STUB.*//')
-mcs -out:ecl/eclhosttests.exe $CORE csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/EclCombatHost.cs csharp/GenesisExplore.cs ecl/EclInterpreter.cs ecl/EclSession.cs $STUB ecl/EclHostTests.cs
+mcs -out:ecl/eclhosttests.exe $CORE csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/EclCombatHost.cs csharp/GenesisExplore.cs csharp/GenesisMaps.cs ecl/EclInterpreter.cs ecl/EclSession.cs $STUB ecl/EclHostTests.cs
 mono ecl/eclhosttests.exe ecl/data/scripts.json csharp/unity/Resources/BuckRogers/monster_file.bytes csharp/unity/Resources/BuckRogers/default_party.bytes "$ROM"
 # race table, starship crew hazard (0x1956E), disarmed-fighter example (0x6D1E)
 mcs -out:tests/hazardtests.exe csharp/GenesisRng.cs csharp/GenesisRaces.cs csharp/GenesisCombat.cs csharp/GenesisProgression.cs csharp/GenesisActions.cs $STUB tests/HazardTests.cs
@@ -46,3 +48,6 @@ mono tests/scriptchartests.exe tests/scriptchar_vectors.txt "$ROM"
 # exploration commands (step, half step, unlock, how far) against the ROM handlers
 mcs -out:tests/exploretests.exe ecl/EclInterpreter.cs csharp/GenesisRng.cs csharp/GenesisExplore.cs $STUB tests/ExploreTests.cs
 mono tests/exploretests.exe tests/explore_vectors.txt
+# map loading: decode + the rectangle post-processing of NEWREGION / LOADFILES against the ROM
+mcs -out:tests/mapstests.exe ecl/EclInterpreter.cs csharp/GenesisRng.cs csharp/GenesisMaps.cs $STUB tests/MapsTests.cs
+mono tests/mapstests.exe tests/maps_vectors.txt ecl/data/map_layers.txt "$ROM"

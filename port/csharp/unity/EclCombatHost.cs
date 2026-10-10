@@ -127,13 +127,13 @@ namespace BuckRogersGenesis
             X.ShopFlag = 0; Mem.Ram[0xBA60] = 0;
             uint mo = X.Money; Mem.Ram[0x9BD0] = (byte)(mo >> 24); Mem.Ram[0x9BD1] = (byte)(mo >> 16); Mem.Ram[0x9BD2] = (byte)(mo >> 8); Mem.Ram[0x9BD3] = (byte)mo;
         }
-        /// PROGRAM n (ROM 0x3AEC, jump table 0x3B5E). 2 = the end of the game: [0xBA53] and [0xBA59] are set (EclSession.IsGameOver). The other numbers open screens (0 training, 1/3/4 other programs,
-        /// 5 clears the save area) and are the host's: ProgramHandler is called with the number; for 0 the host also tells the session where the script resumes (EclSession.ResumeAddress, the script
-        /// pointer behind this instruction, which the ROM keeps in [0x9BCC]).
+        /// PROGRAM n (ROM 0x3AEC, word table 0x3B5E, offsets from the table): 0 = the training screen (below), 1 = the 299-frame intro animation (0x5C3C), 2 = the credits roll (0x60E0),
+        /// 3 = the end of the game ([0xBA53] and [0xBA59] set: EclSession.IsGameOver), 4 = the developer's table editor (0xD77C), 5 = erase the saved games (0x3B2A; no script uses it).
+        /// Programs 1, 2, 4 and 5 are screens without game logic: ProgramHandler is called with the number (the intro and credits only change the display mode bytes [0x9BBC] / [0xBA5E]).
         public void Program(int n)
         {
             ProgramCalled = n; Log.Add("PROGRAM " + n);
-            if (n == 2) { Mem.Ram[0xBA53] = 0xFF; Mem.Ram[0xBA59] = 0xFF; }
+            if (n == 3) { Mem.Ram[0xBA53] = 0xFF; Mem.Ram[0xBA59] = 0xFF; }
             if (n == 0 && TrainChoose != null)
             {
                 // the training screen (ROM 0x3AFE -> 0x569E -> 0x3D2 -> 0xC96): the ROM leaves the script, runs the screen and resumes it behind the PROGRAM instruction through the main loop, which

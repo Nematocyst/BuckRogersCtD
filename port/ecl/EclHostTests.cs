@@ -215,9 +215,9 @@ static class EclHostTests
             int after = 0; for (int k = 0; k < 13; k++) if (host.S.Records[0][0x54 + 10 * k] == firstId) after++;
             Check(host.StoreOpened == 1 && host.X.ShopFlag == 0 && mem.Ram[0xBA60] == 0, "STORE runs and clears the shop flag again");
             Check(money < 5000 && after == before + 1, $"buying item {firstId}: money 5000 -> {money}, copies {before} -> {after}");
-            var asm3 = new HAsm(); asm3.Start(); asm3.Emit(0x38, HAsm.B(2)); asm3.Emit(0x00);
+            var asm3 = new HAsm(); asm3.Start(); asm3.Emit(0x38, HAsm.B(3)); asm3.Emit(0x00);
             new EclInterpreter(asm3.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm3.Entry);
-            Check(mem.Ram[0xBA53] == 0xFF && host.ProgramCalled == 2, "PROGRAM 2 ends the game ([BA53] set)");
+            Check(mem.Ram[0xBA53] == 0xFF && host.ProgramCalled == 3, "PROGRAM 3 ends the game ([BA53] set)");
             Console.WriteLine("7b. shop through the host");
         }
 

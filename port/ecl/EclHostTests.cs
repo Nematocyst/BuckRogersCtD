@@ -200,6 +200,27 @@ static class EclHostTests
             Console.WriteLine("7. session driver");
         }
 
+        // 7b. the shop: STORE 1 clears the monsters, loads the shop list and runs the loot screen as the buy screen; buying costs money and puts the item in the buyer's gear
+        {
+            var mem = new GenesisEclMemory(); var host = NewHost(rom, mf, dp, 17, mem);
+            mem.Ram[0x9BD2] = 0x13; mem.Ram[0x9BD3] = 0x88; mem.Ram[0x9E63] = 16;                       // 5,000 credits, price factor 1
+            var answers = new Queue<int>(new[] { 9, 0, 8, 8, 8, 8 });                                     // the first item of the shop, give it to member 0, leave
+            host.X.InventoryMenu = () => answers.Count > 0 ? answers.Dequeue() : 8;
+            host.X.AskQuantity = max => 1;
+            int firstId = 3;                                                                                // list 1 starts with item 3
+            int before = 0; for (int k = 0; k < 13; k++) if (host.S.Records[0][0x54 + 10 * k] == firstId) before++;
+            var asm = new HAsm(); asm.Start(); asm.Emit(0x4B, HAsm.B(1)); asm.Emit(0x00);
+            new EclInterpreter(asm.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm.Entry);
+            uint money = (uint)(mem.Ram[0x9BD0] << 24 | mem.Ram[0x9BD1] << 16 | mem.Ram[0x9BD2] << 8 | mem.Ram[0x9BD3]);
+            int after = 0; for (int k = 0; k < 13; k++) if (host.S.Records[0][0x54 + 10 * k] == firstId) after++;
+            Check(host.StoreOpened == 1 && host.X.ShopFlag == 0 && mem.Ram[0xBA60] == 0, "STORE runs and clears the shop flag again");
+            Check(money < 5000 && after == before + 1, $"buying item {firstId}: money 5000 -> {money}, copies {before} -> {after}");
+            var asm3 = new HAsm(); asm3.Start(); asm3.Emit(0x38, HAsm.B(2)); asm3.Emit(0x00);
+            new EclInterpreter(asm3.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm3.Entry);
+            Check(mem.Ram[0xBA53] == 0xFF && host.ProgramCalled == 2, "PROGRAM 2 ends the game ([BA53] set)");
+            Console.WriteLine("7b. shop through the host");
+        }
+
         // 8. the real game from its start: the session boots like the ROM does ([0xCA21] set: module 0x10, the first fight), runs for a while and stays consistent
         {
             var mem = new GenesisEclMemory(); mem.Ram[0xCA21] = 1; mem.Ram[0x97DC] = 0xA2; mem.Ram[0x97AD] = 2;

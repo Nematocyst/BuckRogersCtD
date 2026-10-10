@@ -112,8 +112,31 @@ namespace BuckRogersGenesis
             }
         }
 
-        public void Store(int n) { StoreOpened = n; Log.Add("STORE " + n); }
-        public void Program(int n) { ProgramCalled = n; Log.Add("PROGRAM " + n); }
+        /// STORE n (ROM 0x3D3C): clear the monsters, put shop list n (table at ROM 0x3D76: a length byte and the item ids) in the loot list, set the shop flag [0xBA60] and run COMBAT: with nobody to
+        /// fight the clean-up goes straight to the loot screen, which is the shop's buy screen (and the inventory sells) while the flag is set. Money is [0x9BD0] (a long), the price factor [0x9E63].
+        public void Store(int n)
+        {
+            StoreOpened = n; Log.Add("STORE " + n);
+            if (n < 0 || n > 15) return;
+            int w = 0x3D76 + 2 * n, a = 0x3D76 + (X.Rom.Byte(w) << 8 | X.Rom.Byte(w + 1)), len = X.Rom.Byte(a);
+            var items = new int[len]; for (int k = 0; k < len; k++) items[k] = X.Rom.Byte(a + 1 + k);
+            X.ClearMonsters(); X.SetStoreItems(items);
+            X.PriceFactor = Mem.Ram[0x9E63]; X.Money = (uint)(Mem.Ram[0x9BD0] << 24 | Mem.Ram[0x9BD1] << 16 | Mem.Ram[0x9BD2] << 8 | Mem.Ram[0x9BD3]);
+            X.ShopFlag = 0xFF; Mem.Ram[0xBA60] = 0xFF;
+            Combat();
+            X.ShopFlag = 0; Mem.Ram[0xBA60] = 0;
+            uint mo = X.Money; Mem.Ram[0x9BD0] = (byte)(mo >> 24); Mem.Ram[0x9BD1] = (byte)(mo >> 16); Mem.Ram[0x9BD2] = (byte)(mo >> 8); Mem.Ram[0x9BD3] = (byte)mo;
+        }
+        /// PROGRAM n (ROM 0x3AEC, jump table 0x3B5E). 2 = the end of the game: [0xBA53] and [0xBA59] are set (EclSession.IsGameOver). The other numbers open screens (0 training, 1/3/4 other programs,
+        /// 5 clears the save area) and are the host's: ProgramHandler is called with the number; for 0 the host also tells the session where the script resumes (EclSession.ResumeAddress, the script
+        /// pointer behind this instruction, which the ROM keeps in [0x9BCC]).
+        public void Program(int n)
+        {
+            ProgramCalled = n; Log.Add("PROGRAM " + n);
+            if (n == 2) { Mem.Ram[0xBA53] = 0xFF; Mem.Ram[0xBA59] = 0xFF; }
+            if (ProgramHandler != null) ProgramHandler(n);
+        }
+        public Action<int> ProgramHandler;
         public void NewEcl(int module) { NewEclModule = module; Log.Add("NEWECL " + module); }
         public void EncounterExit() { EncounterExited = true; Log.Add("ENCEXIT"); }
 

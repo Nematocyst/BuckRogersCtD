@@ -72,6 +72,14 @@ namespace BuckRogersGenesis
             PoolCount = (byte)n;
         }
 
+        /// 0x3D3C (STORE): the shop's item list goes into the scripted-loot list as it is (no filtering, the credits stay as CLEARMONSTERS left them), and the pool count is its length.
+        public void SetStoreItems(int[] items)
+        {
+            Array.Clear(ScriptedLoot, 0, ScriptedLoot.Length); int n = 0;
+            foreach (int id in items) if (n < ScriptedLoot.Length) ScriptedLoot[n++] = (byte)id;
+            PoolCount = (byte)n;
+        }
+
         void EnsureSlot(int i)
         {
             if (S.Slots.Length <= i) Array.Resize(ref S.Slots, i + 1);

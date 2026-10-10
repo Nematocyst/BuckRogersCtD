@@ -221,6 +221,23 @@ static class EclHostTests
             Console.WriteLine("7b. shop through the host");
         }
 
+        // 7c. PROGRAM 0: the training screen levels up a ready character (skill points, hit points, attack value), once, and the script goes on
+        {
+            var mem = new GenesisEclMemory(); var host = NewHost(rom, mf, dp, 18, mem);
+            var r0 = host.S.Records[0]; int lvl0 = r0[0x19], skillsBefore = 0; for (int k = 0; k < 15; k++) skillsBefore += r0[0x31 + k];
+            r0[0x1E] = 0; r0[0x1F] = 0x7F; r0[0x20] = 0xFF; r0[0x21] = 0x00;                                   // plenty of XP
+            int asked = 0; int turn = 0;
+            host.TrainChoose = scan => { asked++; return asked == 1 ? 0 : -1; };                                 // train the first present member once, then leave
+            host.TrainMenu = entries => (turn++) % entries;
+            mem.Ram[0x9D9E] = 127;
+            var asm = new HAsm(); asm.Start(); asm.Emit(0x38, HAsm.B(0)); asm.Emit(0x09, HAsm.B(1), HAsm.M(0x9E70)); asm.Emit(0x00);
+            var stop = new EclInterpreter(asm.Module(), mem, host, host.X.Rng.ScriptRandom).RunFrom(asm.Entry);
+            int skillsAfter = 0; for (int k = 0; k < 15; k++) skillsAfter += r0[0x31 + k];
+            Check(stop == EclStop.Exit && mem.Ram[0x9E70] == 1 && mem.Ram[0x9D9E] == 0, "the script goes on behind PROGRAM 0; the training flag is cleared");
+            Check(r0[0x19] == lvl0 + 1 && skillsAfter > skillsBefore && asked == 2, $"training raised level {lvl0} -> {r0[0x19]} and the skills {skillsBefore} -> {skillsAfter}");
+            Console.WriteLine("7c. training through the host");
+        }
+
         // 8. the real game from its start: the session boots like the ROM does ([0xCA21] set: module 0x10, the first fight), runs for a while and stays consistent
         {
             var mem = new GenesisEclMemory(); mem.Ram[0xCA21] = 1; mem.Ram[0x97DC] = 0xA2; mem.Ram[0x97AD] = 2;

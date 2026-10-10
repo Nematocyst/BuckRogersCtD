@@ -19,6 +19,7 @@ if [ "$2" = "--regen" ]; then
   python3 tools/gen_scriptskilldmg_vectors.py "$ROM" tests/scriptskilldmg_vectors.txt
   python3 tools/gen_scriptitems_vectors.py "$ROM" tests/scriptitems_vectors.txt.gz
   python3 tools/gen_explore_vectors.py "$ROM" tests/explore_vectors.txt
+  python3 tools/gen_training_vectors.py "$ROM" tests/training_vectors.txt.gz
   python3 tools/export_map_layers.py "$ROM" ecl/data/map_layers.txt
   python3 tools/gen_maps_vectors.py "$ROM" tests/maps_vectors.txt
   python3 tools/export_monster_file.py "$ROM" csharp/unity/Resources/BuckRogers/monster_file.bytes
@@ -29,7 +30,7 @@ if [ "$2" = "--regen" ]; then
 fi
 STUB=../genesis_maps/unity/tests/UnityStub.cs
 mcs -out:tests/rngtests.exe csharp/GenesisRng.cs $STUB tests/RngTests.cs
-mcs -out:tests/combattests.exe csharp/GenesisRng.cs csharp/GenesisCombat.cs csharp/GenesisProgression.cs csharp/GenesisRewards.cs csharp/GenesisAi.cs csharp/GenesisSkills.cs csharp/GenesisTurns.cs csharp/GenesisActions.cs csharp/GenesisMonsterAi.cs csharp/GenesisMonsterWeapons.cs csharp/GenesisMonsterTurn.cs csharp/GenesisPlayerTurn.cs csharp/GenesisInventory.cs csharp/GenesisCombatLoop.cs csharp/GenesisCombatSetup.cs csharp/GenesisCombatEnd.cs csharp/GenesisLootScreen.cs csharp/GenesisShipRepair.cs csharp/GenesisAreaWeapons.cs csharp/GenesisAreaAttack.cs csharp/GenesisAreaChoice.cs csharp/GenesisEffects.cs csharp/GenesisDungeonArena.cs csharp/GenesisCombatants.cs csharp/GenesisParty.cs csharp/GenesisScriptChar.cs csharp/GenesisScriptDamage.cs csharp/GenesisScriptItems.cs $STUB tests/CombatTests.cs tests/ProgressTests.cs tests/AiTests.cs tests/ActionTests.cs tests/MonsterTests.cs tests/ArenaTests.cs tests/CombatantTests.cs tests/AdapterTests.cs tests/ScriptDamageTests.cs tests/ScriptItemsTests.cs csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/BattleSequence.cs tests/RomTablesShapes.cs
+mcs -out:tests/combattests.exe csharp/GenesisRng.cs csharp/GenesisCombat.cs csharp/GenesisProgression.cs csharp/GenesisRewards.cs csharp/GenesisAi.cs csharp/GenesisSkills.cs csharp/GenesisTurns.cs csharp/GenesisActions.cs csharp/GenesisMonsterAi.cs csharp/GenesisMonsterWeapons.cs csharp/GenesisMonsterTurn.cs csharp/GenesisPlayerTurn.cs csharp/GenesisInventory.cs csharp/GenesisCombatLoop.cs csharp/GenesisCombatSetup.cs csharp/GenesisCombatEnd.cs csharp/GenesisLootScreen.cs csharp/GenesisShipRepair.cs csharp/GenesisAreaWeapons.cs csharp/GenesisAreaAttack.cs csharp/GenesisAreaChoice.cs csharp/GenesisEffects.cs csharp/GenesisDungeonArena.cs csharp/GenesisCombatants.cs csharp/GenesisParty.cs csharp/GenesisScriptChar.cs csharp/GenesisScriptDamage.cs csharp/GenesisScriptItems.cs csharp/GenesisTraining.cs $STUB tests/CombatTests.cs tests/ProgressTests.cs tests/AiTests.cs tests/ActionTests.cs tests/MonsterTests.cs tests/ArenaTests.cs tests/CombatantTests.cs tests/AdapterTests.cs tests/ScriptDamageTests.cs tests/ScriptItemsTests.cs csharp/unity/AutoBattle.cs csharp/unity/TokenFrames.cs csharp/unity/BattleSequence.cs tests/RomTablesShapes.cs
 mono tests/rngtests.exe tests/rng_vectors.json "$ROM"
 mono tests/combattests.exe tests/combat_vectors.json "$ROM" tests/damage_vectors.json tests/progress_vectors.json tests/ai_vectors.json tests/action_vectors.json tests/monster_vectors.json.gz tests/arena_vectors.txt tests/combatant_vectors.txt tests/combat_whole_vectors.json.gz csharp/unity/Resources/BuckRogers/monster_file.bytes tests/scriptdamage_vectors.txt tests/scriptskilldmg_vectors.txt tests/scriptitems_vectors.txt.gz
 # the script (ECL) interpreter: decoder against the 13,936 decoded instructions of data/scripts.json, flow tests, and 1,500 random scripts run by the ROM's own engine
@@ -51,3 +52,7 @@ mono tests/exploretests.exe tests/explore_vectors.txt
 # map loading: decode + the rectangle post-processing of NEWREGION / LOADFILES against the ROM
 mcs -out:tests/mapstests.exe ecl/EclInterpreter.cs csharp/GenesisRng.cs csharp/GenesisMaps.cs $STUB tests/MapsTests.cs
 mono tests/mapstests.exe tests/maps_vectors.txt ecl/data/map_layers.txt "$ROM"
+# the training screen's level-up (skill points, speciality, hit points) against the ROM routine
+CORE2=$(grep '^mcs -out:tests/combattests.exe' "$0" | sed 's/^mcs -out:tests\/combattests.exe //; s/\$STUB.*//')
+mcs -out:tests/trainingtests.exe $CORE2 $STUB tests/TrainingTests.cs
+mono tests/trainingtests.exe tests/training_vectors.txt.gz "$ROM"

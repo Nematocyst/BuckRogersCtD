@@ -134,9 +134,19 @@ namespace BuckRogersGenesis
         {
             ProgramCalled = n; Log.Add("PROGRAM " + n);
             if (n == 2) { Mem.Ram[0xBA53] = 0xFF; Mem.Ram[0xBA59] = 0xFF; }
+            if (n == 0 && TrainChoose != null)
+            {
+                // the training screen (ROM 0x3AFE -> 0x569E -> 0x3D2 -> 0xC96): the ROM leaves the script, runs the screen and resumes it behind the PROGRAM instruction through the main loop, which
+                // reloads the current map ([0x9BD4]); run synchronously, the script simply goes on. [0x9D9E] (the training flag the script set) is cleared on the way back.
+                X.TrainMenu = TrainMenu; X.TrainingScreen(TrainChoose);
+                Mem.Ram[0x9D9E] = 0;
+                if (Maps != null && Mem.Ram[0x9BD4] != 0) Maps.Load(Mem, Mem.Ram[0x9BD4]);
+            }
             if (ProgramHandler != null) ProgramHandler(n);
         }
         public Action<int> ProgramHandler;
+        public Func<GenesisProgression.TrainingScan, int> TrainChoose;                                         // PROGRAM 0: the training screen's member menu (null = the host handles PROGRAM 0 itself)
+        public Func<int, int> TrainMenu = entries => 0;                                                        // the skill / speciality picks on the training screen
         public void NewEcl(int module) { NewEclModule = module; Log.Add("NEWECL " + module); }
         public void EncounterExit() { EncounterExited = true; Log.Add("ENCEXIT"); }
 

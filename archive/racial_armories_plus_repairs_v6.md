@@ -1,3 +1,5 @@
+> **Superseded.** This is an older version kept for history. The current release is Buck Rogers Restored and Improved v1.0; see the repository README. Patch files referenced below live in this folder or in `../kit/`.
+
 # Buck Rogers: Countdown to Doomsday (Genesis) — Restored Weapons Patch
 
 **Patch file:** `racial_armories_plus_repairs_v6.ips`

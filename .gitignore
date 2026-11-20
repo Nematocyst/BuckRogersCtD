@@ -1,0 +1,11 @@
+# Never commit ROMs or anything built from one. This repository holds patches, tools and documentation only.
+kit/build/
+ORIGINAL*
+*.bin
+*.gen
+*.smd
+*.sfc
+
+# Python
+__pycache__/
+*.pyc

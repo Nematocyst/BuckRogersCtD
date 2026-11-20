@@ -263,14 +263,17 @@ For ROM hackers. All addresses are ROM file offsets.
 
 ### Rebuilding
 
-The release kit rebuilds both main patches from the original ROM, byte-identical to the released files:
+The build kit is in the [`kit/`](kit/) folder of this repository. It rebuilds both main patches from the original ROM, byte-identical to the released files:
 
 ```
+cd kit
 sh build_release.sh ORIGINAL.md          # build/release.ips
 sh build_release.sh ORIGINAL.md level9   # build/release_level9.ips
 ```
 
-The build applies, in order: restoration base, rocket fix, Quick Combat fix, shop comparison line, creation fix, racial rocket pistols, armor clean-up, courier reward. `tools/build_addons.py` then builds the add-ons against each main patch.
+The build applies, in order: restoration base, rocket fix, Quick Combat fix, shop comparison line, creation fix, racial rocket pistols, armor clean-up, courier reward. After both builds, `python3 tools/build_addons.py ORIGINAL.md` builds the add-ons against each main patch.
+
+Full instructions, checks and the data formats behind these edits are in [docs/BUILDING.md](docs/BUILDING.md) and [docs/ROM-FORMATS.md](docs/ROM-FORMATS.md).
 
 ### Credits
 

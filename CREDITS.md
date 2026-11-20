@@ -1,0 +1,9 @@
+# Credits and Acknowledgements
+
+- **Nematocyst** - Lead developer, hex analysis, and ROM hacking.
+- **Claude AI (Anthropic)** - Assisted with writing assembly scripts, parsing data, and code generation during development.
+- **Rom Patcher JS** - Used for patch application and testing.
+- **Mike's RPG Center** - Being an invaluable fount of information about this great game.
+- **Bizhawk Emulator** - Wouldn't have been able to test these patches so quickly without it.
+- **alphafox02/Cemaxecuter** - For suggesting a better viable emulator to run within Claude and making it possible for an AI to run its own emulator within its sandbox.
+- **Stable-Retro** - Invaluable for testing.

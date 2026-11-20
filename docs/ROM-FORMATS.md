@@ -6,16 +6,33 @@ Everything here is taken from the tool sources and the release notes. Where a fi
 
 ## Contents
 
-1. [Checksums](#checksums)
-2. [Compressed data (LZW variant)](#compressed-data-lzw-variant)
-3. [Module tables: scripts and text](#module-tables-scripts-and-text)
-4. [Monster file](#monster-file)
-5. [Weapon and armor stat table](#weapon-and-armor-stat-table)
-6. [Item records](#item-records)
-7. [Shop lists](#shop-lists)
-8. [Level cap](#level-cap)
-9. [Script language (ECL)](#script-language-ecl)
-10. [Free space](#free-space)
+1. [ROM identification](#rom-identification)
+2. [Checksums](#checksums)
+3. [Compressed data (LZW variant)](#compressed-data-lzw-variant)
+4. [Module tables: scripts and text](#module-tables-scripts-and-text)
+5. [Monster file](#monster-file)
+6. [Weapon and armor stat table](#weapon-and-armor-stat-table)
+7. [Item records](#item-records)
+8. [Shop lists](#shop-lists)
+9. [Level cap](#level-cap)
+10. [Script language (ECL)](#script-language-ecl)
+11. [Free space](#free-space)
+
+## ROM identification
+
+Standard Sega header at `0x100`:
+
+| Field | Value |
+| --- | --- |
+| Console name | `SEGA GENESIS` |
+| Copyright / date | `(C)T-50 1991.DEC` |
+| Domestic and overseas title | `BUCK RODGERS COUNTDOWN TO DOOMSD` (the misspelling "RODGERS" is in the ROM) |
+| Serial | `GM T-50286 -00` |
+| Region | `U` |
+| Size | 1,048,576 bytes |
+| Original checksums | game `0x10D1310C` at `0xFFFCC`, header `0xD7B6` at `0x18E` |
+
+The first routine the game runs (at `0xFFFB0`) sums the ROM and compares it with the game checksum below. On a mismatch the game hangs on a blank screen with no message.
 
 ## Checksums
 
@@ -83,8 +100,8 @@ If the edited stream is longer than the original, it is written to `0xF8000` and
 
 | Byte | Field name in the tool | Meaning | Status |
 | --- | --- | --- | --- |
-| 0 | `class` | item class: 0 weapon or grenade, 1 armor, 2–8 other | read from the table |
-| 1 | `type` | weapon type: 0 melee, 1 needle/bolt/crossbow, 2 rocket, 3 laser, 8 grenade, … | read from the table |
+| 0 | `class` | item class: 0 weapon or grenade, 1 armor, 2–8 other (the grenade launcher is class 6) | read from the table |
+| 1 | `type` | weapon type: 0 melee, 1 needle / bolt / crossbow, 2 rocket pistol and rifle, 3 laser, 4 cover gun, 5 heat gun, 6 sonic stunner, 7 rocket launcher, 8 grenade, 9 plasma thrower | read from the table |
 | 1 | `armor` | for class 1: armor value (spacesuit 54 up to battle armor w/fields 62) | read from the table |
 | 2 | `rof2` | attacks per round × 2 (laser pistol 6 = 3 attacks, as the character screen shows) | matches the character screen |
 | 3 | `dice` | number of damage dice | not tested live |
@@ -92,6 +109,8 @@ If the edited stream is longer than the original, it is written to `0xF8000` and
 | 5 | `bonus` | stun grenade has 2 | meaning not tested |
 | 6 | `flag` | 1 on grenade launcher, plasma thrower, rocket launcher | meaning not tested |
 | 7 | `range` | range (grenades 3 … laser rifle 120) | not tested live |
+
+Range values: grenades 3, heat gun 6, needle gun 12, laser pistol 32, rocket rifle 80, laser rifle 120. Live tests on the original: attacks `6 → 2` cut the first fight's volleys from 1–3 hits to mostly 1 (the attacker can still add attacks on top of the weapon's), and `sides 8 → 20` made a hit of 15 appear.
 
 **Armor value** of an item: `stat byte 1 − 0x32 + item record byte 4` (the racial tier), as the stat routine at `0x6D1E` adds it. One point of armor value is one point of AC.
 
@@ -112,6 +131,10 @@ The item table has one 10-byte record per item id. Its address is stored in thre
 | 8–9 | 0 in the records seen; meaning unknown |
 
 The word table is at `0x11DC4`: a list of 16-bit offsets from the table start to NUL-terminated strings (index 0 is empty). Names are built from three words, which is why race variants share words with their base items.
+
+Fields of the same record seen in other places: byte 4 is also added to a weapon's damage (the racial tier is a flat damage bonus, see [COMBAT-RULES.md](COMBAT-RULES.md#damage)) and bytes 6–7 are the price that [Prices](#prices) turns into what a shop shows.
+
+Gear slots in character and monster records use this same 10-byte layout; see [RECORD-FIELDS.md](RECORD-FIELDS.md).
 
 Examples from `add_racial_rockets.py`:
 
@@ -145,6 +168,15 @@ These are the ids `0x01`–`0x26` of the stat table, with the names the tools us
 
 The "lost." entry is exactly as it appears in the tool's name list.
 
+### Availability and icon tables
+
+- **`0xA829`, availability / redirect table**, one byte per **base item** (ids `0x01`–`0x25`; racial variants are not covered, as `0x41` and `0x48` sold correctly with it untouched). `0xFF` or any value `>= 0x80`: sold as it is (and a loot drop is allowed); `0x00`: never shown in a shop (knives and the sonic stunner in the original, and never dropped); a small value `n`: the item is replaced by base item `n` (sword → mono sword, bolt gun → needle gun, rocket rifle and cover gun → rocket pistol, laser rifle → laser pistol, polearm → cutlass). The cut weapons add-on changes these bytes; see [PATCH-NOTES.md](PATCH-NOTES.md#cut-weapons-add-on) and [SHOPS.md](SHOPS.md#which-weapon-kinds-survive-into-a-shop).
+- **`0xA802`, icon table**, read by the routine at `0xA7BC`. It returns `0xFF` for kinds without art. Both are used by the shop and inventory list builders (`0x7C1A`, `0x1690A`). Icon ids index the set in [GRAPHICS.md](GRAPHICS.md#icons).
+
+### Prices
+
+A price shown in a shop is the item record's price (bytes 6–7) × `[0x9E63]` / 16, where `[0x9E63]` is the port's markup in sixteenths (32 for × 2, 64 for × 4). Selling gives half of the price (bytes 6–7), times the amount. A test that opens a shop through an injected `STORE` script command leaves `[0x9E63]` at 0, so every price reads 0 there.
+
 ## Shop lists
 
 The game has 16 shop lists, numbered 0–15. See [SHOPS.md](SHOPS.md) for which list is which shop.
@@ -155,6 +187,8 @@ In the original ROM the lists are packed tightly behind an offset table at `0x3D
 | --- | --- |
 | Pointer table | `0xF2000`: 16 entries, each a 32-bit ROM offset of a list |
 | List | `[count][item id × count]`, in a 16-byte slot (count plus up to 15 items) |
+
+The original loader (`0x3D3C`) refuses to add a 15th item to the working copy, so **14 items is the effective maximum per shop** even though a 16-byte slot has room for 15. Whether the on-screen grid could show more than 14 is untested.
 
 Item ids in a list refer to the [item records](#item-records). `build_addons.py` checks that a list never grows into the next one.
 
@@ -172,6 +206,10 @@ In the original ROM each career's level-9 XP threshold is the sentinel `FF FF FF
 ## Script language (ECL)
 
 The game's events, shops, encounters and quest logic are written in a bytecode, which the tools call ECL. `ecl_disasm.py` produces readable listings; `ecl_patch.py` edits and reassembles modules. Facts below were verified on all 27 modules.
+
+**Opcode table.** The 94 opcode names at `0x446E` are plain text in the ROM, not compressed. The 27 modules use 83 of the 94 opcodes; the other 11 never appear (INPUTSTRING, MENU, SETTIMER, CHECKPARTY, ROB, CLOCK, SPELLS, PROTECT, JOURNAL, ANIMATE and ICONMENU, whose operand counts are unknown). The scripts hold 135 fight entry points; see [ENCOUNTERS.md](ENCOUNTERS.md). `SPACECOMBAT` is opcode `0x1F` (see [SPACE-COMBAT.md](SPACE-COMBAT.md)). The RAM variables scripts use are in [SCRIPT-VARIABLES.md](SCRIPT-VARIABLES.md).
+
+**Text region.** The 27 text modules occupy `0x42B96`–`0x510FE`, indexed by the table at `0x42B0A`. The first one holds the developer debug menu ("START FROM SCRATCH OR USE THE JUMPER?" with ARENA, TREASURE, STORE, SOUND, SPRITE, ARTTOOL, TESTS and DEMO tools).
 
 **Modules.** Loaded at `0x6AF6`. The decoded module must fit the load buffer, which ends at `0x96F6` (`0x2C00` bytes). The first 20 bytes are five `GOTO` entry points, in this order: run, search, precamp, campint, init. The game overwrites the last byte of a module after loading it, so edited modules end with 2 padding bytes.
 
@@ -195,6 +233,13 @@ Jump targets appear as `L6B40`. Opcode names come from a table in the ROM at `0x
 **Edits (`ecl_patch.py`).** Insertions move no addresses. Whole instructions at the insertion site (at least 4 bytes) are replaced by a `GOTO` to new code appended at the end of the module; the new code is followed by the displaced instructions and a `GOTO` back. An insertion is refused if the site follows an `IF`, if an `IF` would be displaced, or if a jump target falls inside the displaced bytes. `T"text"` operands add a new string to the module's text.
 
 A module that still fits its original slot is written in place. Otherwise it moves to free space (starting at `0xFB000`) and only its table entry changes. The courier reward in the release is such an edit; the exact command is in `kit/build_release.sh`.
+
+## Other data worth knowing
+
+- **Pregenerated characters:** 8 records of 214 bytes at `0x6BAAD`, loaded by the code at `0x1F32`; the first six are the default party (Flavius, Celeste, Pierre, Nichole, Roarke, Janelle). Record layout in [RECORD-FIELDS.md](RECORD-FIELDS.md).
+- **Random numbers:** the RNG table is seeded from 256 words at `0x390E2`, inside script module 00. Do not edit that module in place; see [COMBAT-RULES.md](COMBAT-RULES.md#random-numbers).
+- **Graphics tables:** encounter pictures `0x51360`, icons `0xF14F2`, creature tokens `0x9A14`, party tokens `0x998C`, system palette `0x9710`. See [GRAPHICS.md](GRAPHICS.md).
+- **Combat tables:** XP thresholds `0x0C16`, attack values `0x0BB0`, initiative `0x7786`, strength / dexterity modifiers `0x7741` / `0x776F`, effect stage lists `0x6670` and handlers `0x66F8`. See [COMBAT-RULES.md](COMBAT-RULES.md).
 
 ## Free space
 

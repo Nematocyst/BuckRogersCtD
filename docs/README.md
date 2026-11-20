@@ -11,6 +11,9 @@
 | [SCRIPT-VARIABLES.md](SCRIPT-VARIABLES.md) | find what the RAM variables used by scripts mean |
 | [ENCOUNTERS.md](ENCOUNTERS.md) | look up all 135 scripted fights and their script addresses |
 | [SPACE-COMBAT.md](SPACE-COMBAT.md) | see how space encounters start and what the ship types are (code-derived) |
+| [MAPS.md](MAPS.md) | read the 16 × 16 map format, wall and door bits, and which areas are walkable |
+| [DOS-DATA.md](DOS-DATA.md) | read the DOS `.DAX` container and how its monster and item files line up with Genesis |
+| [EMULATOR-TESTING.md](EMULATOR-TESTING.md) | repeat the tests: RAM reading, teleporting between areas, verification habits |
 | [GRAPHICS.md](GRAPHICS.md) | find where pictures, icons, creature tokens and terrain are stored and how they are drawn |
 | [COMPONENTS.md](COMPONENTS.md) | see what each file in `kit/` is and how the add-ons are derived |
 | [OPEN-QUESTIONS.md](OPEN-QUESTIONS.md) | see what is untested, unknown or not done |

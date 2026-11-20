@@ -49,7 +49,15 @@ Apply an add-on only on top of the main patch of the same variant, and apply onl
 
 ## Check the result
 
-The released files should be reproduced byte for byte. Compare your build with the files in `BR_Restored_Improved_v1.0_patches.zip`:
+One command does all of the above and the comparison below. From `kit/`:
+
+```
+sh verify.sh /path/to/ORIGINAL.md
+```
+
+It rebuilds both main patches and all six add-ons, compares each with the file in `BR_Restored_Improved_v1.0_patches.zip` (the copy in the repository root unless you pass another path as a second argument), prints PASS or FAIL per file and exits non-zero if anything differs.
+
+To compare by hand, the released files should be reproduced byte for byte. Compare your build with the files in the zip:
 
 ```
 cmp kit/build/release.ips        BR_Restored_Improved_v1.0.ips
